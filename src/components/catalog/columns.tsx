@@ -196,7 +196,7 @@ export const columns = (onDataChange: () => void): ColumnDef<Book>[] => [
     header: '',
     cell: ({ row }) => {
       const imageUrl = row.getValue('coverImageUrl') as string | undefined;
-      const defaultCover = PlaceHolderImages.find(p => p.id === 'default_book_cover')?.imageUrl || "https://picsum.photos/seed/book/100/100";
+      const defaultCover = PlaceHolderImages.find(p => p.id === 'default_book_cover')?.imageUrl || "https://storage.googleapis.com/project-spark-demos/sellerbox-default-cover.png";
       return (
         <div className="relative h-16 w-12 flex-shrink-0">
           <Image 

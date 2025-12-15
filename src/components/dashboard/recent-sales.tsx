@@ -10,6 +10,7 @@ import {
 import type { Book, Sale } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useI18n } from '../i18n/i18n-provider';
+import Image from 'next/image';
 
 interface RecentSalesProps {
   sales: Sale[];
@@ -24,16 +25,7 @@ export function RecentSales({ sales, books }: RecentSalesProps) {
     .slice(0, 5);
   
   const bookMap = new Map(books.map(b => [b.id, b]));
-  const coverMap = new Map(PlaceHolderImages.map(p => [p.id, p.imageUrl]));
-  
-  // A simple mapping from book name to placeholder id
-  const bookToCoverId: {[key: string]: string} = {
-    'The C++ Programming Language': 'cover_cpp',
-    'Clean Code: A Handbook of Agile Software Craftsmanship': 'cover_clean_code',
-    'Design Patterns: Elements of Reusable Object-Oriented Software': 'cover_design_patterns',
-    'JavaScript: The Good Parts': 'cover_js_good_parts',
-    'You Don\'t Know JS: Up & Going': 'cover_ydkjs',
-  };
+  const defaultCover = PlaceHolderImages.find(p => p.id === 'default_book_cover')?.imageUrl || "https://storage.googleapis.com/project-spark-demos/sellerbox-default-cover.png";
 
   return (
     <Card>
@@ -45,14 +37,12 @@ export function RecentSales({ sales, books }: RecentSalesProps) {
           const book = bookMap.get(sale.bookId);
           if (!book) return null;
           
-          const coverId = bookToCoverId[book.name];
-          const coverUrl = coverMap.get(coverId) || "https://picsum.photos/seed/book/100/100";
           const fallback = book.name.substring(0, 2).toUpperCase();
 
           return (
             <div className="flex items-center gap-4" key={sale.id}>
               <Avatar className="hidden h-9 w-9 sm:flex">
-                <AvatarImage src={coverUrl} alt="Book cover" data-ai-hint="book cover" />
+                <Image src={book.coverImageUrl || defaultCover} alt="Book cover" className="aspect-square h-full w-full" width={36} height={36} data-ai-hint="book cover" />
                 <AvatarFallback>{fallback}</AvatarFallback>
               </Avatar>
               <div className="grid gap-1">
