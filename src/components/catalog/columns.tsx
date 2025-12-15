@@ -2,8 +2,8 @@
 
 import { ColumnDef } from '@tanstack/react-table';
 import { MoreHorizontal, ArrowUpDown } from 'lucide-react';
-import React from 'react';
-import { useFormStatus, useActionState } from 'react';
+import React, { useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import Image from 'next/image';
 
 import { Button } from '@/components/ui/button';
@@ -195,7 +195,7 @@ export const columns = (onDataChange: () => void): ColumnDef<Book>[] => [
       const imageUrl = row.getValue('coverImageUrl') as string | undefined;
       return (
         <div className="flex h-16 w-12 flex-shrink-0 items-center justify-center rounded-md border bg-muted text-2xl font-bold text-muted-foreground">
-          {imageUrl ? (
+          {imageUrl && imageUrl !== '?' ? (
             <Image 
               src={imageUrl}
               alt={row.original.name}
