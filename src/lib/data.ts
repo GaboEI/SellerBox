@@ -1,4 +1,4 @@
-import type { Book, Sale, SaleStatus } from './types';
+import type { Book, Sale, SaleStatus, SalePlatform } from './types';
 
 let books: Book[] = [
   { id: '1', code: '978-0321765723', name: 'The C++ Programming Language', quantity: 10, description: 'The foundational text by Bjarne Stroustrup.' },
@@ -9,13 +9,13 @@ let books: Book[] = [
 ];
 
 let sales: Sale[] = [
-  { id: 's1', bookId: '1', date: new Date('2024-05-01'), status: 'sold', notes: 'Sold via online store.' },
-  { id: 's2', bookId: '2', date: new Date('2024-05-02'), status: 'sold', notes: '' },
-  { id: 's3', bookId: '3', date: new Date('2024-05-02'), status: 'reserved', notes: 'Customer will pick up tomorrow.' },
-  { id: 's4', bookId: '1', date: new Date('2024-05-03'), status: 'sold', notes: '' },
-  { id: 's5', bookId: '4', date: new Date('2024-05-04'), status: 'canceled', notes: 'Payment failed.' },
-  { id: 's6', bookId: '5', date: new Date('2024-05-10'), status: 'pending', notes: 'Awaiting shipment.' },
-  { id: 's7', bookId: '2', date: new Date('2024-05-11'), status: 'sold', notes: '' },
+    { id: 's1', bookId: '1', date: new Date('2024-05-01'), status: 'completed', platform: 'Avito', saleAmount: 2600 },
+    { id: 's2', bookId: '2', date: new Date('2024-05-02'), status: 'completed', platform: 'Ozon', saleAmount: 2500 },
+    { id: 's3', bookId: '3', date: new Date('2024-05-02'), status: 'in_preparation', platform: 'Avito' },
+    { id: 's4', bookId: '1', date: new Date('2024-05-03'), status: 'sold_in_person', platform: 'Ozon', saleAmount: 2400 },
+    { id: 's5', bookId: '4', date: new Date('2024-05-04'), status: 'canceled', platform: 'Avito' },
+    { id: 's6', bookId: '5', date: new Date('2024-05-10'), status: 'shipped', platform: 'Ozon' },
+    { id: 's7', bookId: '2', date: new Date('2024-05-11'), status: 'in_process', platform: 'Avito' },
 ];
 
 // --- Books ---
@@ -61,17 +61,40 @@ export async function getSales(): Promise<Sale[]> {
   return sales;
 }
 
-export async function addSale(sale: Omit<Sale, 'id' | 'date'> & { date: string }): Promise<Sale> {
-  const newSale: Sale = { ...sale, id: `s${Date.now()}`, date: new Date(sale.date) };
+export async function addSale(sale: Omit<Sale, 'id' | 'date' | 'status'> & { date: string }): Promise<Sale> {
+  const newSale: Sale = { ...sale, id: `s${Date.now()}`, date: new Date(sale.date), status: 'in_process' };
   
-  // Decrement book quantity
   const book = await getBookById(sale.bookId);
-  if (book && newSale.status === 'sold') {
+  if (book && (newSale.status === 'completed' || newSale.status === 'sold_in_person')) {
     await updateBook(book.id, { quantity: book.quantity - 1 });
   }
 
   sales = [newSale, ...sales];
   return newSale;
+}
+
+export async function updateSale(id: string, updates: Partial<Sale>): Promise<Sale | null> {
+    let saleToUpdate = sales.find(s => s.id === id);
+    if (!saleToUpdate) return null;
+
+    const originalStatus = saleToUpdate.status;
+    const newStatus = updates.status;
+
+    saleToUpdate = { ...saleToUpdate, ...updates };
+    
+    // Decrement book quantity if status changes to a sold state
+    const isNowSold = newStatus === 'completed' || newStatus === 'sold_in_person';
+    const wasNotSold = originalStatus !== 'completed' && originalStatus !== 'sold_in_person';
+    
+    if (isNowSold && wasNotSold) {
+        const book = await getBookById(saleToUpdate.bookId);
+        if (book) {
+            await updateBook(book.id, { quantity: Math.max(0, book.quantity - 1) });
+        }
+    }
+
+    sales = sales.map(s => (s.id === id ? saleToUpdate! : s));
+    return saleToUpdate;
 }
 
 export async function getSalesByBookId(bookId: string): Promise<Sale[]> {

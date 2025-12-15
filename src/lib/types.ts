@@ -6,12 +6,21 @@ export type Book = {
   description: string;
 };
 
-export type SaleStatus = 'sold' | 'reserved' | 'canceled' | 'pending';
+export type SalePlatform = 'Avito' | 'Ozon';
+
+export type SaleStatus =
+  | 'in_process'
+  | 'in_preparation'
+  | 'shipped'
+  | 'sold_in_person'
+  | 'completed'
+  | 'canceled';
 
 export type Sale = {
   id: string;
   bookId: string;
   date: Date;
   status: SaleStatus;
-  notes: string;
+  platform: SalePlatform;
+  saleAmount?: number;
 };

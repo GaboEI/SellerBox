@@ -19,7 +19,7 @@ interface RecentSalesProps {
 export function RecentSales({ sales, books }: RecentSalesProps) {
   const { t } = useI18n();
   const recentSales = sales
-    .filter((s) => s.status === 'sold')
+    .filter((s) => s.status === 'completed' || s.status === 'sold_in_person')
     .sort((a, b) => b.date.getTime() - a.date.getTime())
     .slice(0, 5);
   
@@ -61,7 +61,9 @@ export function RecentSales({ sales, books }: RecentSalesProps) {
                   {sale.date.toLocaleDateString()}
                 </p>
               </div>
-              <div className="ml-auto font-medium">+ 2499 ₽</div>
+              <div className="ml-auto font-medium">
+                {`+ ${sale.saleAmount?.toLocaleString('ru-RU', { style: 'currency', currency: 'RUB', minimumFractionDigits: 0, maximumFractionDigits: 0}) || '-'}`}
+              </div>
             </div>
           );
         })}

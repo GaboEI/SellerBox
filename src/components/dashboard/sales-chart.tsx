@@ -24,12 +24,12 @@ export function SalesChart({ sales }: SalesChartProps) {
   const { t } = useI18n();
   const data = useMemo(() => {
     const monthlySales = sales
-      .filter((s) => s.status === 'sold')
+      .filter((s) => s.status === 'completed' || s.status === 'sold_in_person')
       .reduce((acc, sale) => {
         const month = new Date(sale.date).toLocaleString('default', {
           month: 'short',
         });
-        acc[month] = (acc[month] || 0) + 1;
+        acc[month] = (acc[month] || 0) + (sale.saleAmount || 0);
         return acc;
       }, {} as { [key: string]: number });
 
@@ -39,15 +39,15 @@ export function SalesChart({ sales }: SalesChartProps) {
     ];
     
     return monthOrder.map(month => ({
-        name: month,
+        name: t(month.toLowerCase()),
         total: monthlySales[month] || 0,
-    })).filter(d => d.total > 0); // Only show months with sales based on mock data
+    })).filter(d => d.total > 0);
     
-  }, [sales]);
+  }, [sales, t]);
 
   const chartConfig = {
     total: {
-      label: t('sales_title'),
+      label: t('revenue'),
       color: 'hsl(var(--primary))',
     },
   };
@@ -73,11 +73,11 @@ export function SalesChart({ sales }: SalesChartProps) {
                 fontSize={12}
                 tickLine={false}
                 axisLine={false}
-                tickFormatter={(value) => `${value}`}
+                tickFormatter={(value) => `${value.toLocaleString('ru-RU')} ₽`}
               />
               <ChartTooltip
                 cursor={false}
-                content={<ChartTooltipContent indicator="dot" />}
+                content={<ChartTooltipContent indicator="dot" formatter={(value) => `${Number(value).toLocaleString('ru-RU')} ₽`}/>}
               />
               <Bar dataKey="total" fill="var(--color-total)" radius={4} />
             </BarChart>

@@ -2,8 +2,7 @@
 import * as React from 'react';
 import { PlusCircle, Calendar as CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
-import { useActionState } from 'react';
-import { useFormStatus } from 'react-dom';
+import { useFormState } from 'react-dom';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -17,12 +16,11 @@ import {
 import { PageHeader } from '@/components/shared/page-header';
 import { DataTable } from './data-table';
 import { columns } from './columns';
-import type { Book, Sale, SaleStatus } from '@/lib/types';
+import type { Book, Sale, SalePlatform } from '@/lib/types';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { addSale } from '@/lib/actions';
 import { Label } from '../ui/label';
-import { Textarea } from '../ui/textarea';
 import {
   Select,
   SelectContent,
@@ -39,7 +37,7 @@ import { Card } from '../ui/card';
 
 function SubmitButton() {
   const { t } = useI18n();
-  const { pending } = useFormStatus();
+  const { pending } = useFormState();
   return (
     <Button type="submit" disabled={pending}>
       {pending ? t('recording_sale') : t('record_sale_button')}
@@ -50,11 +48,12 @@ function SubmitButton() {
 const initialState = {
   message: '',
   errors: {},
+  resetKey: '',
 };
 
 function AddSaleForm({ books, setOpen }: { books: Book[], setOpen: (open: boolean) => void }) {
   const { t, language } = useI18n();
-  const [state, formAction] = useActionState(addSale, initialState);
+  const [state, formAction] = useFormState(addSale, initialState);
   const { toast } = useToast();
   const formRef = React.useRef<HTMLFormElement>(null);
   const [date, setDate] = React.useState<Date | undefined>(new Date());
@@ -64,7 +63,7 @@ function AddSaleForm({ books, setOpen }: { books: Book[], setOpen: (open: boolea
 
 
   React.useEffect(() => {
-    if (state.resetKey) {
+    if (state.message.includes('success')) {
       toast({
         title: t('success'),
         description: t(state.message),
@@ -130,25 +129,22 @@ function AddSaleForm({ books, setOpen }: { books: Book[], setOpen: (open: boolea
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="status">{t('status')}</Label>
-        <Select name="status" defaultValue='sold'>
+        <Label htmlFor="platform">{t('platform')}</Label>
+        <Select name="platform" defaultValue='Avito'>
           <SelectTrigger>
-            <SelectValue placeholder={t('select_status')} />
+            <SelectValue placeholder={t('select_platform')} />
           </SelectTrigger>
           <SelectContent>
-            {(['sold', 'reserved', 'canceled', 'pending'] as SaleStatus[]).map(status => (
-                <SelectItem key={status} value={status} className="capitalize">
-                    {t(status)}
+            {(['Avito', 'Ozon'] as SalePlatform[]).map(platform => (
+                <SelectItem key={platform} value={platform} className="capitalize">
+                    {platform}
                 </SelectItem>
             ))}
           </SelectContent>
         </Select>
+        {state.errors?.platform && <p className="text-sm text-destructive">{t(state.errors.platform[0])}</p>}
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="notes">{t('notes')}</Label>
-        <Textarea id="notes" name="notes" placeholder={t('optional_notes')} />
-      </div>
       <SubmitButton />
     </form>
   );
@@ -165,7 +161,8 @@ export function SalesClient({ sales, books }: { sales: Sale[], books: Book[] }) 
     (sale) => {
         const book = bookMap.get(sale.bookId);
         return book?.name.toLowerCase().includes(filter.toLowerCase()) ||
-               sale.status.toLowerCase().includes(filter.toLowerCase())
+               sale.status.toLowerCase().includes(filter.toLowerCase()) ||
+                sale.platform.toLowerCase().includes(filter.toLowerCase())
     }
   );
 
@@ -203,7 +200,7 @@ export function SalesClient({ sales, books }: { sales: Sale[], books: Book[] }) 
       <Card className="p-4 sm:p-6">
         <div className="mb-4">
           <Input
-            placeholder={t('filter_by_book_or_status')}
+            placeholder={t('filter_by_book_or_status_platform')}
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
             className="max-w-sm"

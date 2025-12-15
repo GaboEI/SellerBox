@@ -1,32 +1,154 @@
 'use client';
 
+import React from 'react';
 import { ColumnDef } from '@tanstack/react-table';
-import { ArrowUpDown } from 'lucide-react';
-
+import { ArrowUpDown, Edit } from 'lucide-react';
+import { useFormState } from 'react-dom';
+import { useI18n } from '../i18n/i18n-provider';
+import type { Sale, SaleStatus } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import type { Sale, SaleStatus } from '@/lib/types';
-import { useI18n } from '../i18n/i18n-provider';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { updateSale } from '@/lib/actions';
+import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 type SaleWithBookName = Sale & { bookName: string };
 
-const statusVariantMap: Record<SaleStatus, 'default' | 'secondary' | 'destructive' | 'outline'> = {
-    sold: 'default',
-    reserved: 'outline',
-    pending: 'secondary',
-    canceled: 'destructive'
+const statusVariantMap: Record<SaleStatus, 'default' | 'secondary' | 'destructive' | 'outline' | 'warning' | 'success'> = {
+  in_process: 'secondary',
+  in_preparation: 'warning',
+  shipped: 'outline',
+  sold_in_person: 'success',
+  completed: 'default',
+  canceled: 'destructive',
+};
+
+// Add 'warning' and 'success' variants to badge component
+const badgeVariants = cn(
+    'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+    '[&.warning]:border-transparent [&.warning]:bg-yellow-500 [&.warning]:text-white',
+    '[&.success]:border-transparent [&.success]:bg-green-600 [&.success]:text-white'
+);
+
+
+function SubmitButton() {
+  const { t } = useI18n();
+  const { pending } = React.useFormState();
+  return (
+    <Button type="submit" disabled={pending}>
+      {pending ? t('saving') : t('save_changes')}
+    </Button>
+  );
+}
+
+function EditSaleForm({ sale, setOpen }: { sale: SaleWithBookName; setOpen: (open: boolean) => void }) {
+  const { t } = useI18n();
+  const [state, formAction] = useFormState(updateSale.bind(null, sale.id), { message: '', errors: {} });
+  const { toast } = useToast();
+  const [currentStatus, setCurrentStatus] = React.useState<SaleStatus>(sale.status);
+
+  const isFinalState = sale.status === 'completed' || sale.status === 'sold_in_person' || sale.status === 'canceled';
+
+  React.useEffect(() => {
+    if (state.message?.includes('success')) {
+      toast({ title: t('success'), description: t(state.message) });
+      setOpen(false);
+    } else if (state.message) {
+      toast({ title: t('error'), description: t(state.message), variant: 'destructive' });
+    }
+  }, [state, toast, setOpen, t]);
+
+  const showSaleAmount = currentStatus === 'completed' || currentStatus === 'sold_in_person';
+
+  return (
+    <form action={formAction} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="status">{t('status')}</Label>
+        <Select name="status" defaultValue={sale.status} onValueChange={(value) => setCurrentStatus(value as SaleStatus)} disabled={isFinalState}>
+          <SelectTrigger>
+            <SelectValue placeholder={t('select_status')} />
+          </SelectTrigger>
+          <SelectContent>
+            {(['in_process', 'in_preparation', 'shipped', 'sold_in_person', 'completed', 'canceled'] as SaleStatus[]).map(
+              (status) => (
+                <SelectItem key={status} value={status} className="capitalize">
+                  {t(status)}
+                </SelectItem>
+              )
+            )}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {showSaleAmount && (
+        <div className="space-y-2">
+          <Label htmlFor="saleAmount">{t('sale_amount')}</Label>
+          <div className="relative">
+            <Input id="saleAmount" name="saleAmount" type="number" step="1" placeholder="2499" defaultValue={sale.saleAmount} required />
+            <span className="absolute inset-y-0 right-3 flex items-center text-muted-foreground">₽</span>
+          </div>
+        </div>
+      )}
+      
+      {!isFinalState && <SubmitButton />}
+    </form>
+  );
+}
+
+
+function CellActions({ row }: { row: any }) {
+  const { t } = useI18n();
+  const sale = row.original as SaleWithBookName;
+  const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
+  const isFinalState = sale.status === 'completed' || sale.status === 'sold_in_person' || sale.status === 'canceled';
+
+
+  return (
+    <>
+      <Button variant="ghost" size="icon" onClick={() => setIsEditDialogOpen(true)} className='h-8 w-8'>
+        <Edit className="h-4 w-4" />
+        <span className="sr-only">{t('edit_sale')}</span>
+      </Button>
+
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t('update_sale_status')}</DialogTitle>
+            <DialogDescription>
+              {isFinalState ? t('final_status_desc') : t('update_sale_status_desc')}
+            </DialogDescription>
+          </DialogHeader>
+          <EditSaleForm sale={sale} setOpen={setIsEditDialogOpen} />
+        </DialogContent>
+      </Dialog>
+    </>
+  );
 }
 
 export const columns: ColumnDef<SaleWithBookName>[] = [
   {
     accessorKey: 'bookName',
     header: ({ column }) => {
-        const { t } = useI18n();
+      const { t } = useI18n();
       return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-        >
+        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
           {t('book_name')}
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
@@ -37,41 +159,56 @@ export const columns: ColumnDef<SaleWithBookName>[] = [
   {
     accessorKey: 'date',
     header: ({ column }) => {
-        const { t } = useI18n();
+      const { t } = useI18n();
       return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-        >
+        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
           {t('date')}
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
     },
     cell: ({ row }) => {
-        const date = new Date(row.getValue('date'));
-        const formatted = date.toLocaleDateString();
-        return <div className="font-medium">{formatted}</div>;
+      const date = new Date(row.getValue('date'));
+      const formatted = date.toLocaleDateString();
+      return <div className="font-medium">{formatted}</div>;
     },
   },
   {
     accessorKey: 'status',
     header: function CellHeader() {
-        const { t } = useI18n();
-        return t('status');
+      const { t } = useI18n();
+      return t('status');
     },
     cell: ({ row }) => {
+      const { t } = useI18n();
+      const status = row.getValue('status') as SaleStatus;
+      return <Badge variant={statusVariantMap[status]} className={`capitalize ${badgeVariants}`}>{t(status)}</Badge>;
+    },
+  },
+  {
+    accessorKey: 'platform',
+    header: function CellHeader() {
         const { t } = useI18n();
-        const status = row.getValue('status') as SaleStatus;
-        return <Badge variant={statusVariantMap[status]} className="capitalize">{t(status)}</Badge>;
+        return t('platform');
+    },
+    cell: ({ row }) => <div>{row.getValue('platform') as string}</div>
+  },
+  {
+    accessorKey: 'saleAmount',
+    header: function CellHeader() {
+        const { t } = useI18n();
+        return t('sale_amount');
+    },
+    cell: ({ row }) => {
+        const amount = row.getValue('saleAmount') as number | undefined;
+        if (amount === undefined || amount === null) {
+            return <div className="text-center">-</div>;
+        }
+        return <div className="text-right font-medium">{amount.toLocaleString('ru-RU')} ₽</div>;
     }
   },
   {
-    accessorKey: 'notes',
-    header: function CellHeader() {
-        const { t } = useI18n();
-        return t('notes');
-    },
-    cell: ({ row }) => <div className="max-w-[200px] truncate">{row.getValue('notes') as string}</div>
+    id: 'actions',
+    cell: ({ row }) => <div className="text-center"><CellActions row={row} /></div>,
   },
 ];

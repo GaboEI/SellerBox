@@ -2,8 +2,8 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { addBook as dbAddBook, addSale as dbAddSale, getBookByCode, updateBook as dbUpdateBook, deleteBook as dbDeleteBook } from './data';
-import type { Book, SaleStatus } from './types';
+import { addBook as dbAddBook, addSale as dbAddSale, getBookByCode, updateBook as dbUpdateBook, deleteBook as dbDeleteBook, updateSale as dbUpdateSale } from './data';
+import type { Book, SalePlatform, SaleStatus } from './types';
 
 const bookSchema = z.object({
   code: z.string().min(1, 'code_required'),
@@ -97,20 +97,17 @@ export async function deleteBook(id: string) {
     }
 }
 
-
 const saleSchema = z.object({
     bookId: z.string().min(1, 'select_book_error'),
     date: z.string().min(1, 'date_required_error'),
-    status: z.enum(['sold', 'reserved', 'canceled', 'pending']),
-    notes: z.string().optional(),
+    platform: z.enum(['Avito', 'Ozon']),
 });
 
 export async function addSale(prevState: any, formData: FormData) {
     const validatedFields = saleSchema.safeParse({
         bookId: formData.get('bookId'),
         date: formData.get('date'),
-        status: formData.get('status'),
-        notes: formData.get('notes'),
+        platform: formData.get('platform'),
     });
 
     if (!validatedFields.success) {
@@ -123,15 +120,44 @@ export async function addSale(prevState: any, formData: FormData) {
     try {
         await dbAddSale({
             ...validatedFields.data,
-            status: validatedFields.data.status as SaleStatus,
-            notes: validatedFields.data.notes || '',
+            platform: validatedFields.data.platform as SalePlatform,
         });
         revalidatePath('/sales');
         revalidatePath('/');
-        revalidatePath('/inventory');
-        revalidatePath('/catalog');
         return { message: 'add_sale_success', errors: {}, resetKey: Date.now().toString() };
     } catch(e) {
         return { message: 'add_sale_fail', errors: {} };
+    }
+}
+
+const updateSaleSchema = z.object({
+    status: z.enum(['in_process', 'in_preparation', 'shipped', 'sold_in_person', 'completed', 'canceled']),
+    saleAmount: z.coerce.number().optional(),
+});
+
+export async function updateSale(id: string, prevState: any, formData: FormData) {
+    const validatedFields = updateSaleSchema.safeParse({
+        status: formData.get('status'),
+        saleAmount: formData.get('saleAmount'),
+    });
+
+    if (!validatedFields.success) {
+        return {
+            errors: validatedFields.error.flatten().fieldErrors,
+            message: 'check_fields_error',
+        };
+    }
+
+    try {
+        await dbUpdateSale(id, {
+            ...validatedFields.data,
+            status: validatedFields.data.status as SaleStatus,
+        });
+        revalidatePath('/sales');
+        revalidatePath('/');
+        revalidatePath('/dashboard');
+        return { message: 'update_sale_success', errors: {}, resetKey: Date.now().toString() };
+    } catch(e) {
+        return { message: 'update_sale_fail', errors: {} };
     }
 }

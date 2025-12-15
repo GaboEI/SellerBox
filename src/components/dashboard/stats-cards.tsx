@@ -17,9 +17,9 @@ interface StatsCardsProps {
 
 export function StatsCards({ sales, books }: StatsCardsProps) {
   const { t } = useI18n();
-  const totalSales = sales.filter((s) => s.status === 'sold').length;
-  // Dummy revenue, as we don't have price data
-  const totalRevenue = totalSales * 2499;
+  const soldSales = sales.filter((s) => s.status === 'completed' || s.status === 'sold_in_person');
+  const totalSales = soldSales.length;
+  const totalRevenue = soldSales.reduce((sum, sale) => sum + (sale.saleAmount || 0), 0);
   const totalBooks = books.length;
   const totalStock = books.reduce((sum, book) => sum + book.quantity, 0);
 
