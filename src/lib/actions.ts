@@ -202,6 +202,7 @@ export async function updateUserProfile(prevState: any, formData: FormData) {
 
   if (!validatedFields.success) {
     return {
+      status: 'error',
       errors: validatedFields.error.flatten().fieldErrors,
       message: 'check_fields_error',
     };
@@ -212,15 +213,23 @@ export async function updateUserProfile(prevState: any, formData: FormData) {
   try {
     const updates: Partial<UserProfile> = {};
     if (username) updates.username = username;
-    if (photoUrl) updates.photoUrl = photoUrl;
+    // Only include photoUrl if it's a new data URI, not the default placeholder
+    if (photoUrl && photoUrl.startsWith('data:image')) {
+      updates.photoUrl = photoUrl;
+    }
+
+    // Do not save if there are no actual changes
+    if (Object.keys(updates).length === 0) {
+      return { status: 'success', message: 'profile_update_success', errors: {} };
+    }
 
     await dbUpdateUserProfile(updates);
 
     revalidatePath('/settings');
     revalidatePath('/');
-    return { message: 'profile_update_success', errors: {} };
+    return { status: 'success', message: 'profile_update_success', errors: {} };
   } catch (e) {
     console.error('Error updating profile:', e);
-    return { message: 'profile_update_fail', errors: {} };
+    return { status: 'error', message: 'profile_update_fail', errors: {} };
   }
 }

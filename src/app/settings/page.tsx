@@ -40,6 +40,7 @@ function SubmitButton() {
 }
 
 const initialState = {
+  status: '',
   message: '',
   errors: {},
 };
@@ -80,9 +81,9 @@ export default function SettingsPage() {
 
   React.useEffect(() => {
     if (state.message) {
-      if (state.message.includes('success')) {
+      if (state.status === 'success') {
         toast({ title: t('success'), description: t(state.message) });
-      } else {
+      } else if (state.status === 'error') {
         toast({ title: t('error'), description: t(state.message), variant: 'destructive' });
       }
     }

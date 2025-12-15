@@ -5,7 +5,6 @@ import path from 'path';
 import type { Book, Sale, UserProfile as UserProfileType } from './types';
 import { PlaceHolderImages } from './placeholder-images';
 import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { firebaseConfig } from '@/firebase/config';
 
@@ -143,21 +142,11 @@ export async function getSalesByBookId(bookId: string): Promise<Sale[]> {
 
 
 // --- User Profile ---
-// This function needs to be called from a Server Action where authentication context is available.
-// However, getting the current user on the server with the client-side SDK is complex.
-// For this prototype, we'll assume a fixed user ID.
 const FIXED_USER_ID = "seller-user-01";
 
 export async function updateUserProfile(updates: Partial<UserProfileType>): Promise<void> {
-    // In a real app, you would get the userId from the authenticated session.
     const userId = FIXED_USER_ID; 
-    if (!userId) {
-      throw new Error("User not authenticated");
-    }
     const userDocRef = doc(firestore, 'users', userId);
-    
-    // We use `setDoc` with `merge: true` to create the document if it doesn't exist,
-    // or update it if it does.
     await setDoc(userDocRef, updates, { merge: true });
 }
 
