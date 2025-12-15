@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useActionState, useRef, useMemo } from 'react';
-import { useFormStatus } from 'react-dom';
+import React, { useEffect, useState, useMemo } from 'react';
 import { PageHeader } from '@/components/shared/page-header';
 import {
   Card,
@@ -20,37 +19,23 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { ThemeToggle } from '@/components/settings/theme-toggle';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
-import { updateUserProfile } from '@/lib/actions';
 import { getUserProfile } from '@/lib/data';
 import type { UserProfile } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { useUser, useFirestore, doc, useDoc } from '@/firebase';
-
-function SubmitButton() {
-  const { pending } = useFormStatus();
-  return (
-    <Button type="submit" disabled={pending} className="w-full sm:w-auto">
-      {pending ? 'Saving...' : 'Save Changes'}
-    </Button>
-  );
-}
-
-const initialState = {
-    status: '',
-    message: '',
-    errors: {},
-};
+import { useUser, useFirestore, doc, useDoc, setDoc } from '@/firebase';
+import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 export default function SettingsPage() {
   const { toast } = useToast();
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
+
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [photoUrlDataUri, setPhotoUrlDataUri] = useState<string>('');
+  const [username, setUsername] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
-  const formRef = useRef<HTMLFormElement>(null);
-  
   const userDocRef = useMemo(() => {
     if (!user || !firestore) return null;
     return doc(firestore, 'users', user.uid);
@@ -58,46 +43,19 @@ export default function SettingsPage() {
 
   const { data: profile, isLoading: isProfileLoading } = useDoc<UserProfile>(userDocRef);
 
-  const updateUserProfileAction = async (prevState: any, formData: FormData) => {
-    if (!user) {
-      return {
-        status: 'error',
-        message: 'You must be logged in to update your profile.',
-      };
+  useEffect(() => {
+    if (profile) {
+      setUsername(profile.username || user?.displayName || '');
     }
-    return updateUserProfile(user.uid, prevState, formData);
-  };
-  
-  const [state, formAction] = useActionState(updateUserProfileAction, initialState);
+  }, [profile, user]);
 
   useEffect(() => {
-    // This effect runs once when the user data is available to pre-populate the profile
-    // if it doesn't exist in Firestore yet.
     async function fetchProfile() {
       if (isUserLoading || !firestore || !user || profile !== undefined) return;
-      // getUserProfile will create a default profile if one doesn't exist.
       await getUserProfile(firestore, user);
     }
     fetchProfile();
   }, [user, isUserLoading, firestore, profile]);
-
-
-  useEffect(() => {
-    if (state.status === 'success') {
-      toast({
-        title: 'Success!',
-        description: 'Profile updated successfully.',
-      });
-      setPhotoUrlDataUri('');
-      setImagePreview(null);
-    } else if (state.status === 'error' && state.message) {
-      toast({
-        title: 'Error',
-        description: state.message,
-        variant: 'destructive',
-      });
-    }
-  }, [state, toast]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -112,11 +70,51 @@ export default function SettingsPage() {
     }
   };
 
+  const handleSave = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!user || !firestore) {
+      toast({ title: 'Error', description: 'You must be logged in.', variant: 'destructive' });
+      return;
+    }
+    if (!username) {
+        toast({ title: 'Error', description: 'Username is required.', variant: 'destructive' });
+        return;
+    }
+
+    setIsSaving(true);
+    
+    try {
+      const updates: Partial<UserProfile> = { username };
+      if (photoUrlDataUri) {
+        updates.photoUrl = photoUrlDataUri;
+      }
+      
+      const userDocRef = doc(firestore, 'users', user.uid);
+      
+      // Using a non-blocking update
+      setDocumentNonBlocking(userDocRef, updates, { merge: true });
+
+      toast({
+        title: 'Success!',
+        description: 'Profile update in progress.',
+      });
+      setImagePreview(null);
+      setPhotoUrlDataUri('');
+
+    } catch (e: any) {
+        // Errors will be caught by the non-blocking helper's catch block
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const defaultProfilePic =
-    PlaceHolderImages.find((p) => p.id === 'default_user_profile')?.imageUrl ||
-    '';
-  
+    PlaceHolderImages.find((p) => p.id === 'default_user_profile')?.imageUrl || '';
+
   const isLoading = isUserLoading || isProfileLoading;
+  const currentPhoto = imagePreview || profile?.photoUrl || user?.photoURL || defaultProfilePic;
+  const currentUsername = profile?.username || user?.displayName || '';
+  const fallbackInitial = currentUsername?.[0]?.toUpperCase() || 'S';
 
   return (
     <SidebarProvider>
@@ -145,7 +143,7 @@ export default function SettingsPage() {
                 </Card>
               </div>
               <div className="lg:col-span-2">
-                <form ref={formRef} action={formAction}>
+                <form onSubmit={handleSave}>
                   <Card>
                     <CardHeader>
                       <CardTitle>Account</CardTitle>
@@ -164,17 +162,10 @@ export default function SettingsPage() {
                         <div className="flex items-center gap-4">
                           <Avatar className="h-20 w-20">
                             <AvatarImage
-                              src={
-                                imagePreview ||
-                                profile?.photoUrl ||
-                                user?.photoURL ||
-                                defaultProfilePic
-                              }
-                              alt={profile?.username || user?.displayName || ''}
+                              src={currentPhoto}
+                              alt={currentUsername}
                             />
-                            <AvatarFallback>
-                              {profile?.username?.[0]?.toUpperCase() || user?.displayName?.[0]?.toUpperCase() || 'S'}
-                            </AvatarFallback>
+                            <AvatarFallback>{fallbackInitial}</AvatarFallback>
                           </Avatar>
                           <div className="space-y-1">
                             <Label htmlFor="photoUrl">
@@ -187,11 +178,6 @@ export default function SettingsPage() {
                               onChange={handleFileChange}
                               className="max-w-xs"
                             />
-                            <input
-                              type="hidden"
-                              name="photoUrlDataUri"
-                              value={photoUrlDataUri}
-                            />
                           </div>
                         </div>
                       )}
@@ -203,19 +189,17 @@ export default function SettingsPage() {
                           <Input
                             id="username"
                             name="username"
-                            defaultValue={profile?.username || user?.displayName || ''}
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
                             required
                           />
-                        )}
-                        {(state.errors as any)?.username && (
-                          <p className="text-sm text-destructive">
-                            {(state.errors as any).username[0] as string}
-                          </p>
                         )}
                       </div>
                     </CardContent>
                     <CardFooter className="border-t px-6 py-4">
-                      <SubmitButton />
+                       <Button type="submit" disabled={isSaving} className="w-full sm:w-auto">
+                         {isSaving ? 'Saving...' : 'Save Changes'}
+                       </Button>
                     </CardFooter>
                   </Card>
                 </form>

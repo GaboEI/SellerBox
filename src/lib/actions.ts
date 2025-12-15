@@ -10,20 +10,7 @@ import {
   deleteBook as dbDeleteBook,
   updateSale as dbUpdateSale,
 } from './data';
-import type { Book, SalePlatform, SaleStatus, UserProfile } from './types';
-import { getFirestore, doc, setDoc } from 'firebase/firestore';
-import { initializeApp, getApps, getApp } from 'firebase/app';
-import { firebaseConfig } from '@/firebase/config';
-
-// This is a workaround to initialize Firebase on the server-side for Server Actions.
-let app;
-if (!getApps().length) {
-  app = initializeApp(firebaseConfig);
-} else {
-  app = getApp();
-}
-const firestore = getFirestore(app);
-
+import type { Book, SalePlatform, SaleStatus } from './types';
 
 const bookSchema = z.object({
   code: z.string().min(1, 'Code is required.'),
@@ -198,45 +185,5 @@ export async function updateSale(id: string, prevState: any, formData: FormData)
     return { message: 'update_sale_success', errors: {}, resetKey: Date.now().toString() };
   } catch (e) {
     return { message: 'Failed to update sale.', errors: {} };
-  }
-}
-
-const userProfileSchema = z.object({
-  username: z.string().min(1, 'Name is required.'),
-  photoUrlDataUri: z.string().optional(),
-});
-
-export async function updateUserProfile(userId: string, prevState: any, formData: FormData) {
-  const validatedFields = userProfileSchema.safeParse({
-    username: formData.get('username'),
-    photoUrlDataUri: formData.get('photoUrlDataUri'),
-  });
-
-  if (!validatedFields.success) {
-    return {
-      status: 'error',
-      errors: validatedFields.error.flatten().fieldErrors,
-      message: 'Error: Please check the fields.',
-    };
-  }
-
-  const { username, photoUrlDataUri } = validatedFields.data;
-
-  try {
-    const updates: Partial<UserProfile> = { username };
-    if (photoUrlDataUri && photoUrlDataUri.startsWith('data:image')) {
-      updates.photoUrl = photoUrlDataUri;
-    }
-    
-    const userDocRef = doc(firestore, 'users', userId);
-    await setDoc(userDocRef, updates, { merge: true });
-    
-    revalidatePath('/settings');
-    revalidatePath('/', 'layout'); // Revalidate layout to update header
-
-    return { status: 'success', message: 'Profile updated successfully.' };
-  } catch (e: any) {
-    // This will now catch permission errors from setDoc on the server
-    return { status: 'error', message: e.message || 'Failed to update profile.' };
   }
 }
