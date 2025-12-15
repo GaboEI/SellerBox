@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useI18n } from "@/components/i18n/i18n-provider";
 import React, { useEffect, useState } from "react";
-import { useUser, useFirestore, useDoc, useMemoFirebase, doc, useStorage, FirestorePermissionError, errorEmitter } from '@/firebase';
+import { useUser, useFirestore, useDoc, useMemoFirebase, doc, useStorage } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { AppSidebar } from '@/components/layout/sidebar';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
