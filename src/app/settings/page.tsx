@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useActionState, useRef } from 'react';
+import React, { useEffect, useState, useActionState, useRef, useMemo } from 'react';
 import { useFormStatus } from 'react-dom';
 import { PageHeader } from '@/components/shared/page-header';
 import {
@@ -25,7 +25,7 @@ import { getUserProfile } from '@/lib/data';
 import type { UserProfile } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { useUser, useFirestore } from '@/firebase';
+import { useUser, useFirestore, doc, useDoc } from '@/firebase';
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -46,13 +46,18 @@ export default function SettingsPage() {
   const { toast } = useToast();
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [photoUrlDataUri, setPhotoUrlDataUri] = useState<string>('');
 
   const formRef = useRef<HTMLFormElement>(null);
   
+  const userDocRef = useMemo(() => {
+    if (!user || !firestore) return null;
+    return doc(firestore, 'users', user.uid);
+  }, [user, firestore]);
+
+  const { data: profile, isLoading: isProfileLoading } = useDoc<UserProfile>(userDocRef);
+
   const updateUserProfileAction = async (prevState: any, formData: FormData) => {
     if (!user) {
       return {
@@ -66,15 +71,16 @@ export default function SettingsPage() {
   const [state, formAction] = useActionState(updateUserProfileAction, initialState);
 
   useEffect(() => {
+    // This effect runs once when the user data is available to pre-populate the profile
+    // if it doesn't exist in Firestore yet.
     async function fetchProfile() {
-      if (isUserLoading || !firestore || !user) return;
-      setIsLoading(true);
-      const userProfile = await getUserProfile(firestore, user);
-      setProfile(userProfile);
-      setIsLoading(false);
+      if (isUserLoading || !firestore || !user || profile !== undefined) return;
+      // getUserProfile will create a default profile if one doesn't exist.
+      await getUserProfile(firestore, user);
     }
     fetchProfile();
-  }, [user, isUserLoading, firestore]);
+  }, [user, isUserLoading, firestore, profile]);
+
 
   useEffect(() => {
     if (state.status === 'success') {
@@ -109,6 +115,8 @@ export default function SettingsPage() {
   const defaultProfilePic =
     PlaceHolderImages.find((p) => p.id === 'default_user_profile')?.imageUrl ||
     '';
+  
+  const isLoading = isUserLoading || isProfileLoading;
 
   return (
     <SidebarProvider>

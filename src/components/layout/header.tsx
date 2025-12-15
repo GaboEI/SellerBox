@@ -18,21 +18,34 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { getUserProfile } from '@/lib/data';
 import type { UserProfile } from '@/lib/types';
 import { Skeleton } from '../ui/skeleton';
-import { useUser, useFirestore, doc } from '@/firebase';
+import { useUser, useFirestore, doc, onSnapshot } from '@/firebase';
 
 export function AppHeader() {
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  
+
   useEffect(() => {
-    async function fetchProfile() {
-      if (isUserLoading || !firestore || !user) return;
-      const userProfile = await getUserProfile(firestore, user);
-      setProfile(userProfile);
-    }
-    fetchProfile();
-  }, [user, isUserLoading, firestore]);
+    if (isUserLoading || !firestore || !user) {
+      // Clear profile if user logs out or while loading
+      setProfile(null);
+      return;
+    };
+
+    const userDocRef = doc(firestore, 'users', user.uid);
+    const unsubscribe = onSnapshot(userDocRef, (docSnap) => {
+        if (docSnap.exists()) {
+            setProfile(docSnap.data() as UserProfile);
+        } else {
+            // If the profile doesn't exist, we can create a default one
+            // or handle it as needed. For now, we'll set it to null.
+            getUserProfile(firestore, user).then(setProfile);
+        }
+    });
+
+    // Cleanup the listener when the component unmounts or user changes
+    return () => unsubscribe();
+}, [user, isUserLoading, firestore]);
 
 
   const defaultProfilePic = PlaceHolderImages.find(p => p.id === 'default_user_profile')?.imageUrl || '';

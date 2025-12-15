@@ -8,7 +8,9 @@ interface FirebaseClientProviderProps {
   children: ReactNode;
 }
 
-export function FirebaseClientProvider({ children }: FirebaseClientProviderProps) {
+export function FirebaseClientProvider({
+  children,
+}: FirebaseClientProviderProps) {
   // Initialize Firebase on the client and ensure it's done only once.
   const { firebaseApp, auth, firestore, storage } = initializeFirebase();
 
