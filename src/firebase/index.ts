@@ -22,14 +22,9 @@ export function initializeFirebase() {
   return { firebaseApp, auth, firestore, storage };
 }
 
-// Export the initialized instances for use in other parts of the app
-const { firebaseApp, auth, firestore, storage } = initializeFirebase();
-export { firebaseApp, auth, firestore, storage };
-
 // --- HOOKS & PROVIDERS ---
 export * from './provider';
 export * from './client-provider';
-export * from './auth/use-user';
 export * from './firestore/use-collection';
 export * from './firestore/use-doc';
 export * from './errors';

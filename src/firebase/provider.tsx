@@ -11,7 +11,7 @@ import React, {
 } from 'react';
 import { FirebaseApp } from 'firebase/app';
 import { Firestore } from 'firebase/firestore';
-import { Auth, type User } from 'firebase/auth';
+import { Auth, type User, onAuthStateChanged } from 'firebase/auth';
 import { FirebaseStorage } from 'firebase/storage';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 
@@ -52,7 +52,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       setIsLoading(false);
       return;
     }
-    const unsubscribe = auth.onAuthStateChanged((user) => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
       setIsLoading(false);
     });
@@ -61,7 +61,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
   }, [auth]);
 
   const contextValue = useMemo(
-    (): FirebaseContextState => ({
+    () => ({
       firebaseApp,
       firestore,
       auth,
@@ -72,7 +72,6 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     [firebaseApp, firestore, auth, storage, user, isUserLoading]
   );
 
-
   return (
     <FirebaseContext.Provider value={contextValue}>
       <FirebaseErrorListener />
@@ -81,7 +80,6 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
   );
 };
 
-
 export const useFirebase = (): FirebaseContextState => {
   const context = useContext(FirebaseContext);
   if (context === undefined) {
@@ -89,6 +87,12 @@ export const useFirebase = (): FirebaseContextState => {
   }
   return context;
 };
+
+/** Hook para acceder al usuario autenticado. */
+export const useUser = (): { user: User | null; isUserLoading: boolean } => {
+    const { user, isUserLoading } = useFirebase();
+    return { user, isUserLoading };
+}
 
 /** Hook para acceder a la instancia de Firebase Auth. */
 export const useAuth = (): Auth | null => {
