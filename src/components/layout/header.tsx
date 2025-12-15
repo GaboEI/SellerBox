@@ -15,21 +15,27 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useI18n } from '@/components/i18n/i18n-provider';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { getUserProfile } from '@/lib/data';
 import type { UserProfile } from '@/lib/types';
 import { Skeleton } from '../ui/skeleton';
-import { useUser, useFirestore } from '@/firebase';
+import { useUser, useFirestore, doc } from '@/firebase';
 
 export function AppHeader() {
   const { t } = useI18n();
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  
+  const userDocRef = useMemo(() => {
+    if (!firestore || !user) return null;
+    return doc(firestore, 'users', user.uid);
+  }, [firestore, user]);
+
 
   useEffect(() => {
     async function fetchProfile() {
-      if (isUserLoading || !firestore) return;
+      if (isUserLoading || !firestore || !user) return;
       const userProfile = await getUserProfile(firestore, user);
       setProfile(userProfile);
     }

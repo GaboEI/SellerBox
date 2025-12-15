@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useActionState, useRef } from 'react';
+import React, { useEffect, useState, useActionState, useRef, useMemo } from 'react';
 import { useFormStatus } from 'react-dom';
 import { PageHeader } from '@/components/shared/page-header';
 import { LanguageToggle } from '@/components/i18n/language-toggle';
@@ -27,7 +27,7 @@ import { getUserProfile } from '@/lib/data';
 import type { UserProfile } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { useUser, useFirestore } from '@/firebase';
+import { useUser, useFirestore, doc } from '@/firebase';
 
 function SubmitButton() {
   const { t } = useI18n();
@@ -50,6 +50,11 @@ export default function SettingsPage() {
   const [photoUrlDataUri, setPhotoUrlDataUri] = useState<string>('');
 
   const formRef = useRef<HTMLFormElement>(null);
+  
+  const userDocRef = useMemo(() => {
+    if (!firestore || !user) return null;
+    return doc(firestore, 'users', user.uid);
+  }, [firestore, user]);
 
   const updateUserProfileAction = async (prevState: any, formData: FormData) => {
     if (!user) {
@@ -68,7 +73,7 @@ export default function SettingsPage() {
 
   useEffect(() => {
     async function fetchProfile() {
-      if (isUserLoading || !firestore) return;
+      if (isUserLoading || !firestore || !user) return;
       setIsLoading(true);
       const userProfile = await getUserProfile(firestore, user);
       setProfile(userProfile);

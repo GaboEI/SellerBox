@@ -176,14 +176,6 @@ export async function updateUserProfile(
 
 export async function getUserProfile(db: Firestore, user: User | null): Promise<UserProfileType | null> {
   if (!user) {
-    // This case should ideally be handled by the UI,
-    // by not calling this function if the user is not logged in.
-    // However, as a safeguard, we'll emit a permission error.
-    const permissionError = new FirestorePermissionError({
-      path: `users/--unauthenticated--`,
-      operation: 'get',
-    });
-    errorEmitter.emit('permission-error', permissionError);
     return null;
   }
 
@@ -195,7 +187,6 @@ export async function getUserProfile(db: Firestore, user: User | null): Promise<
     if (docSnap.exists()) {
       return docSnap.data() as UserProfileType;
     } else {
-      // If the user profile doesn't exist, create a default one
       const defaultProfile: UserProfileType = {
         username: user.displayName || 'New Seller',
         photoUrl:
@@ -203,21 +194,23 @@ export async function getUserProfile(db: Firestore, user: User | null): Promise<
           PlaceHolderImages.find((p) => p.id === 'default_user_profile')
             ?.imageUrl,
       };
-      // We are creating the document, so we expect this to succeed
-      // under the current rules (allow create if authenticated).
-      await setDoc(userDocRef, defaultProfile);
+      await setDoc(userDocRef, defaultProfile).catch((error) => {
+        const permissionError = new FirestorePermissionError({
+            path: userDocRef.path,
+            operation: 'create',
+            requestResourceData: defaultProfile,
+          });
+        errorEmitter.emit('permission-error', permissionError);
+        throw permissionError;
+      });
       return defaultProfile;
     }
   } catch (error) {
-    // This catch block is crucial. If getDoc fails due to permissions,
-    // we create and emit our contextual error.
     const permissionError = new FirestorePermissionError({
       path: userDocRef.path,
       operation: 'get',
     });
     errorEmitter.emit('permission-error', permissionError);
-    
-    // We return null to indicate to the caller that the operation failed.
     return null;
   }
 }

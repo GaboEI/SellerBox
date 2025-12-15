@@ -31,4 +31,4 @@ export * from './errors';
 export * from './error-emitter';
 
 // --- FIRESTORE & STORAGE HELPERS ---
-export { doc } from 'firebase/firestore';
+export { doc, collection, getDoc, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
