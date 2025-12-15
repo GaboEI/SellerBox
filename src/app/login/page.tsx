@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { setDoc } from 'firebase/firestore';
+import { errorEmitter } from '@/firebase/error-emitter';
 
 function LoginForm() {
   const auth = useAuth();
@@ -53,16 +54,19 @@ function SignUpForm() {
     const [username, setUsername] = useState('');
 
 
-    const handleSignUp = async () => {
-        try {
-            const userCredential = await initiateEmailSignUp(auth, email, password);
-            if (userCredential && firestore) {
-                const userDocRef = doc(firestore, 'users', userCredential.user.uid);
-                await setDoc(userDocRef, { username: username, photoUrl: '' }, { merge: true });
-            }
-        } catch (error) {
-            console.error("Sign up failed:", error);
-        }
+    const handleSignUp = () => {
+        initiateEmailSignUp(auth, email, password)
+            .then(userCredential => {
+                if (userCredential && firestore) {
+                    const userDocRef = doc(firestore, 'users', userCredential.user.uid);
+                    setDoc(userDocRef, { username: username, photoUrl: '' }, { merge: true });
+                }
+            })
+            .catch(error => {
+                // The error is already emitted globally by initiateEmailSignUp
+                // We could add UI-specific error handling here if needed (e.g., toast)
+                console.error("Sign up failed on the client:", error);
+            });
     };
 
     return (
