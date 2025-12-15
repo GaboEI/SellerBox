@@ -14,12 +14,14 @@ import {
 } from '@/components/ui/chart';
 import type { Sale } from '@/lib/types';
 import { useMemo } from 'react';
+import { useI18n } from '../i18n/i18n-provider';
 
 interface SalesChartProps {
   sales: Sale[];
 }
 
 export function SalesChart({ sales }: SalesChartProps) {
+  const { t } = useI18n();
   const data = useMemo(() => {
     const monthlySales = sales
       .filter((s) => s.status === 'sold')
@@ -45,7 +47,7 @@ export function SalesChart({ sales }: SalesChartProps) {
 
   const chartConfig = {
     total: {
-      label: 'Sales',
+      label: t('sales_title'),
       color: 'hsl(var(--primary))',
     },
   };
@@ -53,7 +55,7 @@ export function SalesChart({ sales }: SalesChartProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Sales Overview</CardTitle>
+        <CardTitle>{t('sales_overview')}</CardTitle>
       </CardHeader>
       <CardContent className="pl-2">
         <ChartContainer config={chartConfig} className="h-[300px] w-full">

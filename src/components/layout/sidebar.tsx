@@ -21,17 +21,19 @@ import {
   SidebarFooter,
 } from '@/components/ui/sidebar';
 import { ThemeToggle } from '@/components/settings/theme-toggle';
-
-const menuItems = [
-  { href: '/', label: 'Dashboard', icon: Home },
-  { href: '/catalog', label: 'Catalog', icon: Book },
-  { href: '/inventory', label: 'Inventory', icon: Package },
-  { href: '/sales', label: 'Sales', icon: ShoppingBag },
-  { href: '/listings', label: 'Listing Generator', icon: Tag },
-];
+import { useI18n } from '@/components/i18n/i18n-provider';
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const { t } = useI18n();
+
+  const menuItems = [
+    { href: '/', label: t('dashboard'), icon: Home },
+    { href: '/catalog', label: t('catalog'), icon: Book },
+    { href: '/inventory', label: t('inventory'), icon: Package },
+    { href: '/sales', label: t('sales'), icon: ShoppingBag },
+    { href: '/listings', label: t('listing_generator'), icon: Tag },
+  ];
 
   return (
     <Sidebar>
@@ -68,11 +70,11 @@ export function AppSidebar() {
             <SidebarMenuButton
                 asChild
                 isActive={pathname === '/settings'}
-                tooltip="Settings"
+                tooltip={t('settings')}
             >
                 <Link href="/settings">
                     <Settings />
-                    <span>Settings</span>
+                    <span>{t('settings')}</span>
                 </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

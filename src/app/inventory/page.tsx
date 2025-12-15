@@ -1,13 +1,28 @@
+'use client';
+
+import React from 'react';
 import { getBooks } from '@/lib/data';
 import { CatalogClient } from '@/components/catalog/catalog-client';
 import { PageHeader } from '@/components/shared/page-header';
+import type { Book } from '@/lib/types';
+import { useI18n } from '@/components/i18n/i18n-provider';
 
-export default async function InventoryPage() {
-  const books = await getBooks();
+export default function InventoryPage() {
+  const { t } = useI18n();
+  const [books, setBooks] = React.useState<Book[]>([]);
+
+  React.useEffect(() => {
+    async function fetchBooks() {
+      const booksData = await getBooks();
+      setBooks(booksData);
+    }
+    fetchBooks();
+  }, []);
+
 
   return (
     <div className="flex flex-col gap-8">
-        <PageHeader title="Inventory" description="View and manage your book stock." />
+        <PageHeader title={t('inventory')} description="View and manage your book stock." />
         <CatalogClient books={books} />
     </div>
   )

@@ -1,3 +1,5 @@
+'use client';
+
 import {
   Card,
   CardContent,
@@ -6,6 +8,7 @@ import {
 } from '@/components/ui/card';
 import { Book, Package, ShoppingBag } from 'lucide-react';
 import type { Book as BookType, Sale } from '@/lib/types';
+import { useI18n } from '../i18n/i18n-provider';
 
 interface StatsCardsProps {
   sales: Sale[];
@@ -13,6 +16,7 @@ interface StatsCardsProps {
 }
 
 export function StatsCards({ sales, books }: StatsCardsProps) {
+  const { t } = useI18n();
   const totalSales = sales.filter((s) => s.status === 'sold').length;
   // Dummy revenue, as we don't have price data
   const totalRevenue = totalSales * 2499;
@@ -21,7 +25,7 @@ export function StatsCards({ sales, books }: StatsCardsProps) {
 
   const stats = [
     {
-      title: 'Total Revenue',
+      title: t('total_revenue'),
       value: `${totalRevenue.toLocaleString('ru-RU', {
         style: 'currency',
         currency: 'RUB',
@@ -44,25 +48,25 @@ export function StatsCards({ sales, books }: StatsCardsProps) {
           <path d="M19 5H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2Z" />
         </svg>
       ),
-      description: 'Total revenue from sales',
+      description: t('total_revenue_desc'),
     },
     {
-      title: 'Sales',
+      title: t('sales_title'),
       value: `+${totalSales}`,
       icon: <ShoppingBag className="h-4 w-4 text-muted-foreground" />,
-      description: 'Total books sold',
+      description: t('sales_desc'),
     },
     {
-      title: 'Books in Catalog',
+      title: t('books_in_catalog'),
       value: `${totalBooks}`,
       icon: <Book className="h-4 w-4 text-muted-foreground" />,
-      description: 'Unique titles in your catalog',
+      description: t('books_in_catalog_desc'),
     },
     {
-      title: 'Total Stock',
+      title: t('total_stock'),
       value: `${totalStock}`,
       icon: <Package className="h-4 w-4 text-muted-foreground" />,
-      description: 'Total number of items in inventory',
+      description: t('total_stock_desc'),
     },
   ];
 

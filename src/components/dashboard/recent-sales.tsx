@@ -1,3 +1,5 @@
+'use client';
+
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Card,
@@ -7,6 +9,7 @@ import {
 } from '@/components/ui/card';
 import type { Book, Sale } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { useI18n } from '../i18n/i18n-provider';
 
 interface RecentSalesProps {
   sales: Sale[];
@@ -14,6 +17,7 @@ interface RecentSalesProps {
 }
 
 export function RecentSales({ sales, books }: RecentSalesProps) {
+  const { t } = useI18n();
   const recentSales = sales
     .filter((s) => s.status === 'sold')
     .sort((a, b) => b.date.getTime() - a.date.getTime())
@@ -34,7 +38,7 @@ export function RecentSales({ sales, books }: RecentSalesProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Recent Sales</CardTitle>
+        <CardTitle>{t('recent_sales')}</CardTitle>
       </CardHeader>
       <CardContent className="grid gap-8">
         {recentSales.map((sale) => {
