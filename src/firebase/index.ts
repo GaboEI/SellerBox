@@ -6,7 +6,7 @@ import { getAuth, type Auth } from 'firebase/auth';
 import { getFirestore, type Firestore } from 'firebase/firestore';
 import { getStorage, type FirebaseStorage } from 'firebase/storage';
 
-// This function handles idempotent Firebase initialization.
+// Esta función maneja la inicialización idempotente de Firebase.
 export function initializeFirebase() {
   let firebaseApp: FirebaseApp;
   if (!getApps().length) {
@@ -22,13 +22,13 @@ export function initializeFirebase() {
   return { firebaseApp, auth, firestore, storage };
 }
 
-// --- HOOKS & PROVIDERS ---
+// --- HOOKS & PROVEEDORES ---
 export * from './provider';
-export * from './client-provider';
+// client-provider.tsx ya no es necesario
 export * from './firestore/use-collection';
 export * from './firestore/use-doc';
 export * from './errors';
 export * from './error-emitter';
 
-// --- FIRESTORE & STORAGE HELPERS ---
+// --- AYUDANTES DE FIRESTORE Y STORAGE ---
 export { doc, collection, getDoc, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, serverTimestamp } from 'firebase/firestore';
