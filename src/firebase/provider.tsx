@@ -54,22 +54,22 @@ export const useFirebase = (): FirebaseContextState => {
   return context;
 };
 
-/** Hook to access Firebase Auth instance. Returns null if not available. */
+/** Hook para acceder a la instancia de Firebase Auth. */
 export const useAuth = (): Auth | null => {
   return useFirebase().auth;
 };
 
-/** Hook to access Firestore instance. Returns null if not available. */
+/** Hook para acceder a la instancia de Firestore. */
 export const useFirestore = (): Firestore | null => {
   return useFirebase().firestore;
 };
 
-/** Hook to access Firebase Storage instance. Returns null if not available. */
+/** Hook para acceder a la instancia de Firebase Storage. */
 export const useStorage = (): FirebaseStorage | null => {
   return useFirebase().storage;
 }
 
-/** Hook to access Firebase App instance. Returns null if not available. */
+/** Hook para acceder a la instancia de Firebase App. */
 export const useFirebaseApp = (): FirebaseApp | null => {
   return useFirebase().firebaseApp;
 };

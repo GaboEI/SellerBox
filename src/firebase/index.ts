@@ -8,7 +8,7 @@ import { getStorage, type FirebaseStorage } from 'firebase/storage';
 
 let firebaseApp: FirebaseApp;
 
-// Idempotent Firebase initialization
+// Inicialización de Firebase idempotente
 if (!getApps().length) {
   firebaseApp = initializeApp(firebaseConfig);
 } else {
@@ -23,8 +23,6 @@ export { firebaseApp, auth, firestore, storage };
 
 
 // --- HOOKS & PROVIDERS ---
-// Re-exporting hooks and providers for easy access throughout the app.
-
 export * from './provider';
 export * from './client-provider';
 export * from './firestore/use-collection';
@@ -33,6 +31,4 @@ export * from './errors';
 export * from './error-emitter';
 
 // --- FIRESTORE & STORAGE HELPERS ---
-// Re-exporting common SDK functions for convenience.
 export { doc } from 'firebase/firestore';
-export { getStorage } from 'firebase/storage';

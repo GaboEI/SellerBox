@@ -1,8 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  getStorage,
   ref,
   uploadBytes,
   getDownloadURL,
@@ -25,7 +24,7 @@ import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { AppHeader } from '@/components/layout/header';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { useFirestore, useStorage, useDoc, useMemoFirebase } from '@/firebase';
 import type { UserProfile } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { ThemeToggle } from '@/components/settings/theme-toggle';
@@ -36,6 +35,7 @@ export default function SettingsPage() {
   const { t } = useI18n();
   const { toast } = useToast();
   const firestore = useFirestore();
+  const storage = useStorage();
 
   const userDocRef = useMemoFirebase(
     () => (firestore ? doc(firestore, 'users', USER_ID) : null),
@@ -48,9 +48,7 @@ export default function SettingsPage() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  const defaultProfilePic =
-    PlaceHolderImages.find((p) => p.id === 'default_user_profile')?.imageUrl ||
-    '';
+  const defaultProfilePic = PlaceHolderImages.find((p) => p.id === 'default_user_profile')?.imageUrl || '';
 
   useEffect(() => {
     if (userProfile) {
@@ -62,33 +60,31 @@ export default function SettingsPage() {
     if (!event.target.files || event.target.files.length === 0) {
       return;
     }
-
-    const file = event.target.files[0];
-
-    // Show preview immediately
-    const previewUrl = URL.createObjectURL(file);
-    setImagePreview(previewUrl);
     
-    if (!firestore || !userDocRef) {
+    // Validar que los servicios de Firebase estén listos.
+    if (!firestore || !storage || !userDocRef) {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'Database connection not available.',
+        description: 'Servicios de Firebase no disponibles. Inténtalo de nuevo.',
       });
       return;
     }
 
+    const file = event.target.files[0];
+    const previewUrl = URL.createObjectURL(file);
+    setImagePreview(previewUrl);
     setIsSaving(true);
+    
     try {
-      // Upload to Firebase Storage
-      const storage = getStorage();
+      // 1. Subir a Firebase Storage
       const storageRef = ref(storage, `profile-pictures/${USER_ID}`);
       const snapshot = await uploadBytes(storageRef, file);
       const newPhotoUrl = await getDownloadURL(snapshot.ref);
 
-      // Update Firestore
+      // 2. Actualizar Firestore
       const updatedProfile: UserProfile = {
-        username: username, // keep the existing username
+        username: username, // Mantener el nombre de usuario existente
         photoUrl: newPhotoUrl,
       };
       
@@ -103,10 +99,9 @@ export default function SettingsPage() {
         variant: 'destructive',
         title: t('profile_update_fail'),
         description:
-          error instanceof Error ? error.message : 'An unknown error occurred.',
+          error instanceof Error ? error.message : 'Un error desconocido ha ocurrido.',
       });
-      // Revert preview if upload fails
-      setImagePreview(null);
+      setImagePreview(null); // Revertir vista previa si falla
     } finally {
       setIsSaving(false);
     }
