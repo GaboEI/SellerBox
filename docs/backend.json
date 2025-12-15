@@ -171,17 +171,14 @@
     }
   },
   "auth": {
-    "providers": [
-      "password",
-      "anonymous"
-    ]
+    "providers": []
   },
   "firestore": {
     "/users/{userId}": {
       "schema": {
         "$ref": "#/entities/UserProfile"
       },
-      "description": "Stores user profiles."
+      "description": "Stores the single user's profile."
     }
   }
 }

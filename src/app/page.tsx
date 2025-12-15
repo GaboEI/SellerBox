@@ -1,8 +1,5 @@
 'use client';
 
-import { useUser, useAuth } from '@/firebase';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
 import { getBooks, getSales } from '@/lib/data';
 import { StatsCards } from '@/components/dashboard/stats-cards';
 import { SalesChart } from '@/components/dashboard/sales-chart';
@@ -14,25 +11,13 @@ import type { Book, Sale } from '@/lib/types';
 import { AppSidebar } from '@/components/layout/sidebar';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { AppHeader } from '@/components/layout/header';
-import { initiateAnonymousSignIn } from '@/firebase/non-blocking-login';
 
 export default function DashboardPage() {
   const { t } = useI18n();
   const [sales, setSales] = React.useState<Sale[]>([]);
   const [books, setBooks] = React.useState<Book[]>([]);
-  const { user, isUserLoading } = useUser();
-  const router = useRouter();
-  const auth = useAuth();
-  
-  useEffect(() => {
-    if (!isUserLoading && !user) {
-      initiateAnonymousSignIn(auth);
-    }
-  }, [isUserLoading, user, auth, router]);
-
 
   React.useEffect(() => {
-    if (!user) return;
     async function fetchData() {
       const salesData = await getSales();
       const booksData = await getBooks();
@@ -40,11 +25,7 @@ export default function DashboardPage() {
       setBooks(booksData);
     }
     fetchData();
-  }, [user]);
-
-  if (isUserLoading || !user) {
-    return <div>Loading...</div>;
-  }
+  }, []);
 
   return (
     <SidebarProvider>

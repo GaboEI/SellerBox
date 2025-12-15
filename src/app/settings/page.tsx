@@ -10,8 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useI18n } from "@/components/i18n/i18n-provider";
 import React, { useEffect, useState } from "react";
-import { useUser, useFirestore, useDoc, useMemoFirebase, doc, useStorage } from '@/firebase';
-import { useRouter } from 'next/navigation';
+import { useFirestore, useDoc, useMemoFirebase, doc, useStorage, useFirebase } from '@/firebase';
 import { AppSidebar } from '@/components/layout/sidebar';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { useToast } from "@/hooks/use-toast";
@@ -20,6 +19,8 @@ import { AppHeader } from "@/components/layout/header";
 import { setDoc } from "firebase/firestore";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 
+const SINGLE_USER_ID = "_single_user";
+
 interface UserProfile {
     username?: string;
     photoUrl?: string;
@@ -27,18 +28,15 @@ interface UserProfile {
 
 export default function SettingsPage() {
     const { t } = useI18n();
-    const { user, isUserLoading } = useUser();
-    const router = useRouter();
-    const firestore = useFirestore();
-    const storage = useStorage();
+    const { firestore, storage } = useFirebase();
     const { toast } = useToast();
 
     const defaultProfilePic = PlaceHolderImages.find(p => p.id === 'default_user_profile')?.imageUrl || '';
 
     const userProfileRef = useMemoFirebase(() => {
-        if (!user || !firestore) return null;
-        return doc(firestore, 'users', user.uid);
-    }, [user, firestore]);
+        if (!firestore) return null;
+        return doc(firestore, 'users', SINGLE_USER_ID);
+    }, [firestore]);
     
     const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userProfileRef);
 
@@ -48,19 +46,14 @@ export default function SettingsPage() {
     const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
-        if (!isUserLoading && !user) {
-            router.push('/login');
-        }
-    }, [isUserLoading, user, router]);
-
-    useEffect(() => {
         if (userProfile) {
             setUsername(userProfile.username || 'Seller');
             setImagePreview(userProfile.photoUrl || defaultProfilePic);
-        } else {
+        } else if (!isProfileLoading) {
+            setUsername('Seller');
             setImagePreview(defaultProfilePic);
         }
-    }, [userProfile, defaultProfilePic]);
+    }, [userProfile, isProfileLoading, defaultProfilePic]);
 
 
     const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -76,7 +69,7 @@ export default function SettingsPage() {
     };
 
     const handleSaveChanges = async () => {
-        if (!user || !firestore || !storage) return;
+        if (!firestore || !storage) return;
 
         setIsSaving(true);
         
@@ -84,7 +77,7 @@ export default function SettingsPage() {
             let photoUrl = userProfile?.photoUrl || defaultProfilePic;
 
             if (imageFile) {
-                const storageRef = ref(storage, `profile_pictures/${user.uid}`);
+                const storageRef = ref(storage, `profile_pictures/${SINGLE_USER_ID}`);
                 const uploadResult = await uploadBytes(storageRef, imageFile);
                 photoUrl = await getDownloadURL(uploadResult.ref);
             }
@@ -94,7 +87,7 @@ export default function SettingsPage() {
                 photoUrl: photoUrl,
             };
 
-            const userDocRef = doc(firestore, 'users', user.uid);
+            const userDocRef = doc(firestore, 'users', SINGLE_USER_ID);
             await setDoc(userDocRef, updatedProfile, { merge: true });
 
             toast({
@@ -115,7 +108,7 @@ export default function SettingsPage() {
         }
     };
 
-    if (isUserLoading || isProfileLoading || !user) {
+    if (isProfileLoading) {
         return <div>Loading...</div>;
     }
 
@@ -170,14 +163,6 @@ export default function SettingsPage() {
                                         <div className="space-y-2">
                                             <Label htmlFor="username">{t('username')}</Label>
                                             <Input id="username" value={username} onChange={(e) => setUsername(e.target.value)} disabled={isSaving} />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label>{t('account_management')}</Label>
-                                            <div className="flex flex-wrap gap-2">
-                                                <Button variant="outline">{t('change_password')}</Button>
-                                                <Button variant="outline">{t('recover_password')}</Button>
-                                                <Button variant="destructive">{t('delete_account')}</Button>
-                                            </div>
                                         </div>
                                     </CardContent>
                                     <CardFooter>
