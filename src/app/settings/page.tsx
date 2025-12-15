@@ -76,9 +76,10 @@ export default function SettingsPage() {
         if (!user || !firestore || !storage) return;
 
         setIsSaving(true);
-        let photoUrl = userProfile?.photoUrl || '';
-
+        
         try {
+            let photoUrl = userProfile?.photoUrl || '';
+
             if (imageFile) {
                 const storageRef = ref(storage, `profile_pictures/${user.uid}`);
                 const uploadResult = await uploadBytes(storageRef, imageFile);
@@ -106,14 +107,6 @@ export default function SettingsPage() {
                 title: t('error'),
                 description: description,
             });
-             if (error instanceof Error && error.message.includes('permission-denied')) {
-                const permissionError = new FirestorePermissionError({
-                    path: `users/${user.uid}`,
-                    operation: 'update',
-                    requestResourceData: {username, photoUrl},
-                });
-                errorEmitter.emit('permission-error', permissionError);
-            }
         } finally {
             setIsSaving(false);
         }
