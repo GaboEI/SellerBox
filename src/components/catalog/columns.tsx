@@ -50,9 +50,15 @@ function SubmitButton() {
     );
   }
   
+const initialState = {
+    message: '',
+    errors: {},
+    resetKey: Date.now().toString(),
+};
+
 function EditBookForm({ book, setOpen, onDataChange }: { book: Book, setOpen: (open: boolean) => void, onDataChange: () => void }) {
     const { t } = useI18n();
-    const [state, formAction] = useActionState(updateBook.bind(null, book.id), { message: '', errors: {} });
+    const [state, formAction] = useActionState(updateBook.bind(null, book.id), initialState);
     const { toast } = useToast();
     const [imagePreview, setImagePreview] = React.useState<string | null>(book.coverImageUrl || null);
     const [coverImageUrl, setCoverImageUrl] = React.useState<string>(book.coverImageUrl || '');
@@ -89,7 +95,7 @@ function EditBookForm({ book, setOpen, onDataChange }: { book: Book, setOpen: (o
     }, [state, toast, setOpen, t, onDataChange]);
     
     return (
-      <form action={formAction} className="space-y-4">
+      <form action={formAction} key={state.resetKey} className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="code">{t('code')} ({t('unique')})</Label>
           <Input id="code" name="code" defaultValue={book.code} required />
