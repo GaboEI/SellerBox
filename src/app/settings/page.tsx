@@ -79,24 +79,20 @@ export default function SettingsPage() {
         let photoUrl = userProfile?.photoUrl || '';
 
         try {
-            // Step 1: If there's a new image, upload it first.
             if (imageFile) {
                 const storageRef = ref(storage, `profile_pictures/${user.uid}`);
                 const uploadResult = await uploadBytes(storageRef, imageFile);
                 photoUrl = await getDownloadURL(uploadResult.ref);
             }
             
-            // Step 2: Prepare the profile data.
             const updatedProfile: UserProfile = {
                 username: username,
                 photoUrl: photoUrl,
             };
 
-            // Step 3: Save the profile data to Firestore and wait for it.
             const userDocRef = doc(firestore, 'users', user.uid);
             await setDoc(userDocRef, updatedProfile, { merge: true });
 
-            // Step 4: Show success toast only after all operations succeed.
             toast({
                 title: t('success'),
                 description: t('profile_update_success'),
@@ -119,7 +115,6 @@ export default function SettingsPage() {
                 errorEmitter.emit('permission-error', permissionError);
             }
         } finally {
-            // Step 5: Always turn off the saving state.
             setIsSaving(false);
         }
     };
