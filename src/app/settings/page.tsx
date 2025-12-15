@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useI18n } from "@/components/i18n/i18n-provider";
 import React, { useEffect, useState } from "react";
-import { useUser, useFirestore, useDoc, useMemoFirebase, doc, useStorage } from '@/firebase';
+import { useUser, useFirestore, useDoc, useMemoFirebase, doc, useStorage, setDocumentNonBlocking, FirestorePermissionError, errorEmitter } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { AppSidebar } from '@/components/layout/sidebar';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
@@ -91,20 +91,39 @@ export default function SettingsPage() {
             };
 
             const userDocRef = doc(firestore, 'users', user.uid);
-            await setDoc(userDocRef, updatedProfile, { merge: true });
+            
+            setDoc(userDocRef, updatedProfile, { merge: true })
+                .then(() => {
+                    toast({
+                        title: t('success'),
+                        description: t('profile_update_success'),
+                    });
+                })
+                .catch((error) => {
+                    console.error("Profile update failed:", error);
+                     toast({
+                        variant: "destructive",
+                        title: t('error'),
+                        description: t('profile_update_fail'),
+                    });
+                    const permissionError = new FirestorePermissionError({
+                        path: userDocRef.path,
+                        operation: 'update',
+                        requestResourceData: updatedProfile,
+                    });
+                    errorEmitter.emit('permission-error', permissionError);
+                })
+                .finally(() => {
+                    setIsSaving(false);
+                });
 
-            toast({
-                title: t('success'),
-                description: t('profile_update_success'),
-            });
         } catch (error) {
-             console.error("Profile update failed:", error);
+             console.error("Image upload failed:", error);
              toast({
                 variant: "destructive",
                 title: t('error'),
-                description: t('profile_update_fail'),
+                description: 'Failed to upload image.',
             });
-        } finally {
             setIsSaving(false);
         }
     };
