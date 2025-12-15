@@ -73,6 +73,7 @@ export default function SettingsPage() {
       setUsername(userProfile.username || 'Seller');
       setImagePreview(userProfile.photoUrl || defaultProfilePic);
     } else {
+      setUsername('Seller');
       setImagePreview(defaultProfilePic);
     }
   }, [userProfile, defaultProfilePic]);
@@ -152,7 +153,7 @@ export default function SettingsPage() {
                           </Avatar>
                           <div>
                             <Label htmlFor="profile-picture-upload">{t('profile_picture')}</Label>
-                            <Input id="profile-picture-upload" name="photoUrl" type="file" accept="image/*" className="mt-2 max-w-xs" onChange={handleImageChange} />
+                            <Input id="profile-picture-upload" name="photo" type="file" accept="image/*" className="mt-2 max-w-xs" onChange={handleImageChange} />
                             <input type="hidden" name="photoUrlDataUri" value={imagePreview || ''} />
                           </div>
                         </div>
