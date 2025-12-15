@@ -37,16 +37,10 @@
       "imageHint": "book product"
     },
     {
-      "id": "default_book_cover",
-      "description": "Default placeholder for a book cover",
+      "id": "default_user_profile",
+      "description": "Default user profile picture (SellerBox Logo)",
       "imageUrl": "https://storage.googleapis.com/project-spark-demos/sellerbox-default-cover.png",
       "imageHint": "app logo"
-    },
-    {
-      "id": "default_user_profile",
-      "description": "Default user profile picture",
-      "imageUrl": "https://storage.googleapis.com/stella-images/flo-denos-book.jpg",
-      "imageHint": "user profile"
     }
   ]
 }
