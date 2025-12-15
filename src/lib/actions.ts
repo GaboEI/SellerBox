@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { addBook as dbAddBook, addSale as dbAddSale, getBookByCode, updateBook as dbUpdateBook, deleteBook as dbDeleteBook, updateSale as dbUpdateSale } from './data';
 import type { Book, SalePlatform, SaleStatus } from './types';
+import { PlaceHolderImages } from './placeholder-images';
 
 const bookSchema = z.object({
   code: z.string().min(1, 'code_required'),
@@ -36,6 +37,7 @@ export async function addBook(prevState: any, formData: FormData) {
   try {
     await dbAddBook({
         ...validatedFields.data,
+        coverImageUrl: validatedFields.data.coverImageUrl || PlaceHolderImages.find(p => p.id === 'default_book_cover')?.imageUrl,
     });
     revalidatePath('/inventory');
     revalidatePath('/catalog');
