@@ -117,6 +117,7 @@ function AddSaleForm({ books, setOpen }: { books: Book[], setOpen: (open: boolea
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0">
                 <Calendar
+                key={language}
                 locale={dateLocale}
                 mode="single"
                 selected={date}
