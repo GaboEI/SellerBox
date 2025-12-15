@@ -1,7 +1,8 @@
 'use client';
 
 import React from 'react';
-import { useActionState, useFormStatus } from 'react';
+import { useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { PageHeader } from '@/components/shared/page-header';
 import { LanguageToggle } from '@/components/i18n/language-toggle';
 import {
