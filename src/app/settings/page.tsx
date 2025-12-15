@@ -26,11 +26,7 @@ import { AppHeader } from '@/components/layout/header';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import {
-  useFirestore,
-  useDoc,
-  useMemoFirebase,
-} from '@/firebase';
+import { useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import type { UserProfile } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { ThemeToggle } from '@/components/settings/theme-toggle';
@@ -47,11 +43,10 @@ export default function SettingsPage() {
     [firestore]
   );
 
-  const { data: userProfile, isLoading } = useDoc<UserProfile>(userDocRef);
+  const { data: userProfile } = useDoc<UserProfile>(userDocRef);
 
   const [username, setUsername] = useState('Seller');
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   const defaultProfilePic =
@@ -61,20 +56,21 @@ export default function SettingsPage() {
   useEffect(() => {
     if (userProfile) {
       setUsername(userProfile.username || 'Seller');
-      // No need to set imagePreview here; Avatar will handle it.
     }
   }, [userProfile]);
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files && event.target.files[0]) {
-      const file = event.target.files[0];
-      setSelectedFile(file);
-      setImagePreview(URL.createObjectURL(file));
+  const handleFileChangeAndSave = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!event.target.files || event.target.files.length === 0) {
+      return;
     }
-  };
 
-  const handleSaveChanges = async () => {
-    if (!firestore) {
+    const file = event.target.files[0];
+
+    // Show preview immediately
+    const previewUrl = URL.createObjectURL(file);
+    setImagePreview(previewUrl);
+    
+    if (!firestore || !userDocRef) {
       toast({
         variant: 'destructive',
         title: 'Error',
@@ -82,32 +78,26 @@ export default function SettingsPage() {
       });
       return;
     }
+
     setIsSaving(true);
     try {
-      let newPhotoUrl = userProfile?.photoUrl;
+      // Upload to Firebase Storage
+      const storage = getStorage();
+      const storageRef = ref(storage, `profile-pictures/${USER_ID}`);
+      const snapshot = await uploadBytes(storageRef, file);
+      const newPhotoUrl = await getDownloadURL(snapshot.ref);
 
-      if (selectedFile) {
-        const storage = getStorage();
-        // Use a consistent file name for the user's profile picture
-        const storageRef = ref(storage, `profile-pictures/${USER_ID}`);
-        const snapshot = await uploadBytes(storageRef, selectedFile);
-        newPhotoUrl = await getDownloadURL(snapshot.ref);
-      }
-
+      // Update Firestore
       const updatedProfile: UserProfile = {
-        username: username,
+        username: username, // keep the existing username
         photoUrl: newPhotoUrl,
       };
       
-      if(userDocRef){
-        await setDoc(userDocRef, updatedProfile, { merge: true });
-      }
+      await setDoc(userDocRef, updatedProfile, { merge: true });
 
       toast({
         title: t('profile_update_success'),
       });
-      setImagePreview(null);
-      setSelectedFile(null);
     } catch (error) {
       console.error('Error updating profile:', error);
       toast({
@@ -116,6 +106,8 @@ export default function SettingsPage() {
         description:
           error instanceof Error ? error.message : 'An unknown error occurred.',
       });
+      // Revert preview if upload fails
+      setImagePreview(null);
     } finally {
       setIsSaving(false);
     }
@@ -175,8 +167,9 @@ export default function SettingsPage() {
                           id="picture-upload"
                           type="file"
                           accept="image/*"
-                          onChange={handleFileChange}
+                          onChange={handleFileChangeAndSave}
                           className="max-w-xs"
+                          disabled={isSaving}
                         />
                       </div>
                     </div>
@@ -186,11 +179,10 @@ export default function SettingsPage() {
                         id="username"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
+                        readOnly
+                        className="bg-muted"
                       />
                     </div>
-                     <Button onClick={handleSaveChanges} disabled={isSaving}>
-                      {isSaving ? t('saving') : t('save_changes')}
-                    </Button>
                   </CardContent>
                 </Card>
               </div>
