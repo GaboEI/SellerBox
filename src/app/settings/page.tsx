@@ -10,12 +10,10 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useI18n } from "@/components/i18n/i18n-provider";
 import React, { useEffect, useState } from "react";
-import { useUser, useFirestore, useDoc, useMemoFirebase, doc, useStorage } from '@/firebase';
+import { useUser, useFirestore, useDoc, useMemoFirebase, doc, useStorage, setDocumentNonBlocking } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { AppSidebar } from '@/components/layout/sidebar';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
-import { AppHeader } from '@/components/layout/header';
-import { setDoc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
@@ -71,35 +69,39 @@ export default function SettingsPage() {
     const handleSaveChanges = async () => {
         if (!user || !firestore || !storage) return;
 
-        let photoUrl = userProfile?.photoUrl;
+        let photoUrl = userProfile?.photoUrl || '';
 
-        try {
-            if (imageFile) {
-                const storageRef = ref(storage, `profile_pictures/${user.uid}`);
+        // This is an optimistic UI update. We show the toast immediately.
+        // The error will be caught globally if the write fails.
+        toast({
+            title: t('success'),
+            description: t('profile_update_success'),
+        });
+
+        if (imageFile) {
+            const storageRef = ref(storage, `profile_pictures/${user.uid}`);
+            try {
                 await uploadBytes(storageRef, imageFile);
                 photoUrl = await getDownloadURL(storageRef);
+            } catch (error) {
+                 toast({
+                    variant: "destructive",
+                    title: t('error'),
+                    description: t('profile_update_fail'),
+                });
+                return; // Stop if image upload fails
             }
-
-            const updatedProfile: UserProfile = {
-                username: username,
-                photoUrl: photoUrl,
-            };
-
-            const userDocRef = doc(firestore, 'users', user.uid);
-            await setDoc(userDocRef, updatedProfile, { merge: true });
-
-            toast({
-                title: t('success'),
-                description: t('profile_update_success'),
-            });
-        } catch (error) {
-            console.error("Error updating profile: ", error);
-            toast({
-                variant: "destructive",
-                title: t('error'),
-                description: t('profile_update_fail'),
-            });
         }
+        
+        const updatedProfile: UserProfile = {
+            username: username,
+            photoUrl: photoUrl,
+        };
+
+        const userDocRef = doc(firestore, 'users', user.uid);
+        // Use the non-blocking fire-and-forget method for setting the document
+        // The global error handler will catch permission issues.
+        setDocumentNonBlocking(userDocRef, updatedProfile, { merge: true });
     };
 
     if (isUserLoading || isProfileLoading || !user) {
