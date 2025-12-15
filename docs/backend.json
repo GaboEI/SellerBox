@@ -1,0 +1,245 @@
+{
+  "entities": {
+    "Book": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Book",
+      "type": "object",
+      "description": "Represents a book in the master catalog.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Book entity."
+        },
+        "code": {
+          "type": "string",
+          "description": "Unique code for the book (required)."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the book (required)."
+        }
+      },
+      "required": [
+        "id",
+        "code",
+        "name"
+      ]
+    },
+    "InventoryItem": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "InventoryItem",
+      "type": "object",
+      "description": "Represents an item in the inventory.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the InventoryItem entity."
+        },
+        "bookId": {
+          "type": "string",
+          "description": "Reference to Book. (Relationship: Book 1:N InventoryItem)"
+        },
+        "quantity": {
+          "type": "number",
+          "description": "Quantity of the book in inventory."
+        },
+        "location": {
+          "type": "string",
+          "description": "Physical location of the book in the inventory."
+        },
+        "status": {
+          "type": "string",
+          "description": "Internal status of the book (e.g., ready, in production)."
+        }
+      },
+      "required": [
+        "id",
+        "bookId"
+      ]
+    },
+    "Sale": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Sale",
+      "type": "object",
+      "description": "Represents a sales record.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Sale entity."
+        },
+        "bookId": {
+          "type": "string",
+          "description": "Reference to Book. (Relationship: Book 1:N Sale)"
+        },
+        "date": {
+          "type": "string",
+          "description": "Date of the sale.",
+          "format": "date-time"
+        },
+        "status": {
+          "type": "string",
+          "description": "Status of the sale (e.g., sold, reserved, cancelled)."
+        },
+        "notes": {
+          "type": "string",
+          "description": "Optional notes for the sale."
+        }
+      },
+      "required": [
+        "id",
+        "bookId",
+        "date",
+        "status"
+      ]
+    },
+    "Listing": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Listing",
+      "type": "object",
+      "description": "Represents a product listing.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Listing entity."
+        },
+        "bookId": {
+          "type": "string",
+          "description": "Reference to Book. (Relationship: Book 1:N Listing)"
+        },
+        "image": {
+          "type": "string",
+          "description": "URL or path to the image for the listing.",
+          "format": "uri"
+        },
+        "text": {
+          "type": "string",
+          "description": "Text content of the listing (title, details, etc.)."
+        },
+        "template": {
+          "type": "string",
+          "description": "Template used for the listing."
+        }
+      },
+      "required": [
+        "id",
+        "bookId"
+      ]
+    },
+    "Setting": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Setting",
+      "type": "object",
+      "description": "Represents a user setting.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Setting entity."
+        },
+        "key": {
+          "type": "string",
+          "description": "Key of the setting."
+        },
+        "value": {
+          "type": "string",
+          "description": "Value of the setting."
+        }
+      },
+      "required": [
+        "id",
+        "key",
+        "value"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/books/{bookId}",
+        "definition": {
+          "entityName": "Book",
+          "schema": {
+            "$ref": "#/backend/entities/Book"
+          },
+          "description": "Stores the master catalog of books.",
+          "params": [
+            {
+              "name": "bookId",
+              "description": "Unique identifier for the book."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/inventory_items/{inventoryItemId}",
+        "definition": {
+          "entityName": "InventoryItem",
+          "schema": {
+            "$ref": "#/backend/entities/InventoryItem"
+          },
+          "description": "Stores inventory items related to books.",
+          "params": [
+            {
+              "name": "inventoryItemId",
+              "description": "Unique identifier for the inventory item."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/sales/{saleId}",
+        "definition": {
+          "entityName": "Sale",
+          "schema": {
+            "$ref": "#/backend/entities/Sale"
+          },
+          "description": "Stores sales records.",
+          "params": [
+            {
+              "name": "saleId",
+              "description": "Unique identifier for the sale."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/listings/{listingId}",
+        "definition": {
+          "entityName": "Listing",
+          "schema": {
+            "$ref": "#/backend/entities/Listing"
+          },
+          "description": "Stores product listings.",
+          "params": [
+            {
+              "name": "listingId",
+              "description": "Unique identifier for the listing."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/settings/{settingId}",
+        "definition": {
+          "entityName": "Setting",
+          "schema": {
+            "$ref": "#/backend/entities/Setting"
+          },
+          "description": "Stores user-specific settings.",
+          "params": [
+            {
+              "name": "settingId",
+              "description": "Unique identifier for the setting."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "This Firestore structure prioritizes authorization independence and scalability for the Librarian's Toolkit application. It leverages structural segregation and denormalization to simplify security rules and optimize query performance. Since there is no role-based access control or user-specific data beyond settings, and there is no requirement for collaborative data ownership or user-generated content, we will not create paths based on `userId`. We will assume that Firebase Authentication will be used and some higher-level function will authorize based on claims or backend logic, since the user roles are not clear from the prompt.\n\n*   **/books (Master Catalog):** Stores the master catalog of books. The security rule ensures that only authorized users can add, edit, or delete books. QAPs are supported through direct access based on `bookId`.\n*   **/inventory_items (Inventory Management):** Stores inventory items related to books. Each document includes the `bookId` to link it to the corresponding book in the master catalog. QAPs are supported through direct access based on `inventoryItemId`.\n*   **/sales (Sales Recording):** Stores sales records. Each document includes the `bookId` for association with the sold book. QAPs are supported through direct access based on `saleId`.\n*   **/listings (Listing Generator):** Stores product listings. Each listing includes the `bookId` to link it back to the book in the master catalog. QAPs are supported through direct access based on `listingId`.\n*   **/settings (Configuration and Personalization):** Stores user-specific settings. Settings are stored in a simple key-value format. Path-based ownership ensures that only the authenticated user can access their own settings. QAPs are supported through direct access based on `settingId`."
+  }
+}
