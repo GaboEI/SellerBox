@@ -2,11 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from '@/components/settings/theme-provider';
-import { AppSidebar } from '@/components/layout/sidebar';
-import { AppHeader } from '@/components/layout/header';
-import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { I18nProvider } from '@/components/i18n/i18n-provider';
-import { FirebaseClientProvider } from '@/firebase';
+import { FirebaseClientProvider } from '@/firebase/client-provider';
 
 export const metadata: Metadata = {
   title: "SellerBox",
@@ -29,14 +26,14 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased">
-        <FirebaseClientProvider>
-          <I18nProvider>
-            <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-              {children}
-              <Toaster />
-            </ThemeProvider>
-          </I18nProvider>
-        </FirebaseClientProvider>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <FirebaseClientProvider>
+            <I18nProvider>
+                {children}
+            </I18nProvider>
+          </FirebaseClientProvider>
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   );
