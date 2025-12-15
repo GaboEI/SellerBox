@@ -36,13 +36,19 @@ const FirebaseContext = createContext<FirebaseContextState | undefined>(
   undefined
 );
 
-// Custom hook to manage Firebase auth state
-const useFirebaseAuth = (auth: Auth | null) => {
+export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
+  children,
+  firebaseApp,
+  firestore,
+  auth,
+  storage,
+}) => {
   const [user, setUser] = useState<User | null>(null);
   const [isUserLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (!auth) {
+      setUser(null);
       setIsLoading(false);
       return;
     }
@@ -52,20 +58,7 @@ const useFirebaseAuth = (auth: Auth | null) => {
     });
     return () => unsubscribe();
   }, [auth]);
-
-  return { user, isUserLoading };
-};
-
-
-export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
-  children,
-  firebaseApp,
-  firestore,
-  auth,
-  storage,
-}) => {
-  const { user, isUserLoading } = useFirebaseAuth(auth);
-
+  
   const contextValue = useMemo(
     (): FirebaseContextState => ({
       firebaseApp,
