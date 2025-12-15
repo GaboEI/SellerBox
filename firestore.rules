@@ -2,10 +2,23 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Allow public read and write access to all collections for a single-user app model.
-    // This is suitable for rapid prototyping but should be secured before production.
+    // Regla para la colección de usuarios
+    match /users/{userId} {
+      // Cualquier usuario autenticado puede crear su propio perfil.
+      // Solo el propietario del perfil puede leerlo o actualizarlo.
+      allow read, update: if request.auth.uid == userId;
+      allow create: if request.auth.uid != null;
+    }
+
+    // Reglas para las subcolecciones de un usuario
+    match /users/{userId}/{document=**} {
+      // Solo el propietario del perfil puede leer y escribir en sus subcolecciones.
+      allow read, write: if request.auth.uid == userId;
+    }
+    
+    // Por defecto, denegar el acceso a cualquier otra colección.
     match /{document=**} {
-      allow read, write: if true;
+      allow read, write: if false;
     }
   }
 }

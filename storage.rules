@@ -3,9 +3,15 @@ rules_version = '2';
 
 service firebase.storage {
   match /b/{bucket}/o {
-    // Allow public read and write access to all files for a single-user app model.
+    // Permitir la lectura pública de todos los archivos.
     match /{allPaths=**} {
-      allow read, write: if true;
+      allow read: if true;
+    }
+    
+    // Solo los usuarios autenticados pueden escribir en su propia carpeta de perfil.
+    // Esto asegura que un usuario solo pueda subir su propia foto de perfil.
+    match /users/{userId}/{allPaths=**} {
+      allow write: if request.auth != null && request.auth.uid == userId;
     }
   }
 }

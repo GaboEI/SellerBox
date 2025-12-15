@@ -1,9 +1,17 @@
 'use client';
 
-import React, { DependencyList, createContext, useContext, ReactNode, useMemo } from 'react';
+import React, {
+  DependencyList,
+  createContext,
+  useContext,
+  ReactNode,
+  useMemo,
+  useState,
+  useEffect,
+} from 'react';
 import { FirebaseApp } from 'firebase/app';
 import { Firestore } from 'firebase/firestore';
-import { Auth } from 'firebase/auth';
+import { Auth, onAuthStateChanged, User } from 'firebase/auth';
 import { FirebaseStorage } from 'firebase/storage';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 
@@ -18,11 +26,15 @@ interface FirebaseProviderProps {
 export interface FirebaseContextState {
   firebaseApp: FirebaseApp | null;
   firestore: Firestore | null;
-  auth: Auth | null; 
+  auth: Auth | null;
   storage: FirebaseStorage | null;
+  user: User | null;
+  isUserLoading: boolean;
 }
 
-const FirebaseContext = createContext<FirebaseContextState | undefined>(undefined);
+const FirebaseContext = createContext<FirebaseContextState | undefined>(
+  undefined
+);
 
 export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
   children,
@@ -31,12 +43,28 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
   auth,
   storage,
 }) => {
-  const contextValue = useMemo((): FirebaseContextState => ({
-    firebaseApp,
-    firestore,
-    auth,
-    storage,
-  }), [firebaseApp, firestore, auth, storage]);
+  const [user, setUser] = useState<User | null>(null);
+  const [isUserLoading, setIsUserLoading] = useState(true);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+      setIsUserLoading(false);
+    });
+    return () => unsubscribe();
+  }, [auth]);
+
+  const contextValue = useMemo(
+    (): FirebaseContextState => ({
+      firebaseApp,
+      firestore,
+      auth,
+      storage,
+      user,
+      isUserLoading,
+    }),
+    [firebaseApp, firestore, auth, storage, user, isUserLoading]
+  );
 
   return (
     <FirebaseContext.Provider value={contextValue}>
@@ -67,22 +95,28 @@ export const useFirestore = (): Firestore | null => {
 /** Hook para acceder a la instancia de Firebase Storage. */
 export const useStorage = (): FirebaseStorage | null => {
   return useFirebase().storage;
-}
+};
 
 /** Hook para acceder a la instancia de Firebase App. */
 export const useFirebaseApp = (): FirebaseApp | null => {
   return useFirebase().firebaseApp;
 };
 
-type MemoFirebase <T> = T & {__memo?: boolean};
+type MemoFirebase<T> = T & { __memo?: boolean };
 
-export function useMemoFirebase<T>(factory: () => T, deps: DependencyList): T | (MemoFirebase<T>) {
+export function useMemoFirebase<T>(
+  factory: () => T,
+  deps: DependencyList
+): T | MemoFirebase<T> {
   const memoized = useMemo(factory, deps);
-  
-  if(typeof memoized !== 'object' || memoized === null) return memoized;
+
+  if (typeof memoized !== 'object' || memoized === null) return memoized;
   (memoized as MemoFirebase<T>).__memo = true;
-  
+
   return memoized;
 }
 
-export const useUser = () => ({ user: null, isUserLoading: false });
+export const useUser = () => {
+    const { user, isUserLoading } = useFirebase();
+    return { user, isUserLoading };
+};

@@ -171,7 +171,9 @@
     }
   },
   "auth": {
-    "providers": []
+    "providers": [
+      "google.com"
+    ]
   },
   "firestore": {
     "/users/{userId}": {
