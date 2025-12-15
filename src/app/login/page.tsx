@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth, useUser } from '@/firebase';
+import { useAuth, useUser, useFirestore, doc } from '@/firebase';
 import { initiateAnonymousSignIn, initiateEmailSignUp, initiateEmailSignIn } from '@/firebase/non-blocking-login';
 import { Button } from '@/components/ui/button';
 import { BarChart3, Mail, Lock } from 'lucide-react';
@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { setDoc } from 'firebase/firestore';
 
 function LoginForm() {
   const auth = useAuth();
@@ -46,14 +47,22 @@ function LoginForm() {
 
 function SignUpForm() {
     const auth = useAuth();
+    const firestore = useFirestore();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [username, setUsername] = useState('');
 
 
-    const handleSignUp = () => {
-        // We can pass the username to a firestore creation later
-        initiateEmailSignUp(auth, email, password);
+    const handleSignUp = async () => {
+        try {
+            const userCredential = await initiateEmailSignUp(auth, email, password);
+            if (userCredential && firestore) {
+                const userDocRef = doc(firestore, 'users', userCredential.user.uid);
+                await setDoc(userDocRef, { username: username, photoUrl: '' }, { merge: true });
+            }
+        } catch (error) {
+            console.error("Sign up failed:", error);
+        }
     };
 
     return (
