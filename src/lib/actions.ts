@@ -190,14 +190,14 @@ export async function updateSale(id: string, prevState: any, formData: FormData)
 }
 
 const userProfileSchema = z.object({
-  username: z.string().optional(),
+  username: z.string().min(1, 'name_required'),
   photoUrl: z.string().optional(),
 });
 
 export async function updateUserProfile(prevState: any, formData: FormData) {
   const validatedFields = userProfileSchema.safeParse({
     username: formData.get('username'),
-    photoUrl: formData.get('photoUrlDataUri'), // Use the data URI directly
+    photoUrl: formData.get('photoUrlDataUri'), 
   });
 
   if (!validatedFields.success) {
@@ -213,12 +213,8 @@ export async function updateUserProfile(prevState: any, formData: FormData) {
   try {
     const updates: Partial<UserProfile> = {};
     if (username) updates.username = username;
-    // Only include photoUrl if it's a new data URI, not the default placeholder
-    if (photoUrl && photoUrl.startsWith('data:image')) {
-      updates.photoUrl = photoUrl;
-    }
+    if (photoUrl) updates.photoUrl = photoUrl;
 
-    // Do not save if there are no actual changes
     if (Object.keys(updates).length === 0) {
       return { status: 'success', message: 'profile_update_success', errors: {} };
     }
