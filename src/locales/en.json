@@ -14,8 +14,6 @@
     "sales_desc": "Total books sold",
     "books_in_catalog": "Books in Catalog",
     "books_in_catalog_desc": "Unique titles in your catalog",
-    "total_stock": "Total Stock",
-    "total_stock_desc": "Total number of items in inventory",
     "sales_overview": "Sales Overview",
     "recent_sales": "Recent Sales",
     "inventory_desc": "View and manage your book stock.",
@@ -36,8 +34,6 @@
     "filter_by_name_or_code": "Filter by name or code...",
     "code": "Code",
     "name": "Name",
-    "quantity": "Quantity",
-    "description": "Description",
     "unique": "Unique",
     "adding": "Adding...",
     "success": "Success!",
@@ -143,5 +139,6 @@
     "update_sale_fail": "Failed to update sale.",
     "date_format_error": "Please use DD.MM.YYYY format.",
     "invalid_date_error": "The date is invalid.",
-    "date_range_error": "Date must be after 01.01.2025 and not in the future."
+    "date_range_error": "Date must be after 01.01.2025 and not in the future.",
+    "cover_photo": "Cover Photo"
 }

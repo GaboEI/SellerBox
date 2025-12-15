@@ -21,7 +21,6 @@ export function StatsCards({ sales, books }: StatsCardsProps) {
   const totalSales = soldSales.length;
   const totalRevenue = soldSales.reduce((sum, sale) => sum + (sale.saleAmount || 0), 0);
   const totalBooks = books.length;
-  const totalStock = books.reduce((sum, book) => sum + book.quantity, 0);
 
   const stats = [
     {
@@ -61,13 +60,7 @@ export function StatsCards({ sales, books }: StatsCardsProps) {
       value: `${totalBooks}`,
       icon: <Book className="h-4 w-4 text-muted-foreground" />,
       description: t('books_in_catalog_desc'),
-    },
-    {
-      title: t('total_stock'),
-      value: `${totalStock}`,
-      icon: <Package className="h-4 w-4 text-muted-foreground" />,
-      description: t('total_stock_desc'),
-    },
+    }
   ];
 
   return (

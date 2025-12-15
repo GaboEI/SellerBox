@@ -20,9 +20,10 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { addBook } from '@/lib/actions';
 import { Label } from '../ui/label';
-import { Textarea } from '../ui/textarea';
 import { useI18n } from '../i18n/i18n-provider';
 import { Card } from '../ui/card';
+import Image from 'next/image';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 function SubmitButton() {
   const { t } = useI18n();
@@ -45,6 +46,23 @@ function AddBookForm({ setOpen, onDataChange }: { setOpen: (open: boolean) => vo
   const [state, formAction] = useActionState(addBook, initialState);
   const { toast } = useToast();
   const formRef = React.useRef<HTMLFormElement>(null);
+  const [imagePreview, setImagePreview] = React.useState<string | null>(null);
+  const [coverImageUrl, setCoverImageUrl] = React.useState<string>('');
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        setImagePreview(result);
+        setCoverImageUrl(result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const previewImage = imagePreview || PlaceHolderImages.find(p => p.id === 'default_book_cover')?.imageUrl || '';
 
   React.useEffect(() => {
     if (!state.message) return;
@@ -56,6 +74,8 @@ function AddBookForm({ setOpen, onDataChange }: { setOpen: (open: boolean) => vo
       });
       setOpen(false);
       formRef.current?.reset();
+      setImagePreview(null);
+      setCoverImageUrl('');
       onDataChange(); // Notify parent that data has changed
     } else {
       toast({
@@ -78,14 +98,21 @@ function AddBookForm({ setOpen, onDataChange }: { setOpen: (open: boolean) => vo
         <Input id="name" name="name" required />
         {state.errors?.name && <p className="text-sm text-destructive">{t(state.errors.name[0])}</p>}
       </div>
-      <div className="space-y-2">
-        <Label htmlFor="quantity">{t('quantity')}</Label>
-        <Input id="quantity" name="quantity" type="number" defaultValue="0" required />
-        {state.errors?.quantity && <p className="text-sm text-destructive">{t(state.errors.quantity[0])}</p>}
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="description">{t('description')}</Label>
-        <Textarea id="description" name="description" />
+       <div className="space-y-2">
+        <Label htmlFor="image-upload">{t('cover_photo')}</Label>
+        <div className="flex items-center gap-4">
+          <div className="relative aspect-square h-24 w-24 overflow-hidden rounded-lg border bg-muted">
+              <Image
+                src={previewImage}
+                alt="Cover preview"
+                fill
+                className="object-cover"
+                data-ai-hint="book cover"
+              />
+          </div>
+          <Input id="image-upload" name="image-upload" type="file" accept="image/*" onChange={handleImageUpload} className="max-w-xs" />
+        </div>
+        <input type="hidden" name="coverImageUrl" value={coverImageUrl} />
       </div>
       <SubmitButton />
     </form>

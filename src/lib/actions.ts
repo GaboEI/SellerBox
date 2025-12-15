@@ -8,16 +8,14 @@ import type { Book, SalePlatform, SaleStatus } from './types';
 const bookSchema = z.object({
   code: z.string().min(1, 'code_required'),
   name: z.string().min(1, 'name_required'),
-  quantity: z.coerce.number().min(0, 'quantity_non_negative'),
-  description: z.string().optional(),
+  coverImageUrl: z.string().optional(),
 });
 
 export async function addBook(prevState: any, formData: FormData) {
   const validatedFields = bookSchema.safeParse({
     code: formData.get('code'),
     name: formData.get('name'),
-    quantity: formData.get('quantity'),
-    description: formData.get('description'),
+    coverImageUrl: formData.get('coverImageUrl'),
   });
 
   if (!validatedFields.success) {
@@ -38,7 +36,6 @@ export async function addBook(prevState: any, formData: FormData) {
   try {
     await dbAddBook({
         ...validatedFields.data,
-        description: validatedFields.data.description || '',
     });
     revalidatePath('/inventory');
     revalidatePath('/catalog');
@@ -53,8 +50,7 @@ export async function updateBook(id: string, prevState: any, formData: FormData)
   const validatedFields = bookSchema.safeParse({
     code: formData.get('code'),
     name: formData.get('name'),
-    quantity: formData.get('quantity'),
-    description: formData.get('description'),
+    coverImageUrl: formData.get('coverImageUrl'),
   });
 
   if (!validatedFields.success) {
@@ -75,7 +71,6 @@ export async function updateBook(id: string, prevState: any, formData: FormData)
   try {
     await dbUpdateBook(id, {
         ...validatedFields.data,
-        description: validatedFields.data.description || '',
     });
     revalidatePath('/inventory');
     revalidatePath('/catalog');

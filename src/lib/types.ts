@@ -2,8 +2,7 @@ export type Book = {
   id: string;
   code: string;
   name: string;
-  quantity: number;
-  description: string;
+  coverImageUrl?: string;
 };
 
 export type SalePlatform = 'Avito' | 'Ozon';

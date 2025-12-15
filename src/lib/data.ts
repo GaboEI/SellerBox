@@ -3,6 +3,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import type { Book, Sale } from './types';
+import { PlaceHolderImages } from './placeholder-images';
 
 // Use path.join to create a platform-independent file path.
 const booksFilePath = path.join(process.cwd(), 'src/lib/books.json');
@@ -53,8 +54,11 @@ export async function getBookByCode(code: string): Promise<Book | undefined> {
 
 export async function addBook(book: Omit<Book, 'id'>): Promise<Book> {
   const books = await getBooks();
-  const newBook: Book = { ...book, id: String(Date.now()) };
-  // Add to the end of the array to avoid race conditions.
+  const newBook: Book = { 
+    ...book, 
+    id: String(Date.now()),
+    coverImageUrl: book.coverImageUrl || PlaceHolderImages.find(p => p.id === 'default_book_cover')?.imageUrl,
+  };
   const updatedBooks = [...books, newBook];
   await writeData(booksFilePath, updatedBooks);
   return newBook;
@@ -99,7 +103,7 @@ export async function addSale(sale: Omit<Sale, 'id' | 'status' | 'date'> & { dat
   
   const book = await getBookById(sale.bookId);
   if (book && (newSale.status === 'completed' || newSale.status === 'sold_in_person')) {
-    await updateBook(book.id, { quantity: book.quantity - 1 });
+    // await updateBook(book.id, { quantity: book.quantity - 1 });
   }
 
   // Add to the end of the array.
@@ -124,7 +128,7 @@ export async function updateSale(id: string, updates: Partial<Sale>): Promise<Sa
     if (isNowSold && wasNotSold) {
         const book = await getBookById(updatedSale.bookId);
         if (book) {
-            await updateBook(book.id, { quantity: Math.max(0, book.quantity - 1) });
+            // await updateBook(book.id, { quantity: Math.max(0, book.quantity - 1) });
         }
     }
 

@@ -14,8 +14,6 @@
     "sales_desc": "Total de libros vendidos",
     "books_in_catalog": "Libros en Catálogo",
     "books_in_catalog_desc": "Títulos únicos en tu catálogo",
-    "total_stock": "Stock Total",
-    "total_stock_desc": "Número total de artículos en inventario",
     "sales_overview": "Resumen de Ventas",
     "recent_sales": "Ventas Recientes",
     "inventory_desc": "Consulta y gestiona tu stock de libros.",
@@ -36,8 +34,6 @@
     "filter_by_name_or_code": "Filtrar por nombre o código...",
     "code": "Código",
     "name": "Nombre",
-    "quantity": "Cantidad",
-    "description": "Descripción",
     "unique": "Único",
     "adding": "Añadiendo...",
     "success": "¡Éxito!",
@@ -143,5 +139,6 @@
     "update_sale_fail": "Error al actualizar la venta.",
     "date_format_error": "Por favor, use el formato DD.MM.AAAA.",
     "invalid_date_error": "La fecha no es válida.",
-    "date_range_error": "La fecha debe ser posterior al 01.01.2025 y no futura."
+    "date_range_error": "La fecha debe ser posterior al 01.01.2025 y no futura.",
+    "cover_photo": "Foto de Portada"
 }
