@@ -34,13 +34,13 @@ export function initiateEmailSignUp(authInstance: Auth, email: string, password:
         resolve(userCredential);
       })
       .catch((error: FirebaseError) => {
-         const permissionError = new FirestorePermissionError({
+         const authError = new FirestorePermissionError({
             path: 'auth',
             operation: 'create', // Represents a sign-up attempt
-            requestResourceData: { email }
+            requestResourceData: { email: email, error: error.code }
         });
-        permissionError.message = error.message;
-        errorEmitter.emit('permission-error', permissionError);
+        authError.message = error.message;
+        errorEmitter.emit('permission-error', authError);
         reject(error);
       });
   });
