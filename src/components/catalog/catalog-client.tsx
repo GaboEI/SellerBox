@@ -1,7 +1,8 @@
 'use client';
 import * as React from 'react';
-import { useFormStatus, useActionState } from 'react';
-import { PlusCircle, Book } from 'lucide-react';
+import { useFormStatus } from 'react-dom';
+import { useActionState } from 'react';
+import { PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -69,7 +70,6 @@ function AddBookForm({ setOpen, onDataChange }: { setOpen: (open: boolean) => vo
         description: t(state.message),
       });
       setOpen(false);
-      onDataChange();
     } else {
       toast({
         title: t('error'),
@@ -77,15 +77,16 @@ function AddBookForm({ setOpen, onDataChange }: { setOpen: (open: boolean) => vo
         variant: 'destructive',
       });
     }
-  }, [state.message, state.resetKey, toast, setOpen, t, onDataChange]);
+  }, [state, toast, setOpen, t]);
   
   React.useEffect(() => {
     if (state.message.includes('success')) {
         formRef.current?.reset();
         setImagePreview(null);
         setCoverImageUrl('');
+        onDataChange();
     }
-  }, [state.resetKey, state.message]);
+  }, [state.resetKey, state.message, onDataChange]);
   
   return (
     <form ref={formRef} action={formAction} key={state.resetKey} className="space-y-4">
@@ -124,7 +125,7 @@ function AddBookForm({ setOpen, onDataChange }: { setOpen: (open: boolean) => vo
   );
 }
 
-export function CatalogClient({ books, onDataChange }: { books: BookType[], onDataChange?: () => void }) {
+export function CatalogClient({ books, onDataChange }: { books: BookType[], onDataChange: () => void }) {
   const { t } = useI18n();
   const [open, setOpen] = React.useState(false);
   const [filter, setFilter] = React.useState('');
@@ -134,9 +135,8 @@ export function CatalogClient({ books, onDataChange }: { books: BookType[], onDa
       book.name.toLowerCase().includes(filter.toLowerCase()) ||
       book.code.toLowerCase().includes(filter.toLowerCase())
   );
-
-  const handleDataChange = onDataChange || (() => {});
-  const tableColumns = columns(handleDataChange);
+  
+  const tableColumns = columns(onDataChange);
 
   return (
     <div className="flex flex-col gap-8">
@@ -158,7 +158,7 @@ export function CatalogClient({ books, onDataChange }: { books: BookType[], onDa
                 {t('add_new_book_desc')}
               </DialogDescription>
             </DialogHeader>
-            <AddBookForm setOpen={setOpen} onDataChange={handleDataChange} />
+            <AddBookForm setOpen={setOpen} onDataChange={onDataChange} />
           </DialogContent>
         </Dialog>
       </PageHeader>
