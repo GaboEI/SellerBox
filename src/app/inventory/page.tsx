@@ -21,9 +21,9 @@ export default function InventoryPage() {
     fetchBooks();
   }, [clientKey]); // Re-fetch books when clientKey changes
 
-  const handleDataChange = () => {
+  const handleDataChange = React.useCallback(() => {
     setClientKey(Date.now().toString());
-  };
+  }, []);
 
   return (
     <div className="flex flex-col gap-8">
