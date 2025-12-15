@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Settings } from 'lucide-react';
+import { Settings, LogOut } from 'lucide-react';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -15,10 +15,25 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useSidebar } from '@/components/ui/sidebar';
 import { useI18n } from '@/components/i18n/i18n-provider';
+import { useAuth } from '@/firebase';
+import { signOut } from 'firebase/auth';
+import { useRouter } from 'next/navigation';
 
 export function AppHeader() {
   const { isMobile } = useSidebar();
   const { t } = useI18n();
+  const auth = useAuth();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      router.push('/login');
+    } catch (error) {
+      console.error("Error signing out: ", error);
+    }
+  };
+
   return (
     <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:h-16 sm:px-6">
       <SidebarTrigger className="flex md:hidden" />
@@ -54,7 +69,10 @@ export function AppHeader() {
                 <span>{t('settings')}</span>
               </Link>
             </DropdownMenuItem>
-          <DropdownMenuItem>Log out</DropdownMenuItem>
+          <DropdownMenuItem onClick={handleLogout}>
+            <LogOut className="mr-2 h-4 w-4" />
+            <span>Log out</span>
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </header>

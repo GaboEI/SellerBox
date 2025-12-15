@@ -6,6 +6,7 @@ import { AppSidebar } from '@/components/layout/sidebar';
 import { AppHeader } from '@/components/layout/header';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { I18nProvider } from '@/components/i18n/i18n-provider';
+import { FirebaseClientProvider } from '@/firebase';
 
 export const metadata: Metadata = {
   title: "SellerBox",
@@ -28,18 +29,14 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased">
-        <I18nProvider>
-          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-            <SidebarProvider>
-              <AppSidebar />
-              <SidebarInset>
-                <AppHeader />
-                <main className="p-4 lg:p-6">{children}</main>
-              </SidebarInset>
-            </SidebarProvider>
-            <Toaster />
-          </ThemeProvider>
-        </I18nProvider>
+        <FirebaseClientProvider>
+          <I18nProvider>
+            <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+              {children}
+              <Toaster />
+            </ThemeProvider>
+          </I18nProvider>
+        </FirebaseClientProvider>
       </body>
     </html>
   );
