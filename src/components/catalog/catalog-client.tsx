@@ -1,6 +1,7 @@
 'use client';
 import * as React from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useFormStatus } from 'react-dom';
+import { useActionState } from 'react';
 import { PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -41,7 +42,7 @@ const initialState = {
 
 function AddBookForm({ setOpen, onDataChange }: { setOpen: (open: boolean) => void, onDataChange: () => void }) {
   const { t } = useI18n();
-  const [state, formAction] = useFormState(addBook, initialState);
+  const [state, formAction] = useActionState(addBook, initialState);
   const { toast } = useToast();
   const formRef = React.useRef<HTMLFormElement>(null);
 

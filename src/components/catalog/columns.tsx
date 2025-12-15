@@ -3,7 +3,8 @@
 import { ColumnDef } from '@tanstack/react-table';
 import { MoreHorizontal, ArrowUpDown } from 'lucide-react';
 import React from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useFormStatus } from 'react-dom';
+import { useActionState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -53,11 +54,12 @@ function SubmitButton() {
 
 function EditBookForm({ book, setOpen, onDataChange }: { book: Book, setOpen: (open: boolean) => void, onDataChange: () => void }) {
     const { t } = useI18n();
-    const [state, formAction] = useFormState(updateBook.bind(null, book.id), { message: '', errors: {} });
+    const [state, formAction] = useActionState(updateBook.bind(null, book.id), { message: '', errors: {} });
     const { toast } = useToast();
     const formRef = React.useRef<HTMLFormElement>(null);
   
     React.useEffect(() => {
+      if (!state.message) return;
       if (state.message.includes('success')) {
         toast({
           title: t('success'),
@@ -65,7 +67,7 @@ function EditBookForm({ book, setOpen, onDataChange }: { book: Book, setOpen: (o
         });
         setOpen(false);
         onDataChange();
-      } else if (state.message) {
+      } else {
         toast({
           title: t('error'),
           description: t(state.message),

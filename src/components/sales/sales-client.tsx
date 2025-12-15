@@ -48,7 +48,7 @@ const initialState = {
 };
 
 function AddSaleForm({ books, setOpen }: { books: Book[], setOpen: (open: boolean) => void }) {
-  const { t, language } = useI18n();
+  const { t } = useI18n();
   const [state, formAction] = useActionState(addSale, initialState);
   const { toast } = useToast();
   const formRef = React.useRef<HTMLFormElement>(null);
