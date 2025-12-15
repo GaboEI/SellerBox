@@ -13,22 +13,19 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useSidebar } from '@/components/ui/sidebar';
 import { useI18n } from '@/components/i18n/i18n-provider';
-import { useDoc, useFirestore, useMemoFirebase, doc, useFirebase } from '@/firebase';
-import { useEffect, useState } from 'react';
+import { useDoc, useFirestore } from '@/firebase';
+import { useEffect, useState, useMemo } from 'react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { UserProfile } from '@/lib/types';
+import { doc } from 'firebase/firestore';
+import { useMemoFirebase } from '@/firebase/provider';
 
 const SINGLE_USER_ID = "_single_user";
 
-interface UserProfile {
-    username?: string;
-    photoUrl?: string;
-}
-
 export function AppHeader() {
   const { t } = useI18n();
-  const { firestore } = useFirebase();
+  const { firestore } = useFirestore ? useFirestore() : { firestore: null };
 
   const defaultProfilePic = PlaceHolderImages.find(p => p.id === 'default_user_profile')?.imageUrl || '';
 
@@ -49,6 +46,8 @@ export function AppHeader() {
     }
   }, [userProfile, defaultProfilePic]);
 
+  const usernameInitial = username?.[0]?.toUpperCase() || 'U';
+
   return (
     <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:h-16 sm:px-6">
       <SidebarTrigger className="flex md:hidden" />
@@ -63,7 +62,7 @@ export function AppHeader() {
                 src={photoUrl}
                 alt="User Avatar"
               />
-              <AvatarFallback>{username?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
+              <AvatarFallback>{usernameInitial}</AvatarFallback>
             </Avatar>
           </Button>
         </DropdownMenuTrigger>

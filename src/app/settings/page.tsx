@@ -9,26 +9,24 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useI18n } from "@/components/i18n/i18n-provider";
-import React, { useEffect, useState } from "react";
-import { useFirestore, useDoc, useMemoFirebase, doc, useStorage, useFirebase } from '@/firebase';
+import React, { useEffect, useState, useMemo } from "react";
+import { useFirestore, useDoc } from '@/firebase';
 import { AppSidebar } from '@/components/layout/sidebar';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { useToast } from "@/hooks/use-toast";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { AppHeader } from "@/components/layout/header";
-import { setDoc } from "firebase/firestore";
+import { setDoc, doc } from "firebase/firestore";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
+import { UserProfile } from "@/lib/types";
+import { useMemoFirebase } from "@/firebase/provider";
+
 
 const SINGLE_USER_ID = "_single_user";
 
-interface UserProfile {
-    username?: string;
-    photoUrl?: string;
-}
-
 export default function SettingsPage() {
     const { t } = useI18n();
-    const { firestore, storage } = useFirebase();
+    const { firestore } = useFirestore ? useFirestore() : { firestore: null };
     const { toast } = useToast();
 
     const defaultProfilePic = PlaceHolderImages.find(p => p.id === 'default_user_profile')?.imageUrl || '';
@@ -41,7 +39,7 @@ export default function SettingsPage() {
     const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userProfileRef);
 
     const [username, setUsername] = useState('');
-    const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const [imagePreview, setImagePreview] = useState<string>(defaultProfilePic);
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [isSaving, setIsSaving] = useState(false);
 
@@ -55,31 +53,33 @@ export default function SettingsPage() {
         }
     }, [userProfile, isProfileLoading, defaultProfilePic]);
 
-
-    const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
           setImageFile(file);
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            setImagePreview(reader.result as string);
-          };
-          reader.readAsDataURL(file);
+          setImagePreview(URL.createObjectURL(file));
         }
     };
 
     const handleSaveChanges = async () => {
-        if (!firestore || !storage) return;
+        if (!firestore) {
+             toast({
+                variant: "destructive",
+                title: t('error'),
+                description: "Firestore is not available.",
+            });
+            return;
+        }
 
         setIsSaving(true);
-        
         try {
             let photoUrl = userProfile?.photoUrl || defaultProfilePic;
 
             if (imageFile) {
+                const storage = getStorage();
                 const storageRef = ref(storage, `profile_pictures/${SINGLE_USER_ID}`);
-                const uploadResult = await uploadBytes(storageRef, imageFile);
-                photoUrl = await getDownloadURL(uploadResult.ref);
+                await uploadBytes(storageRef, imageFile);
+                photoUrl = await getDownloadURL(storageRef);
             }
             
             const updatedProfile: UserProfile = {
@@ -107,6 +107,8 @@ export default function SettingsPage() {
             setIsSaving(false);
         }
     };
+
+    const usernameInitial = username?.[0]?.toUpperCase() || 'U';
 
     if (isProfileLoading) {
         return <div>Loading...</div>;
@@ -152,12 +154,12 @@ export default function SettingsPage() {
                                     <CardContent className="space-y-6">
                                         <div className="flex items-center gap-4">
                                             <Avatar className="h-20 w-20">
-                                                <AvatarImage src={imagePreview || ''} alt={username || ''} />
-                                                <AvatarFallback>{username?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
+                                                <AvatarImage src={imagePreview} alt={username} />
+                                                <AvatarFallback>{usernameInitial}</AvatarFallback>
                                             </Avatar>
                                             <div className="space-y-2">
                                                 <Label htmlFor="profile-picture">{t('profile_picture')}</Label>
-                                                <Input id="profile-picture" type="file" accept="image/*" className="max-w-xs" onChange={handleImageUpload} disabled={isSaving} />
+                                                <Input id="profile-picture" type="file" accept="image/*" className="max-w-xs" onChange={handleImageChange} disabled={isSaving} />
                                             </div>
                                         </div>
                                         <div className="space-y-2">
