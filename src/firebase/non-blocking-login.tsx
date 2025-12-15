@@ -14,7 +14,8 @@ import { FirestorePermissionError } from './errors';
 /** Initiate anonymous sign-in (non-blocking). */
 export function initiateAnonymousSignIn(authInstance: Auth): void {
   signInAnonymously(authInstance).catch(error => {
-    // This is a generic auth error, but we can wrap it for consistency
+    // For anonymous sign-in failures, which are less common and might indicate
+    // a configuration issue, we can still use the global emitter for visibility.
     const permissionError = new FirestorePermissionError({
         path: 'auth',
         operation: 'get', // Represents a sign-in attempt
@@ -34,13 +35,9 @@ export function initiateEmailSignUp(authInstance: Auth, email: string, password:
         resolve(userCredential);
       })
       .catch((error: FirebaseError) => {
-         const authError = new FirestorePermissionError({
-            path: 'auth',
-            operation: 'create', // Represents a sign-up attempt
-            requestResourceData: { email: email, error: error.code }
-        });
-        authError.message = error.message;
-        errorEmitter.emit('permission-error', authError);
+        // Standard auth errors (weak-password, email-in-use) should not
+        // be thrown as permission errors. Log them to the console for debugging.
+        console.error("Firebase SignUp Error:", error.code, error.message);
         reject(error);
       });
   });
@@ -48,13 +45,9 @@ export function initiateEmailSignUp(authInstance: Auth, email: string, password:
 
 /** Initiate email/password sign-in (non-blocking). */
 export function initiateEmailSignIn(authInstance: Auth, email: string, password: string): void {
-  signInWithEmailAndPassword(authInstance, email, password).catch(error => {
-     const permissionError = new FirestorePermissionError({
-        path: 'auth',
-        operation: 'get', // Represents a sign-in attempt
-        requestResourceData: { email }
-    });
-    permissionError.message = error.message;
-    errorEmitter.emit('permission-error', permissionError);
+  signInWithEmailAndPassword(authInstance, email, password).catch((error: FirebaseError) => {
+    // Standard auth errors (invalid-credential, etc.) should be logged to the console.
+    // They are expected user errors, not system-level permission issues.
+    console.error("Firebase SignIn Error:", error.code, error.message);
   });
 }
