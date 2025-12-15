@@ -13,8 +13,6 @@ import {
 } from 'firebase/firestore';
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { firebaseConfig } from '@/firebase/config';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
 import type { User } from 'firebase/auth';
 
 // This is a workaround to initialize Firebase on the server-side for Server Actions.
@@ -165,22 +163,6 @@ export async function getSalesByBookId(bookId: string): Promise<Sale[]> {
 }
 
 // --- User Profile ---
-export async function updateUserProfile(
-  userId: string,
-  updates: Partial<UserProfileType>
-): Promise<void> {
-  const userDocRef = doc(firestore, 'users', userId);
-  await setDoc(userDocRef, updates, { merge: true }).catch((error) => {
-    const permissionError = new FirestorePermissionError({
-      path: userDocRef.path,
-      operation: 'update',
-      requestResourceData: updates,
-    });
-    errorEmitter.emit('permission-error', permissionError);
-    // No relanzamos el error para evitar que el useActionState lo capture como un error no manejado
-  });
-}
-
 export async function getUserProfile(db: Firestore, user: User | null): Promise<UserProfileType | null> {
   if (!user) {
     return null;
@@ -201,27 +183,15 @@ export async function getUserProfile(db: Firestore, user: User | null): Promise<
           PlaceHolderImages.find((p) => p.id === 'default_user_profile')
             ?.imageUrl,
       };
-      await setDoc(userDocRef, defaultProfile).catch((error) => {
-        const permissionError = new FirestorePermissionError({
-            path: userDocRef.path,
-            operation: 'create',
-            requestResourceData: defaultProfile,
-          });
-        errorEmitter.emit('permission-error', permissionError);
-        throw permissionError;
-      });
+      // This might fail if the user doesn't have permission, but the error
+      // will be caught and handled below.
+      await setDoc(userDocRef, defaultProfile);
       return defaultProfile;
     }
   } catch (error) {
-     if (error instanceof FirestorePermissionError) {
-      throw error;
-    }
-    const permissionError = new FirestorePermissionError({
-      path: userDocRef.path,
-      operation: 'get',
-    });
-    errorEmitter.emit('permission-error', permissionError);
-    // Devolvemos null en caso de error de permisos para que la UI pueda manejarlo
+    // For reads, we can't create a detailed client-side error from the server,
+    // so we'll just log it for now. The primary fix will be in write operations.
+    console.error("Permission error in getUserProfile:", error);
     return null;
   }
 }

@@ -9,9 +9,20 @@ import {
   updateBook as dbUpdateBook,
   deleteBook as dbDeleteBook,
   updateSale as dbUpdateSale,
-  updateUserProfile as dbUpdateUserProfile,
 } from './data';
 import type { Book, SalePlatform, SaleStatus, UserProfile } from './types';
+import { getFirestore, doc, setDoc } from 'firebase/firestore';
+import { initializeApp, getApps, getApp } from 'firebase/app';
+import { firebaseConfig } from '@/firebase/config';
+
+// This is a workaround to initialize Firebase on the server-side for Server Actions.
+let app;
+if (!getApps().length) {
+  app = initializeApp(firebaseConfig);
+} else {
+  app = getApp();
+}
+const firestore = getFirestore(app);
 
 
 const bookSchema = z.object({
@@ -217,12 +228,15 @@ export async function updateUserProfile(userId: string, prevState: any, formData
       updates.photoUrl = photoUrlDataUri;
     }
     
-    await dbUpdateUserProfile(userId, updates);
+    const userDocRef = doc(firestore, 'users', userId);
+    await setDoc(userDocRef, updates, { merge: true });
+    
     revalidatePath('/settings');
     revalidatePath('/', 'layout'); // Revalidate layout to update header
 
     return { status: 'success', message: 'Profile updated successfully.' };
   } catch (e: any) {
+    // This will now catch permission errors from setDoc on the server
     return { status: 'error', message: e.message || 'Failed to update profile.' };
   }
 }
