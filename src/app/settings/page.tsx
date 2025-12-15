@@ -10,13 +10,14 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useI18n } from "@/components/i18n/i18n-provider";
 import React, { useEffect, useState } from "react";
-import { useUser, useFirestore, useDoc, useMemoFirebase, doc, useStorage, setDocumentNonBlocking } from '@/firebase';
+import { useUser, useFirestore, useDoc, useMemoFirebase, doc, useStorage } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { AppSidebar } from '@/components/layout/sidebar';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { useToast } from "@/hooks/use-toast";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { AppHeader } from "@/components/layout/header";
+import { setDoc } from "firebase/firestore";
 
 interface UserProfile {
     username?: string;
@@ -77,37 +78,35 @@ export default function SettingsPage() {
         setIsSaving(true);
         let photoUrl = userProfile?.photoUrl || '';
 
-        if (imageFile) {
-            const storageRef = ref(storage, `profile_pictures/${user.uid}`);
-            try {
+        try {
+            if (imageFile) {
+                const storageRef = ref(storage, `profile_pictures/${user.uid}`);
                 const uploadResult = await uploadBytes(storageRef, imageFile);
                 photoUrl = await getDownloadURL(uploadResult.ref);
-            } catch (error) {
-                 console.error("Image upload failed:", error);
-                 toast({
-                    variant: "destructive",
-                    title: t('error'),
-                    description: t('profile_update_fail'),
-                });
-                setIsSaving(false);
-                return; 
             }
+            
+            const updatedProfile: UserProfile = {
+                username: username,
+                photoUrl: photoUrl,
+            };
+
+            const userDocRef = doc(firestore, 'users', user.uid);
+            await setDoc(userDocRef, updatedProfile, { merge: true });
+
+            toast({
+                title: t('success'),
+                description: t('profile_update_success'),
+            });
+        } catch (error) {
+             console.error("Profile update failed:", error);
+             toast({
+                variant: "destructive",
+                title: t('error'),
+                description: t('profile_update_fail'),
+            });
+        } finally {
+            setIsSaving(false);
         }
-        
-        const updatedProfile: UserProfile = {
-            username: username,
-            photoUrl: photoUrl,
-        };
-
-        const userDocRef = doc(firestore, 'users', user.uid);
-        // This function handles errors via the global error emitter
-        setDocumentNonBlocking(userDocRef, updatedProfile, { merge: true });
-
-        toast({
-            title: t('success'),
-            description: t('profile_update_success'),
-        });
-        setIsSaving(false);
     };
 
     if (isUserLoading || isProfileLoading || !user) {
