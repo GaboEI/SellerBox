@@ -139,5 +139,16 @@
     "date_format_error": "Пожалуйста, используйте формат ДД.ММ.ГГГГ.",
     "invalid_date_error": "Неверная дата.",
     "date_range_error": "Дата должна быть после 01.01.2025 и не в будущем.",
-    "cover_photo": "ФОТО"
+    "cover_photo": "ФОТО",
+    "language": "Язык",
+    "account": "Аккаунт",
+    "account_desc": "Управляйте информацией своего профиля и настройками аккаунта.",
+    "profile_picture": "Фото профиля",
+    "username": "Имя пользователя",
+    "account_management": "Управление аккаунтом",
+    "change_password": "Сменить пароль",
+    "recover_password": "Восстановить пароль",
+    "delete_account": "Удалить аккаунт",
+    "profile_update_success": "Профиль успешно обновлен.",
+    "profile_update_fail": "Не удалось обновить профиль."
 }

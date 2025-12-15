@@ -139,5 +139,16 @@
     "date_format_error": "Please use DD.MM.YYYY format.",
     "invalid_date_error": "The date is invalid.",
     "date_range_error": "Date must be after 01.01.2025 and not in the future.",
-    "cover_photo": "Cover Photo"
+    "cover_photo": "Cover Photo",
+    "language": "Language",
+    "account": "Account",
+    "account_desc": "Manage your profile information and account settings.",
+    "profile_picture": "Profile picture",
+    "username": "Username",
+    "account_management": "Account management",
+    "change_password": "Change password",
+    "recover_password": "Recover password",
+    "delete_account": "Delete account",
+    "profile_update_success": "Profile updated successfully.",
+    "profile_update_fail": "Failed to update profile."
 }

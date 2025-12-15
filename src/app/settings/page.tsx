@@ -10,14 +10,14 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useI18n } from "@/components/i18n/i18n-provider";
 import React, { useEffect, useState } from "react";
-import { useUser, useFirestore, useDoc, useMemoFirebase, doc } from '@/firebase';
+import { useUser, useFirestore, useDoc, useMemoFirebase, doc, getStorage } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { AppSidebar } from '@/components/layout/sidebar';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { AppHeader } from '@/components/layout/header';
 import { setDoc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 interface UserProfile {
     username?: string;
@@ -29,6 +29,7 @@ export default function SettingsPage() {
     const { user, isUserLoading } = useUser();
     const router = useRouter();
     const firestore = useFirestore();
+    const storage = getStorage();
     const { toast } = useToast();
 
     const userProfileRef = useMemoFirebase(() => {
@@ -68,28 +69,37 @@ export default function SettingsPage() {
     };
 
     const handleSaveChanges = async () => {
-        if (!user || !firestore) return;
+        if (!user || !firestore || !storage) return;
+
         let photoUrl = userProfile?.photoUrl;
 
-        if (imageFile) {
-            const storage = getStorage();
-            const storageRef = ref(storage, `profile_pictures/${user.uid}`);
-            await uploadBytes(storageRef, imageFile);
-            photoUrl = await getDownloadURL(storageRef);
+        try {
+            if (imageFile) {
+                const storageRef = ref(storage, `profile_pictures/${user.uid}`);
+                await uploadBytes(storageRef, imageFile);
+                photoUrl = await getDownloadURL(storageRef);
+            }
+
+            const updatedProfile: UserProfile = {
+                username: username,
+                photoUrl: photoUrl,
+            };
+
+            const userDocRef = doc(firestore, 'users', user.uid);
+            await setDoc(userDocRef, updatedProfile, { merge: true });
+
+            toast({
+                title: t('success'),
+                description: t('profile_update_success'),
+            });
+        } catch (error) {
+            console.error("Error updating profile: ", error);
+            toast({
+                variant: "destructive",
+                title: t('error'),
+                description: t('profile_update_fail'),
+            });
         }
-
-        const updatedProfile: UserProfile = {
-            username: username,
-            photoUrl: photoUrl,
-        };
-
-        const userDocRef = doc(firestore, 'users', user.uid);
-        await setDoc(userDocRef, updatedProfile, { merge: true });
-
-        toast({
-            title: t('success'),
-            description: "Profile updated successfully.",
-        });
     };
 
     if (isUserLoading || isProfileLoading || !user) {
@@ -108,18 +118,18 @@ export default function SettingsPage() {
                             <div className="lg:col-span-1">
                                 <Card>
                                     <CardHeader>
-                                        <CardTitle>Apariencia</CardTitle>
+                                        <CardTitle>{t('appearance')}</CardTitle>
                                         <CardDescription>
-                                            Ajusta el aspecto de la aplicación.
+                                            {t('appearance_desc')}
                                         </CardDescription>
                                     </CardHeader>
                                     <CardContent className="space-y-4">
                                         <div className="flex items-center justify-between">
-                                            <Label htmlFor="theme">Tema</Label>
+                                            <Label htmlFor="theme">{t('theme')}</Label>
                                             <ThemeToggle />
                                         </div>
                                         <div className="flex items-center justify-between">
-                                            <Label htmlFor="language">Idioma</Label>
+                                            <Label htmlFor="language">{t('language')}</Label>
                                             <LanguageToggle />
                                         </div>
                                     </CardContent>
@@ -128,9 +138,9 @@ export default function SettingsPage() {
                             <div className="lg:col-span-2">
                                 <Card>
                                     <CardHeader>
-                                        <CardTitle>Cuenta</CardTitle>
+                                        <CardTitle>{t('account')}</CardTitle>
                                         <CardDescription>
-                                            Gestiona la información de tu perfil y la configuración de tu cuenta.
+                                            {t('account_desc')}
                                         </CardDescription>
                                     </CardHeader>
                                     <CardContent className="space-y-6">
@@ -140,25 +150,25 @@ export default function SettingsPage() {
                                                 <AvatarFallback>{username?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
                                             </Avatar>
                                             <div className="space-y-2">
-                                                <Label htmlFor="profile-picture">Foto de perfil</Label>
+                                                <Label htmlFor="profile-picture">{t('profile_picture')}</Label>
                                                 <Input id="profile-picture" type="file" accept="image/*" className="max-w-xs" onChange={handleImageUpload} />
                                             </div>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="username">Nombre de usuario</Label>
+                                            <Label htmlFor="username">{t('username')}</Label>
                                             <Input id="username" value={username} onChange={(e) => setUsername(e.target.value)} />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label>Gestión de la cuenta</Label>
+                                            <Label>{t('account_management')}</Label>
                                             <div className="flex flex-wrap gap-2">
-                                                <Button variant="outline">Cambiar contraseña</Button>
-                                                <Button variant="outline">Recuperar contraseña</Button>
-                                                <Button variant="destructive">Eliminar cuenta</Button>
+                                                <Button variant="outline">{t('change_password')}</Button>
+                                                <Button variant="outline">{t('recover_password')}</Button>
+                                                <Button variant="destructive">{t('delete_account')}</Button>
                                             </div>
                                         </div>
                                     </CardContent>
                                     <CardFooter>
-                                        <Button onClick={handleSaveChanges}>Guardar cambios</Button>
+                                        <Button onClick={handleSaveChanges}>{t('save_changes')}</Button>
                                     </CardFooter>
                                 </Card>
                             </div>

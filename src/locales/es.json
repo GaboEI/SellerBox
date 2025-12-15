@@ -139,5 +139,16 @@
     "date_format_error": "Por favor, use el formato DD.MM.AAAA.",
     "invalid_date_error": "La fecha no es válida.",
     "date_range_error": "La fecha debe ser posterior al 01.01.2025 y no futura.",
-    "cover_photo": "FOTO"
+    "cover_photo": "FOTO",
+    "language": "Idioma",
+    "account": "Cuenta",
+    "account_desc": "Gestiona la información de tu perfil y la configuración de tu cuenta.",
+    "profile_picture": "Foto de perfil",
+    "username": "Nombre de usuario",
+    "account_management": "Gestión de la cuenta",
+    "change_password": "Cambiar contraseña",
+    "recover_password": "Recuperar contraseña",
+    "delete_account": "Eliminar cuenta",
+    "profile_update_success": "Perfil actualizado con éxito.",
+    "profile_update_fail": "Error al actualizar el perfil."
 }
