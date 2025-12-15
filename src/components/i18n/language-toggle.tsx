@@ -11,9 +11,9 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 const languages = [
-  { code: 'en', name: 'English' },
-  { code: 'es', name: 'Español' },
-  { code: 'ru', name: 'Русский' },
+  { code: 'en', name: 'English', flag: '🇬🇧' },
+  { code: 'es', name: 'Español', flag: '🇪🇸' },
+  { code: 'ru', name: 'Русский', flag: '🇷🇺' },
 ];
 
 export function LanguageToggle() {
@@ -33,8 +33,10 @@ export function LanguageToggle() {
             key={lang.code}
             onClick={() => changeLanguage(lang.code)}
             disabled={language === lang.code}
+            className="flex items-center gap-2"
           >
-            {lang.name}
+            <span>{lang.flag}</span>
+            <span>{lang.name}</span>
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>
