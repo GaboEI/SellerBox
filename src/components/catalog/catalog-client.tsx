@@ -66,7 +66,7 @@ function AddBookForm({ setOpen }: { setOpen: (open: boolean) => void }) {
   }, [state, toast, setOpen, t]);
   
   return (
-    <form ref={formRef} action={formAction} className="space-y-4">
+    <form ref={formRef} action={formAction} key={state.resetKey} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="code">{t('code')} ({t('unique')})</Label>
         <Input id="code" name="code" required />

@@ -10,11 +10,15 @@ const salesFilePath = path.join(process.cwd(), 'src/lib/sales.json');
 
 async function readData<T>(filePath: string): Promise<T[]> {
   try {
+    // Ensure the directory exists.
+    await fs.mkdir(path.dirname(filePath), { recursive: true });
+    // Try to read the file.
     const fileContent = await fs.readFile(filePath, 'utf-8');
     return JSON.parse(fileContent) as T[];
   } catch (error: any) {
-    // If the file doesn't exist, it's likely the first run. Return an empty array.
+    // If the file doesn't exist (ENOENT), it's the first run. Write an empty array and return it.
     if (error.code === 'ENOENT') {
+      await fs.writeFile(filePath, JSON.stringify([], null, 2), 'utf-8');
       return [];
     }
     console.error(`Error reading data from ${filePath}:`, error);
@@ -50,7 +54,8 @@ export async function getBookByCode(code: string): Promise<Book | undefined> {
 export async function addBook(book: Omit<Book, 'id'>): Promise<Book> {
   const books = await getBooks();
   const newBook: Book = { ...book, id: String(Date.now()) };
-  const updatedBooks = [newBook, ...books];
+  // Add to the end of the array to avoid race conditions.
+  const updatedBooks = [...books, newBook];
   await writeData(booksFilePath, updatedBooks);
   return newBook;
 }
@@ -84,7 +89,7 @@ export async function getSales(): Promise<Sale[]> {
 }
 
 export async function addSale(sale: Omit<Sale, 'id' | 'status' | 'date'> & { date: string }): Promise<Sale> {
-  const sales = await readData<Sale>(salesFilePath);
+  const sales = await getSales();
   const newSale: Sale = { 
     ...sale, 
     id: `s${Date.now()}`, 
@@ -97,13 +102,14 @@ export async function addSale(sale: Omit<Sale, 'id' | 'status' | 'date'> & { dat
     await updateBook(book.id, { quantity: book.quantity - 1 });
   }
 
-  const updatedSales = [newSale, ...sales];
+  // Add to the end of the array.
+  const updatedSales = [...sales, newSale];
   await writeData(salesFilePath, updatedSales as any);
   return newSale;
 }
 
 export async function updateSale(id: string, updates: Partial<Sale>): Promise<Sale | null> {
-    let sales = await readData<any>(salesFilePath);
+    let sales = await getSales();
     const saleIndex = sales.findIndex(s => s.id === id);
     if (saleIndex === -1) return null;
 

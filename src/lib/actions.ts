@@ -40,10 +40,12 @@ export async function addBook(prevState: any, formData: FormData) {
         ...validatedFields.data,
         description: validatedFields.data.description || '',
     });
+    revalidatePath('/');
     revalidatePath('/catalog');
     revalidatePath('/inventory');
     return { message: 'add_book_success', errors: {}, resetKey: Date.now().toString() };
   } catch (e) {
+    console.error(e);
     return { message: 'add_book_fail', errors: {} };
   }
 }
@@ -76,9 +78,9 @@ export async function updateBook(id: string, prevState: any, formData: FormData)
         ...validatedFields.data,
         description: validatedFields.data.description || '',
     });
+    revalidatePath('/');
     revalidatePath('/catalog');
     revalidatePath('/inventory');
-    revalidatePath('/');
     return { message: 'update_book_success', errors: {}, resetKey: Date.now().toString() };
   } catch (e) {
     return { message: 'update_book_fail', errors: {} };
@@ -88,9 +90,9 @@ export async function updateBook(id: string, prevState: any, formData: FormData)
 export async function deleteBook(id: string) {
     try {
         await dbDeleteBook(id);
+        revalidatePath('/');
         revalidatePath('/catalog');
         revalidatePath('/inventory');
-        revalidatePath('/');
     } catch(e) {
         // Handle error
         console.error("Failed to delete book", e);
@@ -147,10 +149,11 @@ export async function addSale(prevState: any, formData: FormData) {
             date: dateObj.toISOString(),
             platform: validatedFields.data.platform as SalePlatform,
         });
-        revalidatePath('/sales');
         revalidatePath('/');
+        revalidatePath('/sales');
         return { message: 'add_sale_success', errors: {}, resetKey: Date.now().toString() };
     } catch(e) {
+        console.error(e);
         return { message: 'add_sale_fail', errors: {} };
     }
 }
@@ -178,9 +181,8 @@ export async function updateSale(id: string, prevState: any, formData: FormData)
             ...validatedFields.data,
             status: validatedFields.data.status as SaleStatus,
         });
-        revalidatePath('/sales');
         revalidatePath('/');
-        revalidatePath('/dashboard');
+        revalidatePath('/sales');
         return { message: 'update_sale_success', errors: {}, resetKey: Date.now().toString() };
     } catch(e) {
         return { message: 'update_sale_fail', errors: {} };
