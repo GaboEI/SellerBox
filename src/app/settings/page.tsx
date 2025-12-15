@@ -41,6 +41,7 @@ export default function SettingsPage() {
     const [username, setUsername] = useState('');
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [imageFile, setImageFile] = useState<File | null>(null);
+    const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
         if (!isUserLoading && !user) {
@@ -73,24 +74,22 @@ export default function SettingsPage() {
     const handleSaveChanges = async () => {
         if (!user || !firestore || !storage) return;
 
+        setIsSaving(true);
         let photoUrl = userProfile?.photoUrl || '';
-
-        toast({
-            title: t('success'),
-            description: t('profile_update_success'),
-        });
 
         if (imageFile) {
             const storageRef = ref(storage, `profile_pictures/${user.uid}`);
             try {
-                await uploadBytes(storageRef, imageFile);
-                photoUrl = await getDownloadURL(storageRef);
+                const uploadResult = await uploadBytes(storageRef, imageFile);
+                photoUrl = await getDownloadURL(uploadResult.ref);
             } catch (error) {
+                 console.error("Image upload failed:", error);
                  toast({
                     variant: "destructive",
                     title: t('error'),
                     description: t('profile_update_fail'),
                 });
+                setIsSaving(false);
                 return; 
             }
         }
@@ -101,7 +100,14 @@ export default function SettingsPage() {
         };
 
         const userDocRef = doc(firestore, 'users', user.uid);
+        // This function handles errors via the global error emitter
         setDocumentNonBlocking(userDocRef, updatedProfile, { merge: true });
+
+        toast({
+            title: t('success'),
+            description: t('profile_update_success'),
+        });
+        setIsSaving(false);
     };
 
     if (isUserLoading || isProfileLoading || !user) {
@@ -148,17 +154,17 @@ export default function SettingsPage() {
                                     <CardContent className="space-y-6">
                                         <div className="flex items-center gap-4">
                                             <Avatar className="h-20 w-20">
-                                                <AvatarImage src={imagePreview || ''} alt="User Avatar" />
+                                                <AvatarImage src={imagePreview || ''} alt={username || ''} />
                                                 <AvatarFallback>{username?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
                                             </Avatar>
                                             <div className="space-y-2">
                                                 <Label htmlFor="profile-picture">{t('profile_picture')}</Label>
-                                                <Input id="profile-picture" type="file" accept="image/*" className="max-w-xs" onChange={handleImageUpload} />
+                                                <Input id="profile-picture" type="file" accept="image/*" className="max-w-xs" onChange={handleImageUpload} disabled={isSaving} />
                                             </div>
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="username">{t('username')}</Label>
-                                            <Input id="username" value={username} onChange={(e) => setUsername(e.target.value)} />
+                                            <Input id="username" value={username} onChange={(e) => setUsername(e.target.value)} disabled={isSaving} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label>{t('account_management')}</Label>
@@ -170,7 +176,9 @@ export default function SettingsPage() {
                                         </div>
                                     </CardContent>
                                     <CardFooter>
-                                        <Button onClick={handleSaveChanges}>{t('save_changes')}</Button>
+                                        <Button onClick={handleSaveChanges} disabled={isSaving}>
+                                            {isSaving ? t('saving') : t('save_changes')}
+                                        </Button>
                                     </CardFooter>
                                 </Card>
                             </div>
