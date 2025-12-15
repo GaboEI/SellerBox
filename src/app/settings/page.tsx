@@ -1,12 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import {
-  ref,
-  uploadBytes,
-  getDownloadURL,
-} from 'firebase/storage';
-import { doc, setDoc } from 'firebase/firestore';
+import React from 'react';
 import { PageHeader } from '@/components/shared/page-header';
 import { LanguageToggle } from '@/components/i18n/language-toggle';
 import {
@@ -23,92 +17,14 @@ import { AppSidebar } from '@/components/layout/sidebar';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { AppHeader } from '@/components/layout/header';
 import { Input } from '@/components/ui/input';
-import { useToast } from '@/hooks/use-toast';
-import { useFirestore, useStorage, useDoc, useMemoFirebase } from '@/firebase';
-import type { UserProfile } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { ThemeToggle } from '@/components/settings/theme-toggle';
 
-const USER_ID = 'default_user';
-
 export default function SettingsPage() {
   const { t } = useI18n();
-  const { toast } = useToast();
-  const firestore = useFirestore();
-  const storage = useStorage();
 
-  const userDocRef = useMemoFirebase(
-    () => (firestore ? doc(firestore, 'users', USER_ID) : null),
-    [firestore]
-  );
-
-  const { data: userProfile } = useDoc<UserProfile>(userDocRef);
-
-  const [username, setUsername] = useState('Seller');
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
-
+  const username = 'Seller';
   const defaultProfilePic = PlaceHolderImages.find((p) => p.id === 'default_user_profile')?.imageUrl || '';
-
-  useEffect(() => {
-    if (userProfile) {
-      setUsername(userProfile.username || 'Seller');
-    }
-  }, [userProfile]);
-
-  const handleFileChangeAndSave = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (!event.target.files || event.target.files.length === 0) {
-      return;
-    }
-    
-    // Validar que los servicios de Firebase estén listos.
-    if (!firestore || !storage || !userDocRef) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Servicios de Firebase no disponibles. Inténtalo de nuevo.',
-      });
-      return;
-    }
-
-    const file = event.target.files[0];
-    const previewUrl = URL.createObjectURL(file);
-    setImagePreview(previewUrl);
-    setIsSaving(true);
-    
-    try {
-      // 1. Subir a Firebase Storage
-      const storageRef = ref(storage, `profile-pictures/${USER_ID}`);
-      const snapshot = await uploadBytes(storageRef, file);
-      const newPhotoUrl = await getDownloadURL(snapshot.ref);
-
-      // 2. Actualizar Firestore
-      const updatedProfile: UserProfile = {
-        username: username, // Mantener el nombre de usuario existente
-        photoUrl: newPhotoUrl,
-      };
-      
-      await setDoc(userDocRef, updatedProfile, { merge: true });
-
-      toast({
-        title: t('profile_update_success'),
-      });
-    } catch (error) {
-      console.error('Error updating profile:', error);
-      toast({
-        variant: 'destructive',
-        title: t('profile_update_fail'),
-        description:
-          error instanceof Error ? error.message : 'Un error desconocido ha ocurrido.',
-      });
-      setImagePreview(null); // Revertir vista previa si falla
-    } finally {
-      setIsSaving(false);
-    }
-  };
-  
-  const displayImageUrl = imagePreview || userProfile?.photoUrl || defaultProfilePic;
-  const usernameInitial = username?.[0]?.toUpperCase() || 'S';
 
   return (
     <SidebarProvider>
@@ -150,21 +66,14 @@ export default function SettingsPage() {
                     <div className="flex items-center gap-4">
                       <Avatar className="h-20 w-20">
                         <AvatarImage
-                          src={displayImageUrl}
+                          src={defaultProfilePic}
                           alt={username}
                         />
-                        <AvatarFallback>{usernameInitial}</AvatarFallback>
+                        <AvatarFallback>{username?.[0]?.toUpperCase() || 'S'}</AvatarFallback>
                       </Avatar>
-                      <div className="flex flex-col gap-2">
-                         <Label htmlFor="picture-upload">{t('profile_picture')}</Label>
-                        <Input
-                          id="picture-upload"
-                          type="file"
-                          accept="image/*"
-                          onChange={handleFileChangeAndSave}
-                          className="max-w-xs"
-                          disabled={isSaving}
-                        />
+                      <div>
+                         <Label>{t('profile_picture')}</Label>
+                         <p className="text-sm text-muted-foreground">La foto de perfil es fija.</p>
                       </div>
                     </div>
                     <div className="space-y-2">
@@ -172,7 +81,6 @@ export default function SettingsPage() {
                       <Input
                         id="username"
                         value={username}
-                        onChange={(e) => setUsername(e.target.value)}
                         readOnly
                         className="bg-muted"
                       />

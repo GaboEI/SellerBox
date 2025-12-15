@@ -38,7 +38,7 @@
     },
     {
       "id": "default_user_profile",
-      "description": "Default user profile picture (SellerBox Logo)",
+      "description": "SellerBox App Logo",
       "imageUrl": "https://storage.googleapis.com/project-spark-demos/sellerbox-default-cover.png",
       "imageHint": "app logo"
     }
