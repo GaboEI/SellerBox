@@ -2,15 +2,16 @@
 
 import React, { type ReactNode } from 'react';
 import { FirebaseProvider } from '@/firebase/provider';
-import { firebaseApp, auth, firestore, storage } from '@/firebase';
+import { initializeFirebase } from '@/firebase';
 
 interface FirebaseClientProviderProps {
   children: ReactNode;
 }
 
 export function FirebaseClientProvider({ children }: FirebaseClientProviderProps) {
-  // This provider passes the initialized Firebase instances
-  // to the context to make them available throughout the application.
+  // Initialize Firebase on the client and ensure it's done only once.
+  const { firebaseApp, auth, firestore, storage } = initializeFirebase();
+
   return (
     <FirebaseProvider
       firebaseApp={firebaseApp}

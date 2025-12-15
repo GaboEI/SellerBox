@@ -6,25 +6,30 @@ import { getAuth, type Auth } from 'firebase/auth';
 import { getFirestore, type Firestore } from 'firebase/firestore';
 import { getStorage, type FirebaseStorage } from 'firebase/storage';
 
-let firebaseApp: FirebaseApp;
+// This function handles idempotent Firebase initialization.
+export function initializeFirebase() {
+  let firebaseApp: FirebaseApp;
+  if (!getApps().length) {
+    firebaseApp = initializeApp(firebaseConfig);
+  } else {
+    firebaseApp = getApp();
+  }
 
-// Inicialización de Firebase idempotente
-if (!getApps().length) {
-  firebaseApp = initializeApp(firebaseConfig);
-} else {
-  firebaseApp = getApp();
+  const auth = getAuth(firebaseApp);
+  const firestore = getFirestore(firebaseApp);
+  const storage = getStorage(firebaseApp);
+
+  return { firebaseApp, auth, firestore, storage };
 }
 
-const auth = getAuth(firebaseApp);
-const firestore = getFirestore(firebaseApp);
-const storage = getStorage(firebaseApp);
-
+// Export the initialized instances for use in other parts of the app
+const { firebaseApp, auth, firestore, storage } = initializeFirebase();
 export { firebaseApp, auth, firestore, storage };
-
 
 // --- HOOKS & PROVIDERS ---
 export * from './provider';
 export * from './client-provider';
+export * from './auth/use-user';
 export * from './firestore/use-collection';
 export * from './firestore/use-doc';
 export * from './errors';

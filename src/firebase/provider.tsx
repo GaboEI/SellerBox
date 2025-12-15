@@ -11,7 +11,7 @@ import React, {
 } from 'react';
 import { FirebaseApp } from 'firebase/app';
 import { Firestore } from 'firebase/firestore';
-import { Auth, User, onAuthStateChanged } from 'firebase/auth';
+import { Auth, type User } from 'firebase/auth';
 import { FirebaseStorage } from 'firebase/storage';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 
@@ -52,13 +52,14 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       setIsLoading(false);
       return;
     }
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
       setUser(user);
       setIsLoading(false);
     });
+
     return () => unsubscribe();
   }, [auth]);
-  
+
   const contextValue = useMemo(
     (): FirebaseContextState => ({
       firebaseApp,
@@ -87,12 +88,6 @@ export const useFirebase = (): FirebaseContextState => {
     throw new Error('useFirebase must be used within a FirebaseProvider.');
   }
   return context;
-};
-
-/** Hook to access the currently authenticated user. */
-export const useUser = (): { user: User | null; isUserLoading: boolean } => {
-  const { user, isUserLoading } = useFirebase();
-  return { user, isUserLoading };
 };
 
 /** Hook para acceder a la instancia de Firebase Auth. */
