@@ -3,8 +3,7 @@
 import React from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { ArrowUpDown, Edit } from 'lucide-react';
-import { useActionState } from 'react';
-import { useFormStatus } from 'react-dom';
+import { useActionState, useFormStatus } from 'react';
 import { useI18n } from '../i18n/i18n-provider';
 import type { Sale, SaleStatus } from '@/lib/types';
 import { Button } from '@/components/ui/button';
