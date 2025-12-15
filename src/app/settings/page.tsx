@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useActionState, useRef, useMemo } from 'react';
+import React, { useEffect, useState, useActionState, useRef } from 'react';
 import { useFormStatus } from 'react-dom';
 import { PageHeader } from '@/components/shared/page-header';
 import {
@@ -25,7 +25,7 @@ import { getUserProfile } from '@/lib/data';
 import type { UserProfile } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { useUser, useFirestore, doc } from '@/firebase';
+import { useUser, useFirestore } from '@/firebase';
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -35,6 +35,12 @@ function SubmitButton() {
     </Button>
   );
 }
+
+const initialState = {
+    status: '',
+    message: '',
+    errors: {},
+};
 
 export default function SettingsPage() {
   const { toast } = useToast();
@@ -47,25 +53,17 @@ export default function SettingsPage() {
 
   const formRef = useRef<HTMLFormElement>(null);
   
-  const userDocRef = useMemo(() => {
-    if (!firestore || !user) return null;
-    return doc(firestore, 'users', user.uid);
-  }, [firestore, user]);
-
   const updateUserProfileAction = async (prevState: any, formData: FormData) => {
     if (!user) {
       return {
         status: 'error',
-        message: 'profile_update_fail_unauthenticated',
+        message: 'You must be logged in to update your profile.',
       };
     }
-    return updateUserProfile(user.uid, formData);
+    return updateUserProfile(user.uid, prevState, formData);
   };
   
-  const [state, formAction] = useActionState(updateUserProfileAction, {
-    status: '',
-    message: '',
-  });
+  const [state, formAction] = useActionState(updateUserProfileAction, initialState);
 
   useEffect(() => {
     async function fetchProfile() {
@@ -76,7 +74,7 @@ export default function SettingsPage() {
       setIsLoading(false);
     }
     fetchProfile();
-  }, [user, isUserLoading, firestore, state]);
+  }, [user, isUserLoading, firestore]);
 
   useEffect(() => {
     if (state.status === 'success') {
@@ -89,7 +87,7 @@ export default function SettingsPage() {
     } else if (state.status === 'error' && state.message) {
       toast({
         title: 'Error',
-        description: 'Failed to update profile.',
+        description: state.message,
         variant: 'destructive',
       });
     }
@@ -161,12 +159,13 @@ export default function SettingsPage() {
                               src={
                                 imagePreview ||
                                 profile?.photoUrl ||
+                                user?.photoURL ||
                                 defaultProfilePic
                               }
-                              alt={profile?.username}
+                              alt={profile?.username || user?.displayName || ''}
                             />
                             <AvatarFallback>
-                              {profile?.username?.[0]?.toUpperCase() || 'S'}
+                              {profile?.username?.[0]?.toUpperCase() || user?.displayName?.[0]?.toUpperCase() || 'S'}
                             </AvatarFallback>
                           </Avatar>
                           <div className="space-y-1">
@@ -196,7 +195,7 @@ export default function SettingsPage() {
                           <Input
                             id="username"
                             name="username"
-                            defaultValue={profile?.username || ''}
+                            defaultValue={profile?.username || user?.displayName || ''}
                             required
                           />
                         )}

@@ -170,9 +170,16 @@ export async function updateUserProfile(
   updates: Partial<UserProfileType>
 ): Promise<void> {
   const userDocRef = doc(firestore, 'users', userId);
-  await setDoc(userDocRef, updates, { merge: true });
+  await setDoc(userDocRef, updates, { merge: true }).catch((error) => {
+    const permissionError = new FirestorePermissionError({
+      path: userDocRef.path,
+      operation: 'update',
+      requestResourceData: updates,
+    });
+    errorEmitter.emit('permission-error', permissionError);
+    // No relanzamos el error para evitar que el useActionState lo capture como un error no manejado
+  });
 }
-
 
 export async function getUserProfile(db: Firestore, user: User | null): Promise<UserProfileType | null> {
   if (!user) {
@@ -206,11 +213,15 @@ export async function getUserProfile(db: Firestore, user: User | null): Promise<
       return defaultProfile;
     }
   } catch (error) {
+     if (error instanceof FirestorePermissionError) {
+      throw error;
+    }
     const permissionError = new FirestorePermissionError({
       path: userDocRef.path,
       operation: 'get',
     });
     errorEmitter.emit('permission-error', permissionError);
+    // Devolvemos null en caso de error de permisos para que la UI pueda manejarlo
     return null;
   }
 }

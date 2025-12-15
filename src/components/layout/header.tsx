@@ -25,12 +25,6 @@ export function AppHeader() {
   const firestore = useFirestore();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   
-  const userDocRef = useMemo(() => {
-    if (!firestore || !user) return null;
-    return doc(firestore, 'users', user.uid);
-  }, [firestore, user]);
-
-
   useEffect(() => {
     async function fetchProfile() {
       if (isUserLoading || !firestore || !user) return;

@@ -7,7 +7,6 @@ import React, {
   useMemo,
   useState,
   useEffect,
-  DependencyList,
 } from 'react';
 import { FirebaseApp } from 'firebase/app';
 import { Firestore } from 'firebase/firestore';

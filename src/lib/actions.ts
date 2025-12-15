@@ -192,15 +192,13 @@ export async function updateSale(id: string, prevState: any, formData: FormData)
 
 const userProfileSchema = z.object({
   username: z.string().min(1, 'Name is required.'),
-  photoUrl: z.string().optional(),
+  photoUrlDataUri: z.string().optional(),
 });
 
-export async function updateUserProfile(userId: string, formData: FormData) {
-  'use server';
-
+export async function updateUserProfile(userId: string, prevState: any, formData: FormData) {
   const validatedFields = userProfileSchema.safeParse({
     username: formData.get('username'),
-    photoUrl: formData.get('photoUrlDataUri'), 
+    photoUrlDataUri: formData.get('photoUrlDataUri'),
   });
 
   if (!validatedFields.success) {
@@ -211,25 +209,20 @@ export async function updateUserProfile(userId: string, formData: FormData) {
     };
   }
 
-  const { username, photoUrl } = validatedFields.data;
+  const { username, photoUrlDataUri } = validatedFields.data;
 
   try {
-    const updates: Partial<UserProfile> = {};
-    if (username) updates.username = username;
+    const updates: Partial<UserProfile> = { username };
+    if (photoUrlDataUri && photoUrlDataUri.startsWith('data:image')) {
+      updates.photoUrl = photoUrlDataUri;
+    }
     
-    if (photoUrl && photoUrl.startsWith('data:image')) {
-      updates.photoUrl = photoUrl;
-    }
+    await dbUpdateUserProfile(userId, updates);
+    revalidatePath('/settings');
+    revalidatePath('/', 'layout'); // Revalidate layout to update header
 
-    if (Object.keys(updates).length > 0) {
-      await dbUpdateUserProfile(userId, updates);
-    }
-
-    revalidatePath('/settings', 'layout');
-
-    return { status: 'success', message: 'Profile updated successfully.', errors: {} };
-  } catch (e) {
-    console.error('Error updating profile:', e);
-    return { status: 'error', message: 'Failed to update profile.', errors: {} };
+    return { status: 'success', message: 'Profile updated successfully.' };
+  } catch (e: any) {
+    return { status: 'error', message: e.message || 'Failed to update profile.' };
   }
 }
