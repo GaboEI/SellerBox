@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { setDoc } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 function LoginForm() {
   const auth = useAuth();
@@ -53,13 +54,14 @@ function SignUpForm() {
     const [password, setPassword] = useState('');
     const [username, setUsername] = useState('');
 
+    const defaultProfilePic = PlaceHolderImages.find(p => p.id === 'default_user_profile')?.imageUrl || '';
 
     const handleSignUp = () => {
         initiateEmailSignUp(auth, email, password)
             .then(userCredential => {
                 if (userCredential && firestore) {
                     const userDocRef = doc(firestore, 'users', userCredential.user.uid);
-                    setDoc(userDocRef, { username: username, photoUrl: '' }, { merge: true });
+                    setDoc(userDocRef, { username: username, photoUrl: defaultProfilePic }, { merge: true });
                 }
             })
             .catch(error => {

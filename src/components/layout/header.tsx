@@ -19,6 +19,7 @@ import { useAuth, useDoc, useFirestore, useUser, useMemoFirebase, doc } from '@/
 import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 interface UserProfile {
     username?: string;
@@ -33,6 +34,8 @@ export function AppHeader() {
   const { user } = useUser();
   const firestore = useFirestore();
 
+  const defaultProfilePic = PlaceHolderImages.find(p => p.id === 'default_user_profile')?.imageUrl || '';
+
   const userProfileRef = useMemoFirebase(() => {
     if (!user || !firestore) return null;
     return doc(firestore, 'users', user.uid);
@@ -41,18 +44,18 @@ export function AppHeader() {
   const { data: userProfile } = useDoc<UserProfile>(userProfileRef);
 
   const [username, setUsername] = useState('Seller');
-  const [photoUrl, setPhotoUrl] = useState("https://picsum.photos/seed/user/100/100");
+  const [photoUrl, setPhotoUrl] = useState(defaultProfilePic);
   const [email, setEmail] = useState("seller@example.com");
 
   useEffect(() => {
     if (userProfile) {
         setUsername(userProfile.username || 'Seller');
-        setPhotoUrl(userProfile.photoUrl || "https://picsum.photos/seed/user/100/100");
+        setPhotoUrl(userProfile.photoUrl || defaultProfilePic);
     }
     if (user) {
         setEmail(user.email || "seller@example.com");
     }
-  }, [userProfile, user]);
+  }, [userProfile, user, defaultProfilePic]);
   
   const handleLogout = async () => {
     try {

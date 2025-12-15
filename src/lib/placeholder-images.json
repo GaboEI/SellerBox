@@ -41,6 +41,12 @@
       "description": "Default placeholder for a book cover",
       "imageUrl": "https://storage.googleapis.com/project-spark-demos/sellerbox-default-cover.png",
       "imageHint": "app logo"
+    },
+    {
+      "id": "default_user_profile",
+      "description": "Default user profile picture",
+      "imageUrl": "https://storage.googleapis.com/project-spark-demos/user-profile-default.jpg",
+      "imageHint": "user profile"
     }
   ]
 }

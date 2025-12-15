@@ -18,6 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { AppHeader } from "@/components/layout/header";
 import { setDoc } from "firebase/firestore";
+import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 interface UserProfile {
     username?: string;
@@ -31,6 +32,8 @@ export default function SettingsPage() {
     const firestore = useFirestore();
     const storage = useStorage();
     const { toast } = useToast();
+
+    const defaultProfilePic = PlaceHolderImages.find(p => p.id === 'default_user_profile')?.imageUrl || '';
 
     const userProfileRef = useMemoFirebase(() => {
         if (!user || !firestore) return null;
@@ -53,11 +56,9 @@ export default function SettingsPage() {
     useEffect(() => {
         if (userProfile) {
             setUsername(userProfile.username || 'Seller');
-            if (userProfile.photoUrl) {
-                setImagePreview(userProfile.photoUrl);
-            }
+            setImagePreview(userProfile.photoUrl || defaultProfilePic);
         }
-    }, [userProfile]);
+    }, [userProfile, defaultProfilePic]);
 
 
     const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -78,7 +79,7 @@ export default function SettingsPage() {
         setIsSaving(true);
         
         try {
-            let photoUrl = userProfile?.photoUrl || '';
+            let photoUrl = userProfile?.photoUrl || defaultProfilePic;
 
             if (imageFile) {
                 const storageRef = ref(storage, `profile_pictures/${user.uid}`);
