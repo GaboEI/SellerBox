@@ -2,7 +2,8 @@
 import * as React from 'react';
 import { PlusCircle, Calendar as CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -34,6 +35,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { useI18n } from '../i18n/i18n-provider';
 import { es, ru } from 'date-fns/locale';
+import { Card } from '../ui/card';
 
 function SubmitButton() {
   const { t } = useI18n();
@@ -52,7 +54,7 @@ const initialState = {
 
 function AddSaleForm({ books, setOpen }: { books: Book[], setOpen: (open: boolean) => void }) {
   const { t, language } = useI18n();
-  const [state, formAction] = useFormState(addSale, initialState);
+  const [state, formAction] = useActionState(addSale, initialState);
   const { toast } = useToast();
   const formRef = React.useRef<HTMLFormElement>(null);
   const [date, setDate] = React.useState<Date | undefined>(new Date());
@@ -95,7 +97,7 @@ function AddSaleForm({ books, setOpen }: { books: Book[], setOpen: (open: boolea
             ))}
           </SelectContent>
         </Select>
-        {state.errors?.bookId && <p className="text-sm text-destructive">{state.errors.bookId[0]}</p>}
+        {state.errors?.bookId && <p className="text-sm text-destructive">{t(state.errors.bookId[0])}</p>}
       </div>
 
       <div className="space-y-2">
@@ -124,7 +126,7 @@ function AddSaleForm({ books, setOpen }: { books: Book[], setOpen: (open: boolea
             </PopoverContent>
         </Popover>
         <input type="hidden" name="date" value={date?.toISOString()} />
-        {state.errors?.date && <p className="text-sm text-destructive">{state.errors.date[0]}</p>}
+        {state.errors?.date && <p className="text-sm text-destructive">{t(state.errors.date[0])}</p>}
       </div>
 
       <div className="space-y-2">
@@ -212,16 +214,3 @@ export function SalesClient({ sales, books }: { sales: Sale[], books: Book[] }) 
     </div>
   );
 }
-
-// Dummy Card component
-const Card = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={`rounded-lg border bg-card text-card-foreground shadow-sm ${className}`}
-    {...props}
-  />
-));
-Card.displayName = "Card"

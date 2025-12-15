@@ -32,7 +32,8 @@ import {
 } from "@/components/ui/alert-dialog"
 
 import type { Book } from '@/lib/types';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { useToast } from '@/hooks/use-toast';
 import { updateBook, deleteBook } from '@/lib/actions';
 import { Label } from '@/components/ui/label';
@@ -53,7 +54,7 @@ function SubmitButton() {
 
 function EditBookForm({ book, setOpen }: { book: Book, setOpen: (open: boolean) => void }) {
     const { t } = useI18n();
-    const [state, formAction] = useFormState(updateBook.bind(null, book.id), { message: '', errors: {} });
+    const [state, formAction] = useActionState(updateBook.bind(null, book.id), { message: '', errors: {} });
     const { toast } = useToast();
     const formRef = React.useRef<HTMLFormElement>(null);
   
@@ -78,17 +79,17 @@ function EditBookForm({ book, setOpen }: { book: Book, setOpen: (open: boolean) 
         <div className="space-y-2">
           <Label htmlFor="code">{t('code')} ({t('unique')})</Label>
           <Input id="code" name="code" defaultValue={book.code} required />
-          {state.errors?.code && <p className="text-sm text-destructive">{state.errors.code[0]}</p>}
+          {state.errors?.code && <p className="text-sm text-destructive">{t(state.errors.code[0])}</p>}
         </div>
         <div className="space-y-2">
           <Label htmlFor="name">{t('name')}</Label>
           <Input id="name" name="name" defaultValue={book.name} required />
-          {state.errors?.name && <p className="text-sm text-destructive">{state.errors.name[0]}</p>}
+          {state.errors?.name && <p className="text-sm text-destructive">{t(state.errors.name[0])}</p>}
         </div>
         <div className="space-y-2">
           <Label htmlFor="quantity">{t('quantity')}</Label>
           <Input id="quantity" name="quantity" type="number" defaultValue={book.quantity} required />
-          {state.errors?.quantity && <p className="text-sm text-destructive">{state.errors.quantity[0]}</p>}
+          {state.errors?.quantity && <p className="text-sm text-destructive">{t(state.errors.quantity[0])}</p>}
         </div>
         <div className="space-y-2">
           <Label htmlFor="description">{t('description')}</Label>

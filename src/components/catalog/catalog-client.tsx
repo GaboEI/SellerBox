@@ -15,12 +15,14 @@ import { DataTable } from './data-table';
 import { columns } from './columns';
 import type { Book } from '@/lib/types';
 import { Input } from '@/components/ui/input';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { useToast } from '@/hooks/use-toast';
 import { addBook } from '@/lib/actions';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
 import { useI18n } from '../i18n/i18n-provider';
+import { Card } from '../ui/card';
 
 function SubmitButton() {
   const { t } = useI18n();
@@ -40,7 +42,7 @@ const initialState = {
 
 function AddBookForm({ setOpen }: { setOpen: (open: boolean) => void }) {
   const { t } = useI18n();
-  const [state, formAction] = useFormState(addBook, initialState);
+  const [state, formAction] = useActionState(addBook, initialState);
   const { toast } = useToast();
   const formRef = React.useRef<HTMLFormElement>(null);
 
@@ -66,17 +68,17 @@ function AddBookForm({ setOpen }: { setOpen: (open: boolean) => void }) {
       <div className="space-y-2">
         <Label htmlFor="code">{t('code')} ({t('unique')})</Label>
         <Input id="code" name="code" required />
-        {state.errors?.code && <p className="text-sm text-destructive">{state.errors.code[0]}</p>}
+        {state.errors?.code && <p className="text-sm text-destructive">{t(state.errors.code[0])}</p>}
       </div>
       <div className="space-y-2">
         <Label htmlFor="name">{t('name')}</Label>
         <Input id="name" name="name" required />
-        {state.errors?.name && <p className="text-sm text-destructive">{state.errors.name[0]}</p>}
+        {state.errors?.name && <p className="text-sm text-destructive">{t(state.errors.name[0])}</p>}
       </div>
       <div className="space-y-2">
         <Label htmlFor="quantity">{t('quantity')}</Label>
         <Input id="quantity" name="quantity" type="number" defaultValue="0" required />
-        {state.errors?.quantity && <p className="text-sm text-destructive">{state.errors.quantity[0]}</p>}
+        {state.errors?.quantity && <p className="text-sm text-destructive">{t(state.errors.quantity[0])}</p>}
       </div>
       <div className="space-y-2">
         <Label htmlFor="description">{t('description')}</Label>
@@ -136,16 +138,3 @@ export function CatalogClient({ books }: { books: Book[] }) {
     </div>
   );
 }
-
-// Dummy Card component to satisfy the compiler until it's defined elsewhere
-const Card = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={`rounded-lg border bg-card text-card-foreground shadow-sm ${className}`}
-    {...props}
-  />
-));
-Card.displayName = "Card"

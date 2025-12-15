@@ -111,5 +111,10 @@
     "record_new_sale_title": "Record a New Sale",
     "record_new_sale_desc": "Fill in the details to log a new sale.",
     "add_sale_success": "Successfully recorded sale.",
-    "add_sale_fail": "Failed to record sale."
+    "add_sale_fail": "Failed to record sale.",
+    "code_required": "Code is required.",
+    "name_required": "Name is required.",
+    "quantity_non_negative": "Quantity must be a non-negative number.",
+    "select_book_error": "Please select a book.",
+    "date_required_error": "Date is required."
 }

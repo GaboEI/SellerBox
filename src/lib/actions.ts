@@ -100,7 +100,7 @@ export async function deleteBook(id: string) {
 
 const saleSchema = z.object({
     bookId: z.string().min(1, 'select_book_error'),
-    date: z.string().min(1, 'date_required'),
+    date: z.string().min(1, 'date_required_error'),
     status: z.enum(['sold', 'reserved', 'canceled', 'pending']),
     notes: z.string().optional(),
 });

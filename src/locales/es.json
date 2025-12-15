@@ -111,5 +111,10 @@
     "record_new_sale_title": "Registrar una Nueva Venta",
     "record_new_sale_desc": "Rellena los detalles para registrar una nueva venta.",
     "add_sale_success": "Venta registrada con éxito.",
-    "add_sale_fail": "Error al registrar la venta."
+    "add_sale_fail": "Error al registrar la venta.",
+    "code_required": "El código es obligatorio.",
+    "name_required": "El nombre es obligatorio.",
+    "quantity_non_negative": "La cantidad debe ser un número no negativo.",
+    "select_book_error": "Por favor, seleccione un libro.",
+    "date_required_error": "La fecha es obligatoria."
 }
