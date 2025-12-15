@@ -27,7 +27,7 @@ import { getUserProfile } from '@/lib/data';
 import type { UserProfile } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import Image from 'next/image';
+import { useUser, useFirestore } from '@/firebase';
 
 function SubmitButton() {
   const { t } = useI18n();
@@ -42,28 +42,40 @@ function SubmitButton() {
 export default function SettingsPage() {
   const { t } = useI18n();
   const { toast } = useToast();
+  const { user, isUserLoading } = useUser();
+  const firestore = useFirestore();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [photoUrlDataUri, setPhotoUrlDataUri] = useState<string>('');
-  
+
   const formRef = useRef<HTMLFormElement>(null);
 
-  const [state, formAction] = useActionState(updateUserProfile, {
+  const updateUserProfileAction = async (prevState: any, formData: FormData) => {
+    if (!user) {
+      return {
+        status: 'error',
+        message: 'profile_update_fail_unauthenticated',
+      };
+    }
+    return updateUserProfile(user.uid, formData);
+  };
+  
+  const [state, formAction] = useActionState(updateUserProfileAction, {
     status: '',
     message: '',
-    errors: {},
   });
 
   useEffect(() => {
     async function fetchProfile() {
+      if (isUserLoading || !firestore) return;
       setIsLoading(true);
-      const userProfile = await getUserProfile();
+      const userProfile = await getUserProfile(firestore, user);
       setProfile(userProfile);
       setIsLoading(false);
     }
     fetchProfile();
-  }, [state]); // Refetch profile on successful save
+  }, [user, isUserLoading, firestore, state]);
 
   useEffect(() => {
     if (state.status === 'success') {
@@ -71,10 +83,9 @@ export default function SettingsPage() {
         title: t('success'),
         description: t(state.message),
       });
-      // Reset form state after successful submission if needed
       setPhotoUrlDataUri('');
       setImagePreview(null);
-    } else if (state.status === 'error') {
+    } else if (state.status === 'error' && state.message) {
       toast({
         title: t('error'),
         description: t(state.message),
@@ -96,7 +107,9 @@ export default function SettingsPage() {
     }
   };
 
-  const defaultProfilePic = PlaceHolderImages.find((p) => p.id === 'default_user_profile')?.imageUrl || '';
+  const defaultProfilePic =
+    PlaceHolderImages.find((p) => p.id === 'default_user_profile')?.imageUrl ||
+    '';
 
   return (
     <SidebarProvider>
@@ -147,24 +160,54 @@ export default function SettingsPage() {
                       ) : (
                         <div className="flex items-center gap-4">
                           <Avatar className="h-20 w-20">
-                            <AvatarImage src={imagePreview || profile?.photoUrl || defaultProfilePic} alt={profile?.username} />
-                            <AvatarFallback>{profile?.username?.[0]?.toUpperCase() || 'S'}</AvatarFallback>
+                            <AvatarImage
+                              src={
+                                imagePreview ||
+                                profile?.photoUrl ||
+                                defaultProfilePic
+                              }
+                              alt={profile?.username}
+                            />
+                            <AvatarFallback>
+                              {profile?.username?.[0]?.toUpperCase() || 'S'}
+                            </AvatarFallback>
                           </Avatar>
                           <div className="space-y-1">
-                            <Label htmlFor="photoUrl">{t('profile_picture')}</Label>
-                            <Input id="photoUrl" type="file" accept="image/*" onChange={handleFileChange} className="max-w-xs" />
-                            <input type="hidden" name="photoUrlDataUri" value={photoUrlDataUri} />
+                            <Label htmlFor="photoUrl">
+                              {t('profile_picture')}
+                            </Label>
+                            <Input
+                              id="photoUrl"
+                              type="file"
+                              accept="image/*"
+                              onChange={handleFileChange}
+                              className="max-w-xs"
+                            />
+                            <input
+                              type="hidden"
+                              name="photoUrlDataUri"
+                              value={photoUrlDataUri}
+                            />
                           </div>
                         </div>
                       )}
                       <div className="space-y-2">
                         <Label htmlFor="username">{t('username')}</Label>
-                         {isLoading ? (
-                           <Skeleton className="h-10 w-full" />
-                         ) : (
-                          <Input id="username" name="username" defaultValue={profile?.username || ''} required />
-                         )}
-                         {state.errors?.username && <p className="text-sm text-destructive">{t(state.errors.username[0] as string)}</p>}
+                        {isLoading ? (
+                          <Skeleton className="h-10 w-full" />
+                        ) : (
+                          <Input
+                            id="username"
+                            name="username"
+                            defaultValue={profile?.username || ''}
+                            required
+                          />
+                        )}
+                        {(state.errors as any)?.username && (
+                          <p className="text-sm text-destructive">
+                            {t((state.errors as any).username[0] as string)}
+                          </p>
+                        )}
                       </div>
                     </CardContent>
                     <CardFooter className="border-t px-6 py-4">

@@ -19,26 +19,28 @@ import React, { useState, useEffect } from 'react';
 import { getUserProfile } from '@/lib/data';
 import type { UserProfile } from '@/lib/types';
 import { Skeleton } from '../ui/skeleton';
+import { useUser, useFirestore } from '@/firebase';
 
 export function AppHeader() {
   const { t } = useI18n();
+  const { user, isUserLoading } = useUser();
+  const firestore = useFirestore();
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function fetchProfile() {
-      setIsLoading(true);
-      const userProfile = await getUserProfile();
+      if (isUserLoading || !firestore) return;
+      const userProfile = await getUserProfile(firestore, user);
       setProfile(userProfile);
-      setIsLoading(false);
     }
     fetchProfile();
-  }, []);
+  }, [user, isUserLoading, firestore]);
 
 
   const defaultProfilePic = PlaceHolderImages.find(p => p.id === 'default_user_profile')?.imageUrl || '';
-  const username = profile?.username || "Seller";
-  const userPhoto = profile?.photoUrl || defaultProfilePic;
+  const username = profile?.username || user?.displayName || "Seller";
+  const userEmail = user?.email || "seller@example.com";
+  const userPhoto = profile?.photoUrl || user?.photoURL || defaultProfilePic;
   const usernameInitial = username?.[0]?.toUpperCase() || 'S';
 
   return (
@@ -51,7 +53,7 @@ export function AppHeader() {
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="relative h-8 w-8 rounded-full">
             <Avatar className="h-9 w-9">
-              {isLoading ? (
+              {isUserLoading ? (
                 <Skeleton className="h-9 w-9 rounded-full" />
               ) : (
                 <>
@@ -70,7 +72,7 @@ export function AppHeader() {
             <div className="flex flex-col space-y-1">
               <p className="text-sm font-medium leading-none">{username}</p>
               <p className="text-xs leading-none text-muted-foreground">
-                seller@example.com
+                {userEmail}
               </p>
             </div>
           </DropdownMenuLabel>

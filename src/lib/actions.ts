@@ -12,6 +12,9 @@ import {
   updateUserProfile as dbUpdateUserProfile,
 } from './data';
 import type { Book, SalePlatform, SaleStatus, UserProfile } from './types';
+import { getAuth } from 'firebase/auth';
+import { firebaseApp } from '@/firebase';
+
 
 const bookSchema = z.object({
   code: z.string().min(1, 'code_required'),
@@ -194,7 +197,9 @@ const userProfileSchema = z.object({
   photoUrl: z.string().optional(),
 });
 
-export async function updateUserProfile(prevState: any, formData: FormData) {
+export async function updateUserProfile(userId: string, formData: FormData) {
+  'use server';
+
   const validatedFields = userProfileSchema.safeParse({
     username: formData.get('username'),
     photoUrl: formData.get('photoUrlDataUri'), 
@@ -214,24 +219,15 @@ export async function updateUserProfile(prevState: any, formData: FormData) {
     const updates: Partial<UserProfile> = {};
     if (username) updates.username = username;
     
-    // Only add photoUrl if a new one was provided
     if (photoUrl && photoUrl.startsWith('data:image')) {
       updates.photoUrl = photoUrl;
     }
 
-    if (Object.keys(updates).length === 0) {
-      // Nothing to update
-      return { status: 'success', message: 'profile_update_success', errors: {} };
+    if (Object.keys(updates).length > 0) {
+      await dbUpdateUserProfile(userId, updates);
     }
-    
-    await dbUpdateUserProfile(updates);
 
-    // Revalidate all relevant paths
-    revalidatePath('/settings');
-    revalidatePath('/');
-    revalidatePath('/inventory');
-    revalidatePath('/sales');
-    revalidatePath('/listings');
+    revalidatePath('/settings', 'layout');
 
     return { status: 'success', message: 'profile_update_success', errors: {} };
   } catch (e) {

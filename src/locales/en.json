@@ -145,10 +145,7 @@
     "account_desc": "Manage your profile information and account settings.",
     "profile_picture": "Profile picture",
     "username": "Username",
-    "account_management": "Account management",
-    "change_password": "Change password",
-    "recover_password": "Recover password",
-    "delete_account": "Delete account",
     "profile_update_success": "Profile updated successfully.",
-    "profile_update_fail": "Failed to update profile."
+    "profile_update_fail": "Failed to update profile.",
+    "profile_update_fail_unauthenticated": "Failed to update profile. Please log in again."
 }
