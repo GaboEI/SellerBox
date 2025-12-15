@@ -176,8 +176,10 @@ service cloud.firestore {
      * @principle Path-based ownership: Access is granted if the user's UID
      *   matches the document ID in the path.
      */
-    match /users/{userId} {
-      allow read, write: if isOwner(userId);
+     match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isSignedIn();
+      allow update, delete: if isOwner(userId);
     }
   }
 }
