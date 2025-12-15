@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useI18n } from "@/components/i18n/i18n-provider";
 import React, { useEffect, useState } from "react";
-import { useUser, useFirestore, useDoc, useMemoFirebase, doc, useStorage, setDocumentNonBlocking, FirestorePermissionError, errorEmitter } from '@/firebase';
+import { useUser, useFirestore, useDoc, useMemoFirebase, doc, useStorage, FirestorePermissionError, errorEmitter } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { AppSidebar } from '@/components/layout/sidebar';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
@@ -79,51 +79,47 @@ export default function SettingsPage() {
         let photoUrl = userProfile?.photoUrl || '';
 
         try {
+            // Step 1: If there's a new image, upload it first.
             if (imageFile) {
                 const storageRef = ref(storage, `profile_pictures/${user.uid}`);
                 const uploadResult = await uploadBytes(storageRef, imageFile);
                 photoUrl = await getDownloadURL(uploadResult.ref);
             }
             
+            // Step 2: Prepare the profile data.
             const updatedProfile: UserProfile = {
                 username: username,
                 photoUrl: photoUrl,
             };
 
+            // Step 3: Save the profile data to Firestore and wait for it.
             const userDocRef = doc(firestore, 'users', user.uid);
-            
-            setDoc(userDocRef, updatedProfile, { merge: true })
-                .then(() => {
-                    toast({
-                        title: t('success'),
-                        description: t('profile_update_success'),
-                    });
-                })
-                .catch((error) => {
-                    console.error("Profile update failed:", error);
-                     toast({
-                        variant: "destructive",
-                        title: t('error'),
-                        description: t('profile_update_fail'),
-                    });
-                    const permissionError = new FirestorePermissionError({
-                        path: userDocRef.path,
-                        operation: 'update',
-                        requestResourceData: updatedProfile,
-                    });
-                    errorEmitter.emit('permission-error', permissionError);
-                })
-                .finally(() => {
-                    setIsSaving(false);
-                });
+            await setDoc(userDocRef, updatedProfile, { merge: true });
+
+            // Step 4: Show success toast only after all operations succeed.
+            toast({
+                title: t('success'),
+                description: t('profile_update_success'),
+            });
 
         } catch (error) {
-             console.error("Image upload failed:", error);
-             toast({
+            console.error("Failed to save profile:", error);
+            const description = error instanceof Error ? error.message : t('profile_update_fail');
+            toast({
                 variant: "destructive",
                 title: t('error'),
-                description: 'Failed to upload image.',
+                description: description,
             });
+             if (error instanceof Error && error.message.includes('permission-denied')) {
+                const permissionError = new FirestorePermissionError({
+                    path: `users/${user.uid}`,
+                    operation: 'update',
+                    requestResourceData: {username, photoUrl},
+                });
+                errorEmitter.emit('permission-error', permissionError);
+            }
+        } finally {
+            // Step 5: Always turn off the saving state.
             setIsSaving(false);
         }
     };
