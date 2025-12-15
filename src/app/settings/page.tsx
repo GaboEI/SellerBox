@@ -26,7 +26,7 @@ const SINGLE_USER_ID = "_single_user";
 
 export default function SettingsPage() {
     const { t } = useI18n();
-    const { firestore } = useFirestore ? useFirestore() : { firestore: null };
+    const firestore = useFirestore();
     const { toast } = useToast();
 
     const defaultProfilePic = PlaceHolderImages.find(p => p.id === 'default_user_profile')?.imageUrl || '';

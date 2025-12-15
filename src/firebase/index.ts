@@ -7,31 +7,19 @@ import { getFirestore, type Firestore } from 'firebase/firestore';
 import { getStorage, type FirebaseStorage } from 'firebase/storage';
 
 let firebaseApp: FirebaseApp;
-let auth: Auth;
-let firestore: Firestore;
-let storage: FirebaseStorage;
 
-/**
- * A function that returns all initialized Firebase services.
- * This is the primary entry point for accessing Firebase services in a client component.
- */
-export function initializeFirebase() {
-  if (!getApps().length) {
-    firebaseApp = initializeApp(firebaseConfig);
-  } else {
-    firebaseApp = getApp();
-  }
-  auth = getAuth(firebaseApp);
-  firestore = getFirestore(firebaseApp);
-  storage = getStorage(firebaseApp);
-
-  return {
-    firebaseApp,
-    auth,
-    firestore,
-    storage,
-  };
+// Idempotent Firebase initialization
+if (!getApps().length) {
+  firebaseApp = initializeApp(firebaseConfig);
+} else {
+  firebaseApp = getApp();
 }
+
+const auth = getAuth(firebaseApp);
+const firestore = getFirestore(firebaseApp);
+const storage = getStorage(firebaseApp);
+
+export { firebaseApp, auth, firestore, storage };
 
 
 // --- HOOKS & PROVIDERS ---

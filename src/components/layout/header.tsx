@@ -25,7 +25,7 @@ const SINGLE_USER_ID = "_single_user";
 
 export function AppHeader() {
   const { t } = useI18n();
-  const { firestore } = useFirestore ? useFirestore() : { firestore: null };
+  const firestore = useFirestore();
 
   const defaultProfilePic = PlaceHolderImages.find(p => p.id === 'default_user_profile')?.imageUrl || '';
 
