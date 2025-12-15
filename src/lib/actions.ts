@@ -213,16 +213,26 @@ export async function updateUserProfile(prevState: any, formData: FormData) {
   try {
     const updates: Partial<UserProfile> = {};
     if (username) updates.username = username;
-    if (photoUrl) updates.photoUrl = photoUrl;
-
-    if (Object.keys(updates).length === 0) {
-      return { status: 'success', message: 'profile_update_success', errors: {} };
+    
+    // Only add photoUrl if a new one was provided
+    if (photoUrl && photoUrl.startsWith('data:image')) {
+      updates.photoUrl = photoUrl;
     }
 
+    if (Object.keys(updates).length === 0) {
+      // Nothing to update
+      return { status: 'success', message: 'profile_update_success', errors: {} };
+    }
+    
     await dbUpdateUserProfile(updates);
 
+    // Revalidate all relevant paths
     revalidatePath('/settings');
     revalidatePath('/');
+    revalidatePath('/inventory');
+    revalidatePath('/sales');
+    revalidatePath('/listings');
+
     return { status: 'success', message: 'profile_update_success', errors: {} };
   } catch (e) {
     console.error('Error updating profile:', e);

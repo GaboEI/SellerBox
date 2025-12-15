@@ -15,12 +15,30 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useI18n } from '@/components/i18n/i18n-provider';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import React, { useState, useEffect } from 'react';
+import { getUserProfile } from '@/lib/data';
+import type { UserProfile } from '@/lib/types';
+import { Skeleton } from '../ui/skeleton';
 
 export function AppHeader() {
   const { t } = useI18n();
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchProfile() {
+      setIsLoading(true);
+      const userProfile = await getUserProfile();
+      setProfile(userProfile);
+      setIsLoading(false);
+    }
+    fetchProfile();
+  }, []);
+
 
   const defaultProfilePic = PlaceHolderImages.find(p => p.id === 'default_user_profile')?.imageUrl || '';
-  const username = "Seller";
+  const username = profile?.username || "Seller";
+  const userPhoto = profile?.photoUrl || defaultProfilePic;
   const usernameInitial = username?.[0]?.toUpperCase() || 'S';
 
   return (
@@ -33,11 +51,17 @@ export function AppHeader() {
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="relative h-8 w-8 rounded-full">
             <Avatar className="h-9 w-9">
-            <AvatarImage
-                src={defaultProfilePic}
-                alt="User Avatar"
-            />
-            <AvatarFallback>{usernameInitial}</AvatarFallback>
+              {isLoading ? (
+                <Skeleton className="h-9 w-9 rounded-full" />
+              ) : (
+                <>
+                  <AvatarImage
+                      src={userPhoto}
+                      alt="User Avatar"
+                  />
+                  <AvatarFallback>{usernameInitial}</AvatarFallback>
+                </>
+              )}
             </Avatar>
           </Button>
         </DropdownMenuTrigger>
