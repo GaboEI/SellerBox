@@ -16,6 +16,7 @@ import { AppSidebar } from '@/components/layout/sidebar';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { useToast } from "@/hooks/use-toast";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { AppHeader } from "@/components/layout/header";
 
 interface UserProfile {
     username?: string;
@@ -50,9 +51,12 @@ export default function SettingsPage() {
     useEffect(() => {
         if (userProfile) {
             setUsername(userProfile.username || 'Seller');
-            setImagePreview(userProfile.photoUrl || "https://picsum.photos/seed/user/100/100");
+            if (userProfile.photoUrl) {
+                setImagePreview(userProfile.photoUrl);
+            }
         }
     }, [userProfile]);
+
 
     const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -71,8 +75,6 @@ export default function SettingsPage() {
 
         let photoUrl = userProfile?.photoUrl || '';
 
-        // This is an optimistic UI update. We show the toast immediately.
-        // The error will be caught globally if the write fails.
         toast({
             title: t('success'),
             description: t('profile_update_success'),
@@ -89,7 +91,7 @@ export default function SettingsPage() {
                     title: t('error'),
                     description: t('profile_update_fail'),
                 });
-                return; // Stop if image upload fails
+                return; 
             }
         }
         
@@ -99,8 +101,6 @@ export default function SettingsPage() {
         };
 
         const userDocRef = doc(firestore, 'users', user.uid);
-        // Use the non-blocking fire-and-forget method for setting the document
-        // The global error handler will catch permission issues.
         setDocumentNonBlocking(userDocRef, updatedProfile, { merge: true });
     };
 
