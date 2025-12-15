@@ -52,12 +52,13 @@ function SubmitButton() {
       </Button>
     );
   }
+  
+const defaultCover = PlaceHolderImages.find(p => p.id === 'default_book_cover')?.imageUrl || '';
 
 function EditBookForm({ book, setOpen, onDataChange }: { book: Book, setOpen: (open: boolean) => void, onDataChange: () => void }) {
     const { t } = useI18n();
     const [state, formAction] = useActionState(updateBook.bind(null, book.id), { message: '', errors: {} });
     const { toast } = useToast();
-    const formRef = React.useRef<HTMLFormElement>(null);
     const [imagePreview, setImagePreview] = React.useState<string | null>(book.coverImageUrl || null);
     const [coverImageUrl, setCoverImageUrl] = React.useState<string>(book.coverImageUrl || '');
 
@@ -74,8 +75,7 @@ function EditBookForm({ book, setOpen, onDataChange }: { book: Book, setOpen: (o
         }
     };
 
-    const previewImage = imagePreview || PlaceHolderImages.find(p => p.id === 'default_book_cover')?.imageUrl || '';
-
+    const previewImage = imagePreview || defaultCover;
   
     React.useEffect(() => {
       if (!state.message) return;
@@ -96,7 +96,7 @@ function EditBookForm({ book, setOpen, onDataChange }: { book: Book, setOpen: (o
     }, [state, toast, setOpen, t, onDataChange]);
     
     return (
-      <form ref={formRef} action={formAction} className="space-y-4">
+      <form action={formAction} className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="code">{t('code')} ({t('unique')})</Label>
           <Input id="code" name="code" defaultValue={book.code} required />
@@ -196,7 +196,6 @@ export const columns = (onDataChange: () => void): ColumnDef<Book>[] => [
     header: '',
     cell: ({ row }) => {
       const imageUrl = row.getValue('coverImageUrl') as string | undefined;
-      const defaultCover = PlaceHolderImages.find(p => p.id === 'default_book_cover')?.imageUrl || "https://storage.googleapis.com/project-spark-demos/sellerbox-default-cover.png";
       return (
         <div className="relative h-16 w-12 flex-shrink-0">
           <Image 

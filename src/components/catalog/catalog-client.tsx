@@ -38,8 +38,10 @@ function SubmitButton() {
 const initialState = {
   message: '',
   errors: {},
-  resetKey: '',
+  resetKey: Date.now().toString(),
 };
+
+const defaultCover = PlaceHolderImages.find(p => p.id === 'default_book_cover')?.imageUrl || '';
 
 function AddBookForm({ setOpen, onDataChange }: { setOpen: (open: boolean) => void, onDataChange: () => void }) {
   const { t } = useI18n();
@@ -62,7 +64,7 @@ function AddBookForm({ setOpen, onDataChange }: { setOpen: (open: boolean) => vo
     }
   };
 
-  const previewImage = imagePreview || PlaceHolderImages.find(p => p.id === 'default_book_cover')?.imageUrl || '';
+  const previewImage = imagePreview || defaultCover;
 
   React.useEffect(() => {
     if (!state.message) return;
@@ -73,10 +75,7 @@ function AddBookForm({ setOpen, onDataChange }: { setOpen: (open: boolean) => vo
         description: t(state.message),
       });
       setOpen(false);
-      formRef.current?.reset();
-      setImagePreview(null);
-      setCoverImageUrl('');
-      onDataChange(); // Notify parent that data has changed
+      onDataChange();
     } else {
       toast({
         title: t('error'),
@@ -84,7 +83,15 @@ function AddBookForm({ setOpen, onDataChange }: { setOpen: (open: boolean) => vo
         variant: 'destructive',
       });
     }
-  }, [state, toast, setOpen, t, onDataChange]);
+  }, [state.message, state.resetKey, toast, setOpen, t, onDataChange]);
+  
+  React.useEffect(() => {
+    if (state.message.includes('success')) {
+        formRef.current?.reset();
+        setImagePreview(null);
+        setCoverImageUrl('');
+    }
+  }, [state.resetKey, state.message]);
   
   return (
     <form ref={formRef} action={formAction} key={state.resetKey} className="space-y-4">
