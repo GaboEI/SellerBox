@@ -45,7 +45,7 @@
     {
       "id": "default_user_profile",
       "description": "Default user profile picture",
-      "imageUrl": "https://storage.googleapis.com/project-spark-demos/user-profile-default.jpg",
+      "imageUrl": "https://storage.googleapis.com/stella-images/flo-denos-book.jpg",
       "imageHint": "user profile"
     }
   ]
