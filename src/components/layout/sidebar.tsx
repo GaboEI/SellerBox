@@ -18,17 +18,15 @@ import {
   SidebarMenuButton,
   SidebarFooter,
 } from '@/components/ui/sidebar';
-import { useI18n } from '@/components/i18n/i18n-provider';
 
 export function AppSidebar() {
   const pathname = usePathname();
-  const { t } = useI18n();
 
   const menuItems = [
-    { href: '/', label: t('dashboard'), icon: Home },
-    { href: '/inventory', label: t('warehouse'), icon: Package },
-    { href: '/sales', label: t('sales'), icon: ShoppingBag },
-    { href: '/listings', label: t('listing_generator'), icon: Tag },
+    { href: '/', label: 'Dashboard', icon: Home },
+    { href: '/inventory', label: 'Warehouse', icon: Package },
+    { href: '/sales', label: 'Sales', icon: ShoppingBag },
+    { href: '/listings', label: 'Listing Generator', icon: Tag },
   ];
 
   return (

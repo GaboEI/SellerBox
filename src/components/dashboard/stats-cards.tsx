@@ -8,7 +8,6 @@ import {
 } from '@/components/ui/card';
 import { Book, Package, ShoppingBag } from 'lucide-react';
 import type { Book as BookType, Sale } from '@/lib/types';
-import { useI18n } from '../i18n/i18n-provider';
 
 interface StatsCardsProps {
   sales: Sale[];
@@ -16,7 +15,6 @@ interface StatsCardsProps {
 }
 
 export function StatsCards({ sales, books }: StatsCardsProps) {
-  const { t } = useI18n();
   const soldSales = sales.filter((s) => s.status === 'completed' || s.status === 'sold_in_person');
   const totalSales = soldSales.length;
   const totalRevenue = soldSales.reduce((sum, sale) => sum + (sale.saleAmount || 0), 0);
@@ -24,7 +22,7 @@ export function StatsCards({ sales, books }: StatsCardsProps) {
 
   const stats = [
     {
-      title: t('total_revenue'),
+      title: 'Total Revenue',
       value: `${totalRevenue.toLocaleString('ru-RU', {
         style: 'currency',
         currency: 'RUB',
@@ -47,19 +45,19 @@ export function StatsCards({ sales, books }: StatsCardsProps) {
           <path d="M19 5H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2Z" />
         </svg>
       ),
-      description: t('total_revenue_desc'),
+      description: 'Total revenue from sales',
     },
     {
-      title: t('sales_title'),
+      title: 'Sales',
       value: `+${totalSales}`,
       icon: <ShoppingBag className="h-4 w-4 text-muted-foreground" />,
-      description: t('sales_desc'),
+      description: 'Total books sold',
     },
     {
-      title: t('books_in_catalog'),
+      title: 'Books in Catalog',
       value: `${totalBooks}`,
       icon: <Book className="h-4 w-4 text-muted-foreground" />,
-      description: t('books_in_catalog_desc'),
+      description: 'Unique titles in your catalog',
     }
   ];
 

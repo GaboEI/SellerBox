@@ -12,13 +12,11 @@ import {
   updateUserProfile as dbUpdateUserProfile,
 } from './data';
 import type { Book, SalePlatform, SaleStatus, UserProfile } from './types';
-import { getAuth } from 'firebase/auth';
-import { firebaseApp } from '@/firebase';
 
 
 const bookSchema = z.object({
-  code: z.string().min(1, 'code_required'),
-  name: z.string().min(1, 'name_required'),
+  code: z.string().min(1, 'Code is required.'),
+  name: z.string().min(1, 'Name is required.'),
   coverImageUrl: z.string().optional(),
 });
 
@@ -32,15 +30,15 @@ export async function addBook(prevState: any, formData: FormData) {
   if (!validatedFields.success) {
     return {
       errors: validatedFields.error.flatten().fieldErrors,
-      message: 'check_fields_error',
+      message: 'Error: Please check the fields.',
     };
   }
 
   const existingBook = await getBookByCode(validatedFields.data.code);
   if (existingBook) {
     return {
-      errors: { code: ['code_in_use'] },
-      message: 'unique_code_error',
+      errors: { code: ['This code is already in use.'] },
+      message: 'Error: Please use a unique code.',
     };
   }
 
@@ -54,7 +52,7 @@ export async function addBook(prevState: any, formData: FormData) {
     return { message: 'add_book_success', errors: {}, resetKey: Date.now().toString() };
   } catch (e) {
     console.error(e);
-    return { message: 'add_book_fail', errors: {} };
+    return { message: 'Failed to add book.', errors: {} };
   }
 }
 
@@ -68,15 +66,15 @@ export async function updateBook(id: string, prevState: any, formData: FormData)
   if (!validatedFields.success) {
     return {
       errors: validatedFields.error.flatten().fieldErrors,
-      message: 'check_fields_error',
+      message: 'Error: Please check the fields.',
     };
   }
 
   const existingBook = await getBookByCode(validatedFields.data.code);
   if (existingBook && existingBook.id !== id) {
     return {
-      errors: { code: ['code_in_use'] },
-      message: 'unique_code_error',
+      errors: { code: ['This code is already in use.'] },
+      message: 'Error: Please use a unique code.',
     };
   }
 
@@ -88,7 +86,7 @@ export async function updateBook(id: string, prevState: any, formData: FormData)
     revalidatePath('/catalog');
     return { message: 'update_book_success', errors: {}, resetKey: Date.now().toString() };
   } catch (e) {
-    return { message: 'update_book_fail', errors: {} };
+    return { message: 'Failed to update book.', errors: {} };
   }
 }
 
@@ -104,8 +102,8 @@ export async function deleteBook(id: string) {
 }
 
 const saleSchema = z.object({
-  bookId: z.string().min(1, 'select_book_error'),
-  date: z.string().regex(/^\d{2}\.\d{2}\.\d{4}$/, 'date_format_error'),
+  bookId: z.string().min(1, 'Please select a book.'),
+  date: z.string().regex(/^\d{2}\.\d{2}\.\d{4}$/, 'Please use DD.MM.YYYY format.'),
   platform: z.enum(['Avito', 'Ozon']),
 });
 
@@ -119,7 +117,7 @@ export async function addSale(prevState: any, formData: FormData) {
   if (!validatedFields.success) {
     return {
       errors: validatedFields.error.flatten().fieldErrors,
-      message: 'check_fields_error',
+      message: 'Error: Please check the fields.',
     };
   }
 
@@ -130,8 +128,8 @@ export async function addSale(prevState: any, formData: FormData) {
   const dateObj = new Date(isoDate);
   if (isNaN(dateObj.getTime()) || dateObj.getDate() !== parseInt(day, 10)) {
     return {
-      errors: { date: ['invalid_date_error'] },
-      message: 'check_fields_error',
+      errors: { date: ['The date is invalid.'] },
+      message: 'Error: Please check the fields.',
     };
   }
 
@@ -141,8 +139,8 @@ export async function addSale(prevState: any, formData: FormData) {
 
   if (dateObj < startDate || dateObj > today) {
     return {
-      errors: { date: ['date_range_error'] },
-      message: 'check_fields_error',
+      errors: { date: ['Date must be after 01.01.2025 and not in the future.'] },
+      message: 'Error: Please check the fields.',
     };
   }
 
@@ -157,7 +155,7 @@ export async function addSale(prevState: any, formData: FormData) {
     return { message: 'add_sale_success', errors: {}, resetKey: Date.now().toString() };
   } catch (e) {
     console.error(e);
-    return { message: 'add_sale_fail', errors: {} };
+    return { message: 'Failed to record sale.', errors: {} };
   }
 }
 
@@ -175,7 +173,7 @@ export async function updateSale(id: string, prevState: any, formData: FormData)
   if (!validatedFields.success) {
     return {
       errors: validatedFields.error.flatten().fieldErrors,
-      message: 'check_fields_error',
+      message: 'Error: Please check the fields.',
     };
   }
 
@@ -188,12 +186,12 @@ export async function updateSale(id: string, prevState: any, formData: FormData)
     revalidatePath('/sales');
     return { message: 'update_sale_success', errors: {}, resetKey: Date.now().toString() };
   } catch (e) {
-    return { message: 'update_sale_fail', errors: {} };
+    return { message: 'Failed to update sale.', errors: {} };
   }
 }
 
 const userProfileSchema = z.object({
-  username: z.string().min(1, 'name_required'),
+  username: z.string().min(1, 'Name is required.'),
   photoUrl: z.string().optional(),
 });
 
@@ -209,7 +207,7 @@ export async function updateUserProfile(userId: string, formData: FormData) {
     return {
       status: 'error',
       errors: validatedFields.error.flatten().fieldErrors,
-      message: 'check_fields_error',
+      message: 'Error: Please check the fields.',
     };
   }
 
@@ -229,9 +227,9 @@ export async function updateUserProfile(userId: string, formData: FormData) {
 
     revalidatePath('/settings', 'layout');
 
-    return { status: 'success', message: 'profile_update_success', errors: {} };
+    return { status: 'success', message: 'Profile updated successfully.', errors: {} };
   } catch (e) {
     console.error('Error updating profile:', e);
-    return { status: 'error', message: 'profile_update_fail', errors: {} };
+    return { status: 'error', message: 'Failed to update profile.', errors: {} };
   }
 }

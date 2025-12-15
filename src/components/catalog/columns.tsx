@@ -39,14 +39,12 @@ import { useToast } from '@/hooks/use-toast';
 import { updateBook, deleteBook } from '@/lib/actions';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { useI18n } from '../i18n/i18n-provider';
 
 function SubmitButton() {
-    const { t } = useI18n();
     const { pending } = useFormStatus();
     return (
       <Button type="submit" disabled={pending}>
-        {pending ? t('saving') : t('save_changes')}
+        {pending ? 'Saving...' : 'Save Changes'}
       </Button>
     );
   }
@@ -58,7 +56,6 @@ const initialState = {
 };
 
 function EditBookForm({ book, setOpen, onDataChange }: { book: Book, setOpen: (open: boolean) => void, onDataChange: () => void }) {
-    const { t } = useI18n();
     const [state, formAction] = useActionState(updateBook.bind(null, book.id), initialState);
     const { toast } = useToast();
     const [imagePreview, setImagePreview] = React.useState<string | null>(book.coverImageUrl || null);
@@ -81,34 +78,34 @@ function EditBookForm({ book, setOpen, onDataChange }: { book: Book, setOpen: (o
       if (!state.message) return;
       if (state.message.includes('success')) {
         toast({
-          title: t('success'),
-          description: t(state.message),
+          title: 'Success!',
+          description: 'Successfully updated book.',
         });
         setOpen(false);
         onDataChange();
       } else {
         toast({
-          title: t('error'),
-          description: t(state.message),
+          title: 'Error',
+          description: state.message,
           variant: 'destructive',
         });
       }
-    }, [state, toast, setOpen, t, onDataChange]);
+    }, [state, toast, setOpen, onDataChange]);
     
     return (
       <form action={formAction} key={state.resetKey} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="code">{t('code')} ({t('unique')})</Label>
+          <Label htmlFor="code">Code (Unique)</Label>
           <Input id="code" name="code" defaultValue={book.code} required />
-          {state.errors?.code && <p className="text-sm text-destructive">{t(state.errors.code[0])}</p>}
+          {state.errors?.code && <p className="text-sm text-destructive">{state.errors.code[0]}</p>}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="name">{t('name')}</Label>
+          <Label htmlFor="name">Name</Label>
           <Input id="name" name="name" defaultValue={book.name} required />
-          {state.errors?.name && <p className="text-sm text-destructive">{t(state.errors.name[0])}</p>}
+          {state.errors?.name && <p className="text-sm text-destructive">{state.errors.name[0]}</p>}
         </div>
         <div className="space-y-2">
-            <Label htmlFor="image-upload">{t('cover_photo')}</Label>
+            <Label htmlFor="image-upload">Cover Photo</Label>
             <div className="flex items-center gap-4">
                 <div className="flex h-24 w-24 items-center justify-center rounded-lg border bg-muted text-muted-foreground">
                     {imagePreview ? (
@@ -134,7 +131,6 @@ function EditBookForm({ book, setOpen, onDataChange }: { book: Book, setOpen: (o
   
 
 const CellActions: React.FC<{ row: any, onDataChange: () => void }> = ({ row, onDataChange }) => {
-  const { t } = useI18n();
   const book = row.original as Book;
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
@@ -154,22 +150,22 @@ const CellActions: React.FC<{ row: any, onDataChange: () => void }> = ({ row, on
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuLabel>{t('actions')}</DropdownMenuLabel>
+          <DropdownMenuLabel>Actions</DropdownMenuLabel>
           <DropdownMenuItem onClick={() => navigator.clipboard.writeText(book.code)}>
-            {t('copy_code')}
+            Copy Code
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => setIsEditDialogOpen(true)}>{t('edit_book')}</DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)} className="text-destructive focus:text-destructive">{t('delete_book')}</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setIsEditDialogOpen(true)}>Edit Book</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)} className="text-destructive focus:text-destructive">Delete Book</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent>
             <DialogHeader>
-            <DialogTitle>{t('edit_book_title')}</DialogTitle>
+            <DialogTitle>Edit Book</DialogTitle>
             <DialogDescription>
-                {t('edit_book_desc')}
+                Make changes to the book details. The code must remain unique.
             </DialogDescription>
             </DialogHeader>
             <EditBookForm book={book} setOpen={setIsEditDialogOpen} onDataChange={onDataChange} />
@@ -179,14 +175,14 @@ const CellActions: React.FC<{ row: any, onDataChange: () => void }> = ({ row, on
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
             <AlertDialogHeader>
-            <AlertDialogTitle>{t('are_you_sure')}</AlertDialogTitle>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-                {t('delete_book_warning')}
+                This action cannot be undone. This will permanently delete the book and remove its data from our servers.
             </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-            <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">{t('delete')}</AlertDialogAction>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
             </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -197,10 +193,7 @@ const CellActions: React.FC<{ row: any, onDataChange: () => void }> = ({ row, on
 export const columns = (onDataChange: () => void): ColumnDef<Book>[] => [
   {
     accessorKey: 'coverImageUrl',
-    header: function PhotoHeader() {
-        const { t } = useI18n();
-        return <div className="pl-4">{t('cover_photo').toUpperCase()}</div>
-    },
+    header: 'COVER PHOTO',
     cell: ({ row }) => {
       const imageUrl = row.getValue('coverImageUrl') as string | undefined;
       return (
@@ -224,14 +217,13 @@ export const columns = (onDataChange: () => void): ColumnDef<Book>[] => [
   {
     accessorKey: 'code',
     header: ({ column }) => {
-        const { t } = useI18n();
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           className="p-0"
         >
-          {t('code')}
+          Code
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
@@ -241,14 +233,13 @@ export const columns = (onDataChange: () => void): ColumnDef<Book>[] => [
   {
     accessorKey: 'name',
     header: ({ column }) => {
-        const { t } = useI18n();
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
           className="p-0"
         >
-          {t('name')}
+          Name
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );

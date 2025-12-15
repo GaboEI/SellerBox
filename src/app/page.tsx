@@ -5,7 +5,6 @@ import { StatsCards } from '@/components/dashboard/stats-cards';
 import { SalesChart } from '@/components/dashboard/sales-chart';
 import { RecentSales } from '@/components/dashboard/recent-sales';
 import { PageHeader } from '@/components/shared/page-header';
-import { useI18n } from '@/components/i18n/i18n-provider';
 import React from 'react';
 import type { Book, Sale } from '@/lib/types';
 import { AppSidebar } from '@/components/layout/sidebar';
@@ -13,7 +12,6 @@ import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { AppHeader } from '@/components/layout/header';
 
 export default function DashboardPage() {
-  const { t } = useI18n();
   const [sales, setSales] = React.useState<Sale[]>([]);
   const [books, setBooks] = React.useState<Book[]>([]);
 
@@ -35,8 +33,8 @@ export default function DashboardPage() {
         <main className="p-4 lg:p-6">
           <div className="flex flex-col gap-8">
             <PageHeader
-              title={t('dashboard_title')}
-              description={t('dashboard_description')}
+              title="Dashboard"
+              description="An overview of your sales and inventory."
             />
             <StatsCards sales={sales} books={books} />
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">

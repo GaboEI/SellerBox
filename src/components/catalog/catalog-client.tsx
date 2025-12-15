@@ -20,16 +20,14 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { addBook } from '@/lib/actions';
 import { Label } from '../ui/label';
-import { useI18n } from '../i18n/i18n-provider';
 import { Card } from '../ui/card';
 import Image from 'next/image';
 
 function SubmitButton() {
-  const { t } = useI18n();
   const { pending } = useFormStatus();
   return (
     <Button type="submit" disabled={pending}>
-      {pending ? t('adding') : t('add_book_button')}
+      {pending ? 'Adding...' : 'Add Book'}
     </Button>
   );
 }
@@ -41,7 +39,6 @@ const initialState = {
 };
 
 function AddBookForm({ setOpen, onDataChange }: { setOpen: (open: boolean) => void, onDataChange: () => void }) {
-  const { t } = useI18n();
   const [state, formAction] = useActionState(addBook, initialState);
   const { toast } = useToast();
   const formRef = React.useRef<HTMLFormElement>(null);
@@ -66,18 +63,18 @@ function AddBookForm({ setOpen, onDataChange }: { setOpen: (open: boolean) => vo
 
     if (state.message.includes('success')) {
       toast({
-        title: t('success'),
-        description: t(state.message),
+        title: 'Success!',
+        description: 'Successfully added book.',
       });
       setOpen(false);
     } else {
       toast({
-        title: t('error'),
-        description: t(state.message),
+        title: 'Error',
+        description: state.message,
         variant: 'destructive',
       });
     }
-  }, [state, toast, setOpen, t]);
+  }, [state, toast, setOpen]);
   
   React.useEffect(() => {
     if (state.message.includes('success')) {
@@ -91,17 +88,17 @@ function AddBookForm({ setOpen, onDataChange }: { setOpen: (open: boolean) => vo
   return (
     <form ref={formRef} action={formAction} key={state.resetKey} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="code">{t('code')} ({t('unique')})</Label>
+        <Label htmlFor="code">Code (Unique)</Label>
         <Input id="code" name="code" required />
-        {state.errors?.code && <p className="text-sm text-destructive">{t(state.errors.code[0])}</p>}
+        {state.errors?.code && <p className="text-sm text-destructive">{state.errors.code[0]}</p>}
       </div>
       <div className="space-y-2">
-        <Label htmlFor="name">{t('name')}</Label>
+        <Label htmlFor="name">Name</Label>
         <Input id="name" name="name" required />
-        {state.errors?.name && <p className="text-sm text-destructive">{t(state.errors.name[0])}</p>}
+        {state.errors?.name && <p className="text-sm text-destructive">{state.errors.name[0]}</p>}
       </div>
        <div className="space-y-2">
-        <Label htmlFor="image-upload">{t('cover_photo')}</Label>
+        <Label htmlFor="image-upload">Cover Photo</Label>
         <div className="flex items-center gap-4">
             <div className="flex h-24 w-24 items-center justify-center rounded-lg border bg-muted text-muted-foreground">
                 {imagePreview ? (
@@ -126,7 +123,6 @@ function AddBookForm({ setOpen, onDataChange }: { setOpen: (open: boolean) => vo
 }
 
 export function CatalogClient({ books, onDataChange }: { books: BookType[], onDataChange: () => void }) {
-  const { t } = useI18n();
   const [open, setOpen] = React.useState(false);
   const [filter, setFilter] = React.useState('');
 
@@ -141,21 +137,21 @@ export function CatalogClient({ books, onDataChange }: { books: BookType[], onDa
   return (
     <div className="flex flex-col gap-8">
       <PageHeader
-        title={t('master_catalog')}
-        description={t('master_catalog_desc')}
+        title='Master Catalog'
+        description='Manage your complete book collection.'
       >
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button size="sm" className="gap-1">
               <PlusCircle className="h-4 w-4" />
-              {t('add_book_button')}
+              Add Book
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>{t('add_new_book_title')}</DialogTitle>
+              <DialogTitle>Add a New Book</DialogTitle>
               <DialogDescription>
-                {t('add_new_book_desc')}
+                Enter the details for the new book to add it to your catalog.
               </DialogDescription>
             </DialogHeader>
             <AddBookForm setOpen={setOpen} onDataChange={onDataChange} />
@@ -165,7 +161,7 @@ export function CatalogClient({ books, onDataChange }: { books: BookType[], onDa
       <Card className="p-4 sm:p-6">
         <div className="mb-4">
           <Input
-            placeholder={t('filter_by_name_or_code')}
+            placeholder='Filter by name or code...'
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
             className="max-w-sm"

@@ -8,7 +8,6 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import type { Book, Sale } from '@/lib/types';
-import { useI18n } from '../i18n/i18n-provider';
 import Image from 'next/image';
 
 interface RecentSalesProps {
@@ -17,7 +16,6 @@ interface RecentSalesProps {
 }
 
 export function RecentSales({ sales, books }: RecentSalesProps) {
-  const { t } = useI18n();
   const recentSales = sales
     .filter((s) => s.status === 'completed' || s.status === 'sold_in_person')
     .sort((a, b) => b.date.getTime() - a.date.getTime())
@@ -28,7 +26,7 @@ export function RecentSales({ sales, books }: RecentSalesProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{t('recent_sales')}</CardTitle>
+        <CardTitle>Recent Sales</CardTitle>
       </CardHeader>
       <CardContent className="grid gap-8">
         {recentSales.map((sale) => {

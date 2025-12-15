@@ -3,7 +3,6 @@
 import React, { useEffect, useState, useActionState, useRef, useMemo } from 'react';
 import { useFormStatus } from 'react-dom';
 import { PageHeader } from '@/components/shared/page-header';
-import { LanguageToggle } from '@/components/i18n/language-toggle';
 import {
   Card,
   CardContent,
@@ -14,7 +13,6 @@ import {
 } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useI18n } from '@/components/i18n/i18n-provider';
 import { AppSidebar } from '@/components/layout/sidebar';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { AppHeader } from '@/components/layout/header';
@@ -30,17 +28,15 @@ import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore, doc } from '@/firebase';
 
 function SubmitButton() {
-  const { t } = useI18n();
   const { pending } = useFormStatus();
   return (
     <Button type="submit" disabled={pending} className="w-full sm:w-auto">
-      {pending ? t('saving') : t('save_changes')}
+      {pending ? 'Saving...' : 'Save Changes'}
     </Button>
   );
 }
 
 export default function SettingsPage() {
-  const { t } = useI18n();
   const { toast } = useToast();
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
@@ -85,19 +81,19 @@ export default function SettingsPage() {
   useEffect(() => {
     if (state.status === 'success') {
       toast({
-        title: t('success'),
-        description: t(state.message),
+        title: 'Success!',
+        description: 'Profile updated successfully.',
       });
       setPhotoUrlDataUri('');
       setImagePreview(null);
     } else if (state.status === 'error' && state.message) {
       toast({
-        title: t('error'),
-        description: t(state.message),
+        title: 'Error',
+        description: 'Failed to update profile.',
         variant: 'destructive',
       });
     }
-  }, [state, toast, t]);
+  }, [state, toast]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -124,24 +120,20 @@ export default function SettingsPage() {
         <main className="p-4 lg:p-6">
           <div className="flex flex-col gap-8">
             <PageHeader
-              title={t('settings')}
-              description={t('settings_desc')}
+              title='Settings'
+              description='Customize your experience.'
             />
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
               <div className="lg:col-span-1">
                 <Card>
                   <CardHeader>
-                    <CardTitle>{t('appearance')}</CardTitle>
-                    <CardDescription>{t('appearance_desc')}</CardDescription>
+                    <CardTitle>Appearance</CardTitle>
+                    <CardDescription>Adjust the look and feel of the application.</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <Label htmlFor="theme">{t('theme')}</Label>
+                      <Label htmlFor="theme">Theme</Label>
                       <ThemeToggle />
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="language">{t('language')}</Label>
-                      <LanguageToggle />
                     </div>
                   </CardContent>
                 </Card>
@@ -150,8 +142,8 @@ export default function SettingsPage() {
                 <form ref={formRef} action={formAction}>
                   <Card>
                     <CardHeader>
-                      <CardTitle>{t('account')}</CardTitle>
-                      <CardDescription>{t('account_desc')}</CardDescription>
+                      <CardTitle>Account</CardTitle>
+                      <CardDescription>Manage your profile information and account settings.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
                       {isLoading ? (
@@ -179,7 +171,7 @@ export default function SettingsPage() {
                           </Avatar>
                           <div className="space-y-1">
                             <Label htmlFor="photoUrl">
-                              {t('profile_picture')}
+                              Profile picture
                             </Label>
                             <Input
                               id="photoUrl"
@@ -197,7 +189,7 @@ export default function SettingsPage() {
                         </div>
                       )}
                       <div className="space-y-2">
-                        <Label htmlFor="username">{t('username')}</Label>
+                        <Label htmlFor="username">Username</Label>
                         {isLoading ? (
                           <Skeleton className="h-10 w-full" />
                         ) : (
@@ -210,7 +202,7 @@ export default function SettingsPage() {
                         )}
                         {(state.errors as any)?.username && (
                           <p className="text-sm text-destructive">
-                            {t((state.errors as any).username[0] as string)}
+                            {(state.errors as any).username[0] as string}
                           </p>
                         )}
                       </div>

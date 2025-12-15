@@ -13,7 +13,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useI18n } from '@/components/i18n/i18n-provider';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import React, { useState, useEffect, useMemo } from 'react';
 import { getUserProfile } from '@/lib/data';
@@ -22,7 +21,6 @@ import { Skeleton } from '../ui/skeleton';
 import { useUser, useFirestore, doc } from '@/firebase';
 
 export function AppHeader() {
-  const { t } = useI18n();
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -86,7 +84,7 @@ export function AppHeader() {
            <DropdownMenuItem asChild>
               <Link href="/settings">
                 <Settings className="mr-2 h-4 w-4" />
-                <span>{t('settings')}</span>
+                <span>Settings</span>
               </Link>
             </DropdownMenuItem>
         </DropdownMenuContent>
