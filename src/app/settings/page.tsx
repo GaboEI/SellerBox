@@ -10,12 +10,12 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useI18n } from "@/components/i18n/i18n-provider";
 import React, { useEffect, useState } from "react";
-import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { useUser, useFirestore, useDoc, useMemoFirebase, doc } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { AppSidebar } from '@/components/layout/sidebar';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { AppHeader } from '@/components/layout/header';
-import { doc, setDoc } from "firebase/firestore";
+import { setDoc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
@@ -68,7 +68,7 @@ export default function SettingsPage() {
     };
 
     const handleSaveChanges = async () => {
-        if (!user) return;
+        if (!user || !firestore) return;
         let photoUrl = userProfile?.photoUrl;
 
         if (imageFile) {
@@ -83,7 +83,8 @@ export default function SettingsPage() {
             photoUrl: photoUrl,
         };
 
-        await setDoc(doc(firestore, 'users', user.uid), updatedProfile, { merge: true });
+        const userDocRef = doc(firestore, 'users', user.uid);
+        await setDoc(userDocRef, updatedProfile, { merge: true });
 
         toast({
             title: t('success'),

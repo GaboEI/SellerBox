@@ -15,8 +15,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useSidebar } from '@/components/ui/sidebar';
 import { useI18n } from '@/components/i18n/i18n-provider';
-import { useAuth, useDoc, useFirestore, useUser, useMemoFirebase } from '@/firebase';
-import { signOut, doc } from 'firebase/auth';
+import { useAuth, useDoc, useFirestore, useUser, useMemoFirebase, doc } from '@/firebase';
+import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
