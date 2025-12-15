@@ -51,5 +51,5 @@ export * from './non-blocking-login';
 export * from './errors';
 export * from './error-emitter';
 
-// Re-export doc from firestore
-export { doc };
+// Re-export doc and getStorage
+export { doc, getStorage };
