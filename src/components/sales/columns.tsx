@@ -3,7 +3,7 @@
 import React from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { ArrowUpDown, Edit } from 'lucide-react';
-import { useFormState } from 'react-dom';
+import { useFormState, useFormStatus } from 'react-dom';
 import { useI18n } from '../i18n/i18n-provider';
 import type { Sale, SaleStatus } from '@/lib/types';
 import { Button } from '@/components/ui/button';
@@ -31,26 +31,19 @@ import { cn } from '@/lib/utils';
 
 type SaleWithBookName = Sale & { bookName: string };
 
-const statusVariantMap: Record<SaleStatus, 'default' | 'secondary' | 'destructive' | 'outline' | 'warning' | 'success'> = {
-  in_process: 'secondary',
-  in_preparation: 'warning',
+const statusVariantMap: Record<SaleStatus, 'default' | 'secondary' | 'destructive' | 'outline' | 'success' | 'warning'> = {
+  in_process: 'warning',
+  in_preparation: 'secondary',
   shipped: 'outline',
   sold_in_person: 'success',
   completed: 'default',
   canceled: 'destructive',
 };
 
-// Add 'warning' and 'success' variants to badge component
-const badgeVariants = cn(
-    'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
-    '[&.warning]:border-transparent [&.warning]:bg-yellow-500 [&.warning]:text-white',
-    '[&.success]:border-transparent [&.success]:bg-green-600 [&.success]:text-white'
-);
-
 
 function SubmitButton() {
   const { t } = useI18n();
-  const { pending } = React.useFormState();
+  const { pending } = useFormStatus();
   return (
     <Button type="submit" disabled={pending}>
       {pending ? t('saving') : t('save_changes')}
@@ -60,7 +53,7 @@ function SubmitButton() {
 
 function EditSaleForm({ sale, setOpen }: { sale: SaleWithBookName; setOpen: (open: boolean) => void }) {
   const { t } = useI18n();
-  const [state, formAction] = useFormState(updateSale.bind(null, sale.id), { message: '', errors: {} });
+  const [state, formAction] = useActionState(updateSale.bind(null, sale.id), { message: '', errors: {} });
   const { toast } = useToast();
   const [currentStatus, setCurrentStatus] = React.useState<SaleStatus>(sale.status);
 
@@ -182,7 +175,7 @@ export const columns: ColumnDef<SaleWithBookName>[] = [
     cell: ({ row }) => {
       const { t } = useI18n();
       const status = row.getValue('status') as SaleStatus;
-      return <Badge variant={statusVariantMap[status]} className={`capitalize ${badgeVariants}`}>{t(status)}</Badge>;
+      return <Badge variant={statusVariantMap[status]} className={cn('capitalize')}>{t(status)}</Badge>;
     },
   },
   {
