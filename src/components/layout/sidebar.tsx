@@ -28,7 +28,7 @@ export function AppSidebar() {
 
   const menuItems = [
     { href: '/', label: t('dashboard'), icon: Home },
-    { href: '/inventory', label: t('inventory'), icon: Package },
+    { href: '/inventory', label: t('warehouse'), icon: Package },
     { href: '/sales', label: t('sales'), icon: ShoppingBag },
     { href: '/listings', label: t('listing_generator'), icon: Tag },
   ];

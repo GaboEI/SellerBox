@@ -1,8 +1,7 @@
 
 {
     "dashboard": "Tablero",
-    "catalog": "Catálogo",
-    "inventory": "Inventario",
+    "warehouse": "Almacén",
     "sales": "Ventas",
     "listing_generator": "Generador de Listados",
     "settings": "Configuración",
@@ -16,7 +15,7 @@
     "books_in_catalog_desc": "Títulos únicos en tu catálogo",
     "sales_overview": "Resumen de Ventas",
     "recent_sales": "Ventas Recientes",
-    "inventory_desc": "Consulta y gestiona tu stock de libros.",
+    "warehouse_desc": "Consulta y gestiona tu stock de libros.",
     "listing_generator_desc": "Crea listados de productos atractivos para tus libros.",
     "settings_desc": "Personaliza tu experiencia.",
     "appearance": "Apariencia",

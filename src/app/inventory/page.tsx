@@ -26,7 +26,7 @@ export default function InventoryPage() {
 
   return (
     <div className="flex flex-col gap-8">
-        <PageHeader title={t('inventory')} description={t('inventory_desc')} />
+        <PageHeader title={t('warehouse')} description={t('warehouse_desc')} />
         <CatalogClient books={books} onDataChange={handleDataChange} />
     </div>
   )

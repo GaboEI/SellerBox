@@ -1,8 +1,7 @@
 
 {
     "dashboard": "Dashboard",
-    "catalog": "Catalog",
-    "inventory": "Inventory",
+    "warehouse": "Warehouse",
     "sales": "Sales",
     "listing_generator": "Listing Generator",
     "settings": "Settings",
@@ -16,7 +15,7 @@
     "books_in_catalog_desc": "Unique titles in your catalog",
     "sales_overview": "Sales Overview",
     "recent_sales": "Recent Sales",
-    "inventory_desc": "View and manage your book stock.",
+    "warehouse_desc": "View and manage your book stock.",
     "listing_generator_desc": "Create compelling product listings for your books.",
     "settings_desc": "Customize your experience.",
     "appearance": "Appearance",
