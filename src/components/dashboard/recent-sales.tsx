@@ -57,7 +57,7 @@ export function RecentSales({ sales, books }: RecentSalesProps) {
                   {sale.date.toLocaleDateString()}
                 </p>
               </div>
-              <div className="ml-auto font-medium">+ $29.99</div>
+              <div className="ml-auto font-medium">+ 2499 ₽</div>
             </div>
           );
         })}

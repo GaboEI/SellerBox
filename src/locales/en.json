@@ -1,0 +1,20 @@
+{
+    "dashboard": "Dashboard",
+    "catalog": "Catalog",
+    "inventory": "Inventory",
+    "sales": "Sales",
+    "listing_generator": "Listing Generator",
+    "settings": "Settings",
+    "dashboard_title": "Dashboard",
+    "dashboard_description": "An overview of your sales and inventory.",
+    "total_revenue": "Total Revenue",
+    "total_revenue_desc": "Total revenue from sales",
+    "sales_title": "Sales",
+    "sales_desc": "Total books sold",
+    "books_in_catalog": "Books in Catalog",
+    "books_in_catalog_desc": "Unique titles in your catalog",
+    "total_stock": "Total Stock",
+    "total_stock_desc": "Total number of items in inventory",
+    "sales_overview": "Sales Overview",
+    "recent_sales": "Recent Sales"
+}

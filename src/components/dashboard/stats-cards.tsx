@@ -4,7 +4,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Book, DollarSign, Package, ShoppingBag } from 'lucide-react';
+import { Book, Package, ShoppingBag } from 'lucide-react';
 import type { Book as BookType, Sale } from '@/lib/types';
 
 interface StatsCardsProps {
@@ -15,18 +15,35 @@ interface StatsCardsProps {
 export function StatsCards({ sales, books }: StatsCardsProps) {
   const totalSales = sales.filter((s) => s.status === 'sold').length;
   // Dummy revenue, as we don't have price data
-  const totalRevenue = totalSales * 29.99;
+  const totalRevenue = totalSales * 2499;
   const totalBooks = books.length;
   const totalStock = books.reduce((sum, book) => sum + book.quantity, 0);
 
   const stats = [
     {
       title: 'Total Revenue',
-      value: `$${totalRevenue.toLocaleString('en-US', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
+      value: `${totalRevenue.toLocaleString('ru-RU', {
+        style: 'currency',
+        currency: 'RUB',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
       })}`,
-      icon: <DollarSign className="h-4 w-4 text-muted-foreground" />,
+      icon: (
+        <svg
+          className="h-4 w-4 text-muted-foreground"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M8.5 17.5h7" />
+          <path d="M15.5 7.5h-7" />
+          <path d="M19 5H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2Z" />
+        </svg>
+      ),
       description: 'Total revenue from sales',
     },
     {

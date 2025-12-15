@@ -12,13 +12,16 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useSidebar } from '@/components/ui/sidebar';
+import { LanguageToggle } from '@/components/i18n/language-toggle';
 
 export function AppHeader() {
   const { isMobile } = useSidebar();
   return (
     <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:h-16 sm:px-6">
       <SidebarTrigger className="flex md:hidden" />
-      <div className="flex-1" />
+      <div className="flex-1">
+        <LanguageToggle />
+      </div>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="relative h-8 w-8 rounded-full">

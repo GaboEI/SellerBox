@@ -5,10 +5,11 @@ import { ThemeProvider } from '@/components/settings/theme-provider';
 import { AppSidebar } from '@/components/layout/sidebar';
 import { AppHeader } from '@/components/layout/header';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
+import { I18nProvider } from '@/components/i18n/i18n-provider';
 
 export const metadata: Metadata = {
-  title: "Librarian's Toolkit",
-  description: 'Manage your book selling business with ease.',
+  title: "SellerBox",
+  description: 'Your all-in-one sales management toolkit.',
 };
 
 export default function RootLayout({
@@ -27,16 +28,18 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased">
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <SidebarProvider>
-            <AppSidebar />
-            <SidebarInset>
-              <AppHeader />
-              <main className="p-4 lg:p-6">{children}</main>
-            </SidebarInset>
-          </SidebarProvider>
-          <Toaster />
-        </ThemeProvider>
+        <I18nProvider>
+          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+            <SidebarProvider>
+              <AppSidebar />
+              <SidebarInset>
+                <AppHeader />
+                <main className="p-4 lg:p-6">{children}</main>
+              </SidebarInset>
+            </SidebarProvider>
+            <Toaster />
+          </ThemeProvider>
+        </I18nProvider>
       </body>
     </html>
   );

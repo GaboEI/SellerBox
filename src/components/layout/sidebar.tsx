@@ -9,7 +9,7 @@ import {
   Settings,
   ShoppingBag,
   Tag,
-  BookOpen,
+  BarChart3
 } from 'lucide-react';
 
 import {
@@ -37,9 +37,11 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarHeader>
         <div className="flex items-center gap-2 p-2">
-          <BookOpen className="h-8 w-8 text-primary" />
+           <div className="bg-primary rounded-md p-1.5 flex items-center justify-center">
+             <BarChart3 className="h-6 w-6 text-primary-foreground" />
+           </div>
           <h1 className="text-lg font-semibold text-foreground">
-            Librarian's Toolkit
+            SellerBox
           </h1>
         </div>
       </SidebarHeader>

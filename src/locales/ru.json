@@ -1,0 +1,20 @@
+{
+    "dashboard": "Дашборд",
+    "catalog": "Каталог",
+    "inventory": "Инвентарь",
+    "sales": "Продажи",
+    "listing_generator": "Генератор объявлений",
+    "settings": "Настройки",
+    "dashboard_title": "Дашборд",
+    "dashboard_description": "Обзор ваших продаж и запасов.",
+    "total_revenue": "Общий доход",
+    "total_revenue_desc": "Общий доход от продаж",
+    "sales_title": "Продажи",
+    "sales_desc": "Всего продано книг",
+    "books_in_catalog": "Книг в каталоге",
+    "books_in_catalog_desc": "Уникальные наименования в вашем каталоге",
+    "total_stock": "Общий запас",
+    "total_stock_desc": "Общее количество товаров на складе",
+    "sales_overview": "Обзор продаж",
+    "recent_sales": "Последние продажи"
+}

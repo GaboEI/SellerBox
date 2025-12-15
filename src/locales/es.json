@@ -1,0 +1,20 @@
+{
+    "dashboard": "Tablero",
+    "catalog": "Catálogo",
+    "inventory": "Inventario",
+    "sales": "Ventas",
+    "listing_generator": "Generador de Listados",
+    "settings": "Configuración",
+    "dashboard_title": "Tablero",
+    "dashboard_description": "Un resumen de tus ventas e inventario.",
+    "total_revenue": "Ingresos Totales",
+    "total_revenue_desc": "Ingresos totales por ventas",
+    "sales_title": "Ventas",
+    "sales_desc": "Total de libros vendidos",
+    "books_in_catalog": "Libros en Catálogo",
+    "books_in_catalog_desc": "Títulos únicos en tu catálogo",
+    "total_stock": "Stock Total",
+    "total_stock_desc": "Número total de artículos en inventario",
+    "sales_overview": "Resumen de Ventas",
+    "recent_sales": "Ventas Recientes"
+}
