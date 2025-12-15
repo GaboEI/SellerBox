@@ -20,10 +20,14 @@ export default function InventoryPage() {
   }, []);
 
 
+  // This key forces a re-render when a book is added/updated,
+  // ensuring the list stays in sync.
+  const clientKey = books.map(b => b.id + b.quantity).join(',');
+
   return (
     <div className="flex flex-col gap-8">
         <PageHeader title={t('inventory')} description={t('inventory_desc')} />
-        <CatalogClient books={books} />
+        <CatalogClient books={books} key={clientKey} />
     </div>
   )
 }

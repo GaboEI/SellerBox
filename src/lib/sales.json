@@ -1,0 +1,54 @@
+[
+  {
+    "id": "s1",
+    "bookId": "1",
+    "date": "2024-05-01T00:00:00.000Z",
+    "status": "completed",
+    "platform": "Avito",
+    "saleAmount": 2600
+  },
+  {
+    "id": "s2",
+    "bookId": "2",
+    "date": "2024-05-02T00:00:00.000Z",
+    "status": "completed",
+    "platform": "Ozon",
+    "saleAmount": 2500
+  },
+  {
+    "id": "s3",
+    "bookId": "3",
+    "date": "2024-05-02T00:00:00.000Z",
+    "status": "in_preparation",
+    "platform": "Avito"
+  },
+  {
+    "id": "s4",
+    "bookId": "1",
+    "date": "2024-05-03T00:00:00.000Z",
+    "status": "sold_in_person",
+    "platform": "Ozon",
+    "saleAmount": 2400
+  },
+  {
+    "id": "s5",
+    "bookId": "4",
+    "date": "2024-05-04T00:00:00.000Z",
+    "status": "canceled",
+    "platform": "Avito"
+  },
+  {
+    "id": "s6",
+    "bookId": "5",
+    "date": "2024-05-10T00:00:00.000Z",
+    "status": "shipped",
+    "platform": "Ozon"
+  },
+  {
+    "id": "s7",
+    "bookId": "2",
+    "date": "2024-05-11T00:00:00.000Z",
+    "status": "in_process",
+    "platform": "Avito"
+  }
+]

@@ -1,0 +1,37 @@
+[
+  {
+    "id": "1",
+    "code": "978-0321765723",
+    "name": "The C++ Programming Language",
+    "quantity": 10,
+    "description": "The foundational text by Bjarne Stroustrup."
+  },
+  {
+    "id": "2",
+    "code": "978-0132350884",
+    "name": "Clean Code: A Handbook of Agile Software Craftsmanship",
+    "quantity": 5,
+    "description": "A must-read for every developer."
+  },
+  {
+    "id": "3",
+    "code": "978-0201633610",
+    "name": "Design Patterns: Elements of Reusable Object-Oriented Software",
+    "quantity": 8,
+    "description": "The classic \"Gang of Four\" book."
+  },
+  {
+    "id": "4",
+    "code": "978-0596007126",
+    "name": "JavaScript: The Good Parts",
+    "quantity": 12,
+    "description": "Unearthing the elegance of JavaScript."
+  },
+  {
+    "id": "5",
+    "code": "978-1491904244",
+    "name": "You Don't Know JS: Up & Going",
+    "quantity": 2,
+    "description": "A primer for the popular \"You Don't Know JS\" series."
+  }
+]

@@ -1,102 +1,135 @@
-import type { Book, Sale, SaleStatus, SalePlatform } from './types';
+'use server';
 
-let books: Book[] = [
-  { id: '1', code: '978-0321765723', name: 'The C++ Programming Language', quantity: 10, description: 'The foundational text by Bjarne Stroustrup.' },
-  { id: '2', code: '978-0132350884', name: 'Clean Code: A Handbook of Agile Software Craftsmanship', quantity: 5, description: 'A must-read for every developer.' },
-  { id: '3', code: '978-0201633610', name: 'Design Patterns: Elements of Reusable Object-Oriented Software', quantity: 8, description: 'The classic "Gang of Four" book.' },
-  { id: '4', code: '978-0596007126', name: 'JavaScript: The Good Parts', quantity: 12, description: 'Unearthing the elegance of JavaScript.' },
-  { id: '5', code: '978-1491904244', name: 'You Don\'t Know JS: Up & Going', quantity: 2, description: 'A primer for the popular "You Don\'t Know JS" series.' },
-];
+import fs from 'fs/promises';
+import path from 'path';
+import type { Book, Sale } from './types';
 
-let sales: Sale[] = [
-    { id: 's1', bookId: '1', date: new Date('2024-05-01'), status: 'completed', platform: 'Avito', saleAmount: 2600 },
-    { id: 's2', bookId: '2', date: new Date('2024-05-02'), status: 'completed', platform: 'Ozon', saleAmount: 2500 },
-    { id: 's3', bookId: '3', date: new Date('2024-05-02'), status: 'in_preparation', platform: 'Avito' },
-    { id: 's4', bookId: '1', date: new Date('2024-05-03'), status: 'sold_in_person', platform: 'Ozon', saleAmount: 2400 },
-    { id: 's5', bookId: '4', date: new Date('2024-05-04'), status: 'canceled', platform: 'Avito' },
-    { id: 's6', bookId: '5', date: new Date('2024-05-10'), status: 'shipped', platform: 'Ozon' },
-    { id: 's7', bookId: '2', date: new Date('2024-05-11'), status: 'in_process', platform: 'Avito' },
-];
+// Use path.join to create a platform-independent file path.
+const booksFilePath = path.join(process.cwd(), 'src/lib/books.json');
+const salesFilePath = path.join(process.cwd(), 'src/lib/sales.json');
+
+async function readData<T>(filePath: string): Promise<T[]> {
+  try {
+    const fileContent = await fs.readFile(filePath, 'utf-8');
+    return JSON.parse(fileContent) as T[];
+  } catch (error: any) {
+    // If the file doesn't exist, it's likely the first run. Return an empty array.
+    if (error.code === 'ENOENT') {
+      return [];
+    }
+    console.error(`Error reading data from ${filePath}:`, error);
+    throw error;
+  }
+}
+
+async function writeData<T>(filePath: string, data: T[]): Promise<void> {
+  try {
+    await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf-8');
+  } catch (error) {
+    console.error(`Error writing data to ${filePath}:`, error);
+    throw error;
+  }
+}
 
 // --- Books ---
 
 export async function getBooks(): Promise<Book[]> {
-  // Simulate network latency
-  await new Promise((resolve) => setTimeout(resolve, 100));
-  return books;
+  return await readData<Book>(booksFilePath);
 }
 
 export async function getBookById(id: string): Promise<Book | undefined> {
+  const books = await getBooks();
   return books.find((book) => book.id === id);
 }
 
 export async function getBookByCode(code: string): Promise<Book | undefined> {
-    return books.find((book) => book.code === code);
+  const books = await getBooks();
+  return books.find((book) => book.code === code);
 }
 
 export async function addBook(book: Omit<Book, 'id'>): Promise<Book> {
+  const books = await getBooks();
   const newBook: Book = { ...book, id: String(Date.now()) };
-  books = [newBook, ...books];
+  const updatedBooks = [newBook, ...books];
+  await writeData(booksFilePath, updatedBooks);
   return newBook;
 }
 
-export async function updateBook(id: string, updates: Partial<Book>): Promise<Book | null> {
-    let bookToUpdate = books.find(b => b.id === id);
-    if (!bookToUpdate) return null;
+export async function updateBook(id: string, updates: Partial<Omit<Book, 'id'>>): Promise<Book | null> {
+  let books = await getBooks();
+  const bookIndex = books.findIndex(b => b.id === id);
+  if (bookIndex === -1) return null;
 
-    bookToUpdate = { ...bookToUpdate, ...updates };
-    books = books.map(b => (b.id === id ? bookToUpdate! : b));
-    return bookToUpdate;
+  const updatedBook = { ...books[bookIndex], ...updates };
+  books[bookIndex] = updatedBook;
+  await writeData(booksFilePath, books);
+  return updatedBook;
 }
 
 export async function deleteBook(id: string): Promise<void> {
-  books = books.filter((book) => book.id !== id);
+  let books = await getBooks();
+  const updatedBooks = books.filter((book) => book.id !== id);
+  await writeData(booksFilePath, updatedBooks);
 }
 
 // --- Sales ---
 
 export async function getSales(): Promise<Sale[]> {
-  // Simulate network latency
-  await new Promise((resolve) => setTimeout(resolve, 100));
-  return sales;
+  const sales = await readData<any>(salesFilePath);
+  // Dates are stored as strings in JSON, so we need to convert them back to Date objects.
+  return sales.map(sale => ({
+    ...sale,
+    date: new Date(sale.date),
+  }));
 }
 
-export async function addSale(sale: Omit<Sale, 'id' | 'date' | 'status'> & { date: string }): Promise<Sale> {
-  const newSale: Sale = { ...sale, id: `s${Date.now()}`, date: new Date(sale.date), status: 'in_process' };
+export async function addSale(sale: Omit<Sale, 'id' | 'status' | 'date'> & { date: string }): Promise<Sale> {
+  const sales = await readData<Sale>(salesFilePath);
+  const newSale: Sale = { 
+    ...sale, 
+    id: `s${Date.now()}`, 
+    date: new Date(sale.date), 
+    status: 'in_process' 
+  };
   
   const book = await getBookById(sale.bookId);
   if (book && (newSale.status === 'completed' || newSale.status === 'sold_in_person')) {
     await updateBook(book.id, { quantity: book.quantity - 1 });
   }
 
-  sales = [newSale, ...sales];
+  const updatedSales = [newSale, ...sales];
+  await writeData(salesFilePath, updatedSales as any);
   return newSale;
 }
 
 export async function updateSale(id: string, updates: Partial<Sale>): Promise<Sale | null> {
-    let saleToUpdate = sales.find(s => s.id === id);
-    if (!saleToUpdate) return null;
+    let sales = await readData<any>(salesFilePath);
+    const saleIndex = sales.findIndex(s => s.id === id);
+    if (saleIndex === -1) return null;
 
-    const originalStatus = saleToUpdate.status;
+    const originalStatus = sales[saleIndex].status;
     const newStatus = updates.status;
 
-    saleToUpdate = { ...saleToUpdate, ...updates };
+    const updatedSale = { ...sales[saleIndex], ...updates };
     
-    // Decrement book quantity if status changes to a sold state
     const isNowSold = newStatus === 'completed' || newStatus === 'sold_in_person';
     const wasNotSold = originalStatus !== 'completed' && originalStatus !== 'sold_in_person';
     
     if (isNowSold && wasNotSold) {
-        const book = await getBookById(saleToUpdate.bookId);
+        const book = await getBookById(updatedSale.bookId);
         if (book) {
             await updateBook(book.id, { quantity: Math.max(0, book.quantity - 1) });
         }
     }
 
-    sales = sales.map(s => (s.id === id ? saleToUpdate! : s));
-    return saleToUpdate;
+    sales[saleIndex] = updatedSale;
+    await writeData(salesFilePath, sales);
+    
+    // Return with Date object
+    return { ...updatedSale, date: new Date(updatedSale.date) };
 }
 
 export async function getSalesByBookId(bookId: string): Promise<Sale[]> {
+  const sales = await getSales();
   return sales.filter(sale => sale.bookId === bookId);
 }
