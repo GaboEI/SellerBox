@@ -2,8 +2,16 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { addBook as dbAddBook, addSale as dbAddSale, getBookByCode, updateBook as dbUpdateBook, deleteBook as dbDeleteBook, updateSale as dbUpdateSale } from './data';
-import type { Book, SalePlatform, SaleStatus } from './types';
+import { 
+    addBook as dbAddBook, 
+    addSale as dbAddSale, 
+    getBookByCode, 
+    updateBook as dbUpdateBook, 
+    deleteBook as dbDeleteBook, 
+    updateSale as dbUpdateSale,
+    updateUserProfile as dbUpdateUserProfile,
+} from './data';
+import type { Book, SalePlatform, SaleStatus, UserProfile } from './types';
 
 const bookSchema = z.object({
   code: z.string().min(1, 'code_required'),
@@ -179,5 +187,41 @@ export async function updateSale(id: string, prevState: any, formData: FormData)
         return { message: 'update_sale_success', errors: {}, resetKey: Date.now().toString() };
     } catch(e) {
         return { message: 'update_sale_fail', errors: {} };
+    }
+}
+
+const userProfileSchema = z.object({
+    username: z.string().optional(),
+    photoUrlDataUri: z.string().optional(),
+});
+
+export async function updateUserProfile(prevState: any, formData: FormData) {
+    const validatedFields = userProfileSchema.safeParse({
+        username: formData.get('username'),
+        photoUrlDataUri: formData.get('photoUrlDataUri'),
+    });
+
+    if (!validatedFields.success) {
+        return {
+            errors: validatedFields.error.flatten().fieldErrors,
+            message: 'check_fields_error',
+        };
+    }
+
+    const { username, photoUrlDataUri } = validatedFields.data;
+
+    try {
+        const updates: Partial<UserProfile> = {};
+        if (username) updates.username = username;
+        if (photoUrlDataUri) updates.photoUrl = photoUrlDataUri;
+
+        await dbUpdateUserProfile(updates);
+        
+        revalidatePath('/settings');
+        revalidatePath('/');
+        return { message: 'profile_update_success', errors: {} };
+    } catch (e) {
+        console.error('Error updating profile:', e);
+        return { message: 'profile_update_fail', errors: {} };
     }
 }
