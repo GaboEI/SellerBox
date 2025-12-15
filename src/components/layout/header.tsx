@@ -19,6 +19,7 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 export function AppHeader() {
   const { t } = useI18n();
 
+  // Correctly find the placeholder image by its ID
   const defaultProfilePic = PlaceHolderImages.find(p => p.id === 'default_user_profile')?.imageUrl || '';
   
   const username = "Seller";

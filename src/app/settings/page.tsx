@@ -24,6 +24,7 @@ export default function SettingsPage() {
   const { t } = useI18n();
 
   const username = 'Seller';
+  // Correctly find the placeholder image by its ID
   const defaultProfilePic = PlaceHolderImages.find((p) => p.id === 'default_user_profile')?.imageUrl || '';
 
   return (
@@ -73,7 +74,7 @@ export default function SettingsPage() {
                       </Avatar>
                       <div>
                          <Label>{t('profile_picture')}</Label>
-                         <p className="text-sm text-muted-foreground">La foto de perfil es fija.</p>
+                         <p className="text-sm text-muted-foreground">{t('profile_picture_fixed_desc', 'La foto de perfil es fija.')}</p>
                       </div>
                     </div>
                     <div className="space-y-2">

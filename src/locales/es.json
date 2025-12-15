@@ -150,5 +150,6 @@
     "recover_password": "Recuperar contraseña",
     "delete_account": "Eliminar cuenta",
     "profile_update_success": "Perfil actualizado con éxito.",
-    "profile_update_fail": "Error al actualizar el perfil."
+    "profile_update_fail": "Error al actualizar el perfil.",
+    "profile_picture_fixed_desc": "La foto de perfil es fija."
 }
