@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  Book,
   Home,
   Package,
   Settings,
@@ -29,7 +28,6 @@ export function AppSidebar() {
 
   const menuItems = [
     { href: '/', label: t('dashboard'), icon: Home },
-    { href: '/catalog', label: t('catalog'), icon: Book },
     { href: '/inventory', label: t('inventory'), icon: Package },
     { href: '/sales', label: t('sales'), icon: ShoppingBag },
     { href: '/listings', label: t('listing_generator'), icon: Tag },
