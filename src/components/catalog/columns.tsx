@@ -2,9 +2,10 @@
 
 import { ColumnDef } from '@tanstack/react-table';
 import { MoreHorizontal, ArrowUpDown } from 'lucide-react';
-import React, { useActionState } from 'react';
+import React from 'react';
 import { useFormStatus } from 'react-dom';
 import Image from 'next/image';
+import { useActionState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -196,7 +197,10 @@ const CellActions: React.FC<{ row: any, onDataChange: () => void }> = ({ row, on
 export const columns = (onDataChange: () => void): ColumnDef<Book>[] => [
   {
     accessorKey: 'coverImageUrl',
-    header: '',
+    header: function PhotoHeader() {
+        const { t } = useI18n();
+        return <div className="text-center">{t('cover_photo').toUpperCase()}</div>
+    },
     cell: ({ row }) => {
       const imageUrl = row.getValue('coverImageUrl') as string | undefined;
       return (
@@ -214,7 +218,8 @@ export const columns = (onDataChange: () => void): ColumnDef<Book>[] => [
           )}
         </div>
       )
-    }
+    },
+    size: 80,
   },
   {
     accessorKey: 'code',
@@ -251,5 +256,6 @@ export const columns = (onDataChange: () => void): ColumnDef<Book>[] => [
   {
     id: 'actions',
     cell: ({ row }) => <CellActions row={row} onDataChange={onDataChange} />,
+    size: 60,
   },
 ];
