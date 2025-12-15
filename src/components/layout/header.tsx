@@ -15,11 +15,26 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useI18n } from '@/components/i18n/i18n-provider';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import type { UserProfile } from '@/lib/types';
+import { doc } from 'firebase/firestore';
+
+const USER_ID = 'default_user';
 
 export function AppHeader() {
   const { t } = useI18n();
+  const firestore = useFirestore();
+
+  const userDocRef = useMemoFirebase(
+    () => (firestore ? doc(firestore, 'users', USER_ID) : null),
+    [firestore]
+  );
+  const { data: userProfile } = useDoc<UserProfile>(userDocRef);
+
   const defaultProfilePic = PlaceHolderImages.find(p => p.id === 'default_user_profile')?.imageUrl || '';
-  const username = "Seller";
+  
+  const username = userProfile?.username || "Seller";
+  const photoUrl = userProfile?.photoUrl || defaultProfilePic;
   const usernameInitial = username?.[0]?.toUpperCase() || 'S';
 
   return (
@@ -33,7 +48,7 @@ export function AppHeader() {
           <Button variant="ghost" className="relative h-8 w-8 rounded-full">
             <Avatar className="h-9 w-9">
               <AvatarImage
-                src={defaultProfilePic}
+                src={photoUrl}
                 alt="User Avatar"
               />
               <AvatarFallback>{usernameInitial}</AvatarFallback>
