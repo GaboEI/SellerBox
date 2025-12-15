@@ -57,6 +57,8 @@ export default function SettingsPage() {
         if (userProfile) {
             setUsername(userProfile.username || 'Seller');
             setImagePreview(userProfile.photoUrl || defaultProfilePic);
+        } else {
+            setImagePreview(defaultProfilePic);
         }
     }, [userProfile, defaultProfilePic]);
 

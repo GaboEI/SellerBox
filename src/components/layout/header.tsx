@@ -51,6 +51,8 @@ export function AppHeader() {
     if (userProfile) {
         setUsername(userProfile.username || 'Seller');
         setPhotoUrl(userProfile.photoUrl || defaultProfilePic);
+    } else {
+        setPhotoUrl(defaultProfilePic);
     }
     if (user) {
         setEmail(user.email || "seller@example.com");

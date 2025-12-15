@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth, useUser, useFirestore, doc } from '@/firebase';
+import { useAuth, useUser, useFirestore, doc, setDocumentNonBlocking } from '@/firebase';
 import { initiateAnonymousSignIn, initiateEmailSignUp, initiateEmailSignIn } from '@/firebase/non-blocking-login';
 import { Button } from '@/components/ui/button';
 import { BarChart3, Mail, Lock } from 'lucide-react';
@@ -11,9 +11,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { setDoc } from 'firebase/firestore';
-import { errorEmitter } from '@/firebase/error-emitter';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { useToast } from '@/hooks/use-toast';
 
 function LoginForm() {
   const auth = useAuth();
@@ -53,6 +52,7 @@ function SignUpForm() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [username, setUsername] = useState('');
+    const { toast } = useToast();
 
     const defaultProfilePic = PlaceHolderImages.find(p => p.id === 'default_user_profile')?.imageUrl || '';
 
@@ -61,13 +61,16 @@ function SignUpForm() {
             .then(userCredential => {
                 if (userCredential && firestore) {
                     const userDocRef = doc(firestore, 'users', userCredential.user.uid);
-                    setDoc(userDocRef, { username: username, photoUrl: defaultProfilePic }, { merge: true });
+                    setDocumentNonBlocking(userDocRef, { username: username, photoUrl: defaultProfilePic }, { merge: true });
                 }
             })
             .catch(error => {
-                // The error is already emitted globally by initiateEmailSignUp
-                // We could add UI-specific error handling here if needed (e.g., toast)
                 console.error("Sign up failed on the client:", error);
+                toast({
+                    variant: "destructive",
+                    title: "Sign up failed",
+                    description: error.message || "Could not create account.",
+                });
             });
     };
 
