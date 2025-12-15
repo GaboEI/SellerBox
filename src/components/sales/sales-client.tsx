@@ -2,8 +2,7 @@
 import * as React from 'react';
 import { PlusCircle, Calendar as CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
-import { useActionState } from 'react';
-import { useFormStatus } from 'react-dom';
+import { useActionState, useFormStatus } from 'react-dom';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -33,7 +32,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { useI18n } from '../i18n/i18n-provider';
-import { es, ru } from 'date-fns/locale';
+import { es, ru, enUS } from 'date-fns/locale';
 import { Card } from '../ui/card';
 
 function SubmitButton() {
@@ -59,8 +58,8 @@ function AddSaleForm({ books, setOpen }: { books: Book[], setOpen: (open: boolea
   const formRef = React.useRef<HTMLFormElement>(null);
   const [date, setDate] = React.useState<Date | undefined>(new Date());
   
-  const localeMap: { [key: string]: Locale } = { es, ru };
-  const dateLocale = localeMap[language];
+  const localeMap: { [key: string]: Locale } = { en: enUS, es, ru };
+  const dateLocale = localeMap[language] || enUS;
 
 
   React.useEffect(() => {
@@ -121,6 +120,10 @@ function AddSaleForm({ books, setOpen }: { books: Book[], setOpen: (open: boolea
                 mode="single"
                 selected={date}
                 onSelect={setDate}
+                disabled={{
+                    before: new Date('2025-01-01'),
+                    after: new Date(),
+                }}
                 initialFocus
                 />
             </PopoverContent>
