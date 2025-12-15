@@ -1,21 +1,23 @@
 'use client';
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import i18n from 'i18next';
-import { initReactI18next } from 'react-i18next';
+import { initReactI18next, useTranslation } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 import enTranslations from '@/locales/en.json';
 import esTranslations from '@/locales/es.json';
 import ruTranslations from '@/locales/ru.json';
 
+const resources = {
+  en: { translation: enTranslations },
+  es: { translation: esTranslations },
+  ru: { translation: ruTranslations },
+};
+
 i18n
   .use(initReactI18next)
   .use(LanguageDetector)
   .init({
-    resources: {
-      en: { translation: enTranslations },
-      es: { translation: esTranslations },
-      ru: { translation: ruTranslations },
-    },
+    resources,
     fallbackLng: 'en',
     interpolation: {
       escapeValue: false,
@@ -30,37 +32,30 @@ type I18nContextType = {
   language: string;
   changeLanguage: (lang: string) => void;
   t: (key: string) => string;
+  isLoaded: boolean;
 };
 
 const I18nContext = createContext<I18nContextType | null>(null);
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
-  const [language, setLanguage] = useState(i18n.language);
+  const { t, i18n: i18nInstance } = useTranslation();
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    const handleLanguageChanged = (lng: string) => {
-      setLanguage(lng);
+    if (i18nInstance.isInitialized) {
       setIsLoaded(true);
-    };
-    i18n.on('initialized', handleLanguageChanged);
-    i18n.on('languageChanged', handleLanguageChanged);
-    
-    // If i18next is already initialized, set loaded state
-    if (i18n.isInitialized) {
-        setIsLoaded(true);
     }
-
-    return () => {
-      i18n.off('initialized', handleLanguageChanged);
-      i18n.off('languageChanged', handleLanguageChanged);
-    };
-  }, []);
-
-  const t = (key: string) => i18n.t(key);
+  }, [i18nInstance.isInitialized]);
   
-  const changeLanguage = (lang: string) => {
-    i18n.changeLanguage(lang);
+  const changeLanguage = useCallback((lang: string) => {
+    i18nInstance.changeLanguage(lang);
+  }, [i18nInstance]);
+
+  const value = {
+    language: i18nInstance.language,
+    changeLanguage,
+    t,
+    isLoaded,
   };
   
   if (!isLoaded) {
@@ -68,7 +63,7 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <I18nContext.Provider value={{ language, changeLanguage, t }}>
+    <I18nContext.Provider value={value}>
       {children}
     </I18nContext.Provider>
   );
