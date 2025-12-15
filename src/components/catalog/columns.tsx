@@ -3,8 +3,7 @@
 import { ColumnDef } from '@tanstack/react-table';
 import { MoreHorizontal, ArrowUpDown } from 'lucide-react';
 import React from 'react';
-import { useFormStatus } from 'react-dom';
-import { useActionState } from 'react';
+import { useFormStatus, useActionState } from 'react';
 import Image from 'next/image';
 
 import { Button } from '@/components/ui/button';
@@ -40,8 +39,6 @@ import { updateBook, deleteBook } from '@/lib/actions';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { useI18n } from '../i18n/i18n-provider';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
-
 
 function SubmitButton() {
     const { t } = useI18n();
@@ -53,8 +50,6 @@ function SubmitButton() {
     );
   }
   
-const defaultCover = PlaceHolderImages.find(p => p.id === 'default_book_cover')?.imageUrl || '';
-
 function EditBookForm({ book, setOpen, onDataChange }: { book: Book, setOpen: (open: boolean) => void, onDataChange: () => void }) {
     const { t } = useI18n();
     const [state, formAction] = useActionState(updateBook.bind(null, book.id), { message: '', errors: {} });
@@ -74,8 +69,6 @@ function EditBookForm({ book, setOpen, onDataChange }: { book: Book, setOpen: (o
         reader.readAsDataURL(file);
         }
     };
-
-    const previewImage = imagePreview || defaultCover;
   
     React.useEffect(() => {
       if (!state.message) return;
@@ -110,14 +103,18 @@ function EditBookForm({ book, setOpen, onDataChange }: { book: Book, setOpen: (o
         <div className="space-y-2">
             <Label htmlFor="image-upload">{t('cover_photo')}</Label>
             <div className="flex items-center gap-4">
-                <div className="relative aspect-square h-24 w-24 overflow-hidden rounded-lg border bg-muted">
-                    <Image
-                        src={previewImage}
-                        alt="Cover preview"
-                        fill
-                        className="object-cover"
-                        data-ai-hint="book cover"
-                    />
+                <div className="flex h-24 w-24 items-center justify-center rounded-lg border bg-muted text-muted-foreground">
+                    {imagePreview ? (
+                        <Image
+                            src={imagePreview}
+                            alt="Cover preview"
+                            width={96}
+                            height={96}
+                            className="h-full w-full rounded-lg object-cover"
+                        />
+                    ) : (
+                        <span className="text-4xl font-bold">?</span>
+                    )}
                 </div>
                 <Input id="image-upload" name="image-upload" type="file" accept="image/*" onChange={handleImageUpload} className="max-w-xs" />
             </div>
@@ -197,14 +194,18 @@ export const columns = (onDataChange: () => void): ColumnDef<Book>[] => [
     cell: ({ row }) => {
       const imageUrl = row.getValue('coverImageUrl') as string | undefined;
       return (
-        <div className="relative h-16 w-12 flex-shrink-0">
-          <Image 
-            src={imageUrl || defaultCover}
-            alt={row.original.name}
-            fill
-            className="rounded-md object-cover"
-            data-ai-hint="book cover"
-          />
+        <div className="flex h-16 w-12 flex-shrink-0 items-center justify-center rounded-md border bg-muted text-2xl font-bold text-muted-foreground">
+          {imageUrl ? (
+            <Image 
+              src={imageUrl}
+              alt={row.original.name}
+              width={48}
+              height={64}
+              className="h-full w-full rounded-md object-cover"
+            />
+          ) : (
+            <span>?</span>
+          )}
         </div>
       )
     }

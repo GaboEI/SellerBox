@@ -8,7 +8,6 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import type { Book, Sale } from '@/lib/types';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useI18n } from '../i18n/i18n-provider';
 import Image from 'next/image';
 
@@ -25,7 +24,6 @@ export function RecentSales({ sales, books }: RecentSalesProps) {
     .slice(0, 5);
   
   const bookMap = new Map(books.map(b => [b.id, b]));
-  const defaultCover = PlaceHolderImages.find(p => p.id === 'default_book_cover')?.imageUrl || "https://storage.googleapis.com/project-spark-demos/sellerbox-default-cover.png";
 
   return (
     <Card>
@@ -42,8 +40,11 @@ export function RecentSales({ sales, books }: RecentSalesProps) {
           return (
             <div className="flex items-center gap-4" key={sale.id}>
               <Avatar className="hidden h-9 w-9 sm:flex">
-                <Image src={book.coverImageUrl || defaultCover} alt="Book cover" className="aspect-square h-full w-full" width={36} height={36} data-ai-hint="book cover" />
-                <AvatarFallback>{fallback}</AvatarFallback>
+                {book.coverImageUrl ? (
+                  <Image src={book.coverImageUrl} alt="Book cover" className="aspect-square h-full w-full" width={36} height={36} />
+                ) : (
+                  <AvatarFallback>?</AvatarFallback>
+                )}
               </Avatar>
               <div className="grid gap-1">
                 <p className="text-sm font-medium leading-none">{book.name}</p>

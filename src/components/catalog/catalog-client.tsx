@@ -1,8 +1,7 @@
 'use client';
 import * as React from 'react';
-import { useFormStatus } from 'react-dom';
-import { useActionState } from 'react';
-import { PlusCircle } from 'lucide-react';
+import { useFormStatus, useActionState } from 'react';
+import { PlusCircle, Book } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -15,7 +14,7 @@ import {
 import { PageHeader } from '@/components/shared/page-header';
 import { DataTable } from './data-table';
 import { columns } from './columns';
-import type { Book } from '@/lib/types';
+import type { Book as BookType } from '@/lib/types';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { addBook } from '@/lib/actions';
@@ -23,7 +22,6 @@ import { Label } from '../ui/label';
 import { useI18n } from '../i18n/i18n-provider';
 import { Card } from '../ui/card';
 import Image from 'next/image';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 function SubmitButton() {
   const { t } = useI18n();
@@ -40,8 +38,6 @@ const initialState = {
   errors: {},
   resetKey: Date.now().toString(),
 };
-
-const defaultCover = PlaceHolderImages.find(p => p.id === 'default_book_cover')?.imageUrl || '';
 
 function AddBookForm({ setOpen, onDataChange }: { setOpen: (open: boolean) => void, onDataChange: () => void }) {
   const { t } = useI18n();
@@ -63,8 +59,6 @@ function AddBookForm({ setOpen, onDataChange }: { setOpen: (open: boolean) => vo
       reader.readAsDataURL(file);
     }
   };
-
-  const previewImage = imagePreview || defaultCover;
 
   React.useEffect(() => {
     if (!state.message) return;
@@ -108,15 +102,19 @@ function AddBookForm({ setOpen, onDataChange }: { setOpen: (open: boolean) => vo
        <div className="space-y-2">
         <Label htmlFor="image-upload">{t('cover_photo')}</Label>
         <div className="flex items-center gap-4">
-          <div className="relative aspect-square h-24 w-24 overflow-hidden rounded-lg border bg-muted">
-              <Image
-                src={previewImage}
-                alt="Cover preview"
-                fill
-                className="object-cover"
-                data-ai-hint="book cover"
-              />
-          </div>
+            <div className="flex h-24 w-24 items-center justify-center rounded-lg border bg-muted text-muted-foreground">
+                {imagePreview ? (
+                    <Image
+                        src={imagePreview}
+                        alt="Cover preview"
+                        width={96}
+                        height={96}
+                        className="h-full w-full rounded-lg object-cover"
+                    />
+                ) : (
+                    <span className="text-4xl font-bold">?</span>
+                )}
+            </div>
           <Input id="image-upload" name="image-upload" type="file" accept="image/*" onChange={handleImageUpload} className="max-w-xs" />
         </div>
         <input type="hidden" name="coverImageUrl" value={coverImageUrl} />
@@ -126,7 +124,7 @@ function AddBookForm({ setOpen, onDataChange }: { setOpen: (open: boolean) => vo
   );
 }
 
-export function CatalogClient({ books, onDataChange }: { books: Book[], onDataChange?: () => void }) {
+export function CatalogClient({ books, onDataChange }: { books: BookType[], onDataChange?: () => void }) {
   const { t } = useI18n();
   const [open, setOpen] = React.useState(false);
   const [filter, setFilter] = React.useState('');
