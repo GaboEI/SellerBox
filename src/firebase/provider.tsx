@@ -6,7 +6,6 @@ import { Firestore } from 'firebase/firestore';
 import { Auth } from 'firebase/auth';
 import { FirebaseStorage } from 'firebase/storage';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
-import { getSdks } from '.';
 
 interface FirebaseProviderProps {
   children: ReactNode;
@@ -46,28 +45,17 @@ export const FirebaseProvider: React.FC<Partial<FirebaseProviderProps>> = ({
   auth,
   storage,
 }) => {
-  const firebaseServices = useMemo(() => {
-    // If services are provided as props, use them. Otherwise, initialize.
-    if (firebaseApp && firestore && auth && storage) {
-      return { firebaseApp, firestore, auth, storage };
-    }
-    // This allows the provider to be used without props in a client component
-    // where initializeFirebase can be safely called.
-    return getSdks(firebaseApp!);
-  }, [firebaseApp, firestore, auth, storage]);
-
-
   // Memoize the context value
   const contextValue = useMemo((): FirebaseContextState => {
-    const servicesAvailable = !!(firebaseServices.firebaseApp && firebaseServices.firestore && firebaseServices.auth && firebaseServices.storage);
+    const servicesAvailable = !!(firebaseApp && firestore && auth && storage);
     return {
       areServicesAvailable: servicesAvailable,
-      firebaseApp: servicesAvailable ? firebaseServices.firebaseApp : null,
-      firestore: servicesAvailable ? firebaseServices.firestore : null,
-      auth: servicesAvailable ? firebaseServices.auth : null,
-      storage: servicesAvailable ? firebaseServices.storage : null,
+      firebaseApp: servicesAvailable ? firebaseApp : null,
+      firestore: servicesAvailable ? firestore : null,
+      auth: servicesAvailable ? auth : null,
+      storage: servicesAvailable ? storage : null,
     };
-  }, [firebaseServices]);
+  }, [firebaseApp, firestore, auth, storage]);
 
   return (
     <FirebaseContext.Provider value={contextValue}>
