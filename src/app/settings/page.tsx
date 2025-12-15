@@ -11,17 +11,17 @@ export default function SettingsPage() {
 
     return (
         <div className="flex flex-col gap-8">
-            <PageHeader title={t('settings')} description="Customize your experience." />
+            <PageHeader title={t('settings')} description={t('settings_desc')} />
             <Card className="max-w-2xl">
                 <CardHeader>
-                    <CardTitle>Appearance</CardTitle>
+                    <CardTitle>{t('appearance')}</CardTitle>
                     <CardDescription>
-                        Adjust the look and feel of the application.
+                        {t('appearance_desc')}
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="flex items-center justify-between">
-                        <Label htmlFor="theme" className="text-base">Theme</Label>
+                        <Label htmlFor="theme" className="text-base">{t('theme')}</Label>
                         <ThemeToggle />
                     </div>
                 </CardContent>

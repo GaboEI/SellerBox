@@ -32,12 +32,15 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
+import { useI18n } from '../i18n/i18n-provider';
+import { es, ru } from 'date-fns/locale';
 
 function SubmitButton() {
+  const { t } = useI18n();
   const { pending } = useFormStatus();
   return (
     <Button type="submit" disabled={pending}>
-      {pending ? 'Recording...' : 'Record Sale'}
+      {pending ? t('recording_sale') : t('record_sale_button')}
     </Button>
   );
 }
@@ -48,36 +51,41 @@ const initialState = {
 };
 
 function AddSaleForm({ books, setOpen }: { books: Book[], setOpen: (open: boolean) => void }) {
+  const { t, language } = useI18n();
   const [state, formAction] = useFormState(addSale, initialState);
   const { toast } = useToast();
   const formRef = React.useRef<HTMLFormElement>(null);
   const [date, setDate] = React.useState<Date | undefined>(new Date());
+  
+  const localeMap: { [key: string]: Locale } = { es, ru };
+  const dateLocale = localeMap[language];
+
 
   React.useEffect(() => {
     if (state.resetKey) {
       toast({
-        title: 'Success!',
-        description: state.message,
+        title: t('success'),
+        description: t(state.message),
       });
       setOpen(false);
       formRef.current?.reset();
       setDate(new Date());
     } else if (state.message) {
       toast({
-        title: 'Error',
-        description: state.message,
+        title: t('error'),
+        description: t(state.message),
         variant: 'destructive',
       });
     }
-  }, [state, toast, setOpen]);
+  }, [state, toast, setOpen, t]);
 
   return (
     <form ref={formRef} key={state.resetKey} action={formAction} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="bookId">Book</Label>
+        <Label htmlFor="bookId">{t('book')}</Label>
         <Select name="bookId">
           <SelectTrigger>
-            <SelectValue placeholder="Select a book" />
+            <SelectValue placeholder={t('select_a_book')} />
           </SelectTrigger>
           <SelectContent>
             {books.map(book => (
@@ -91,7 +99,7 @@ function AddSaleForm({ books, setOpen }: { books: Book[], setOpen: (open: boolea
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="date">Date of Sale</Label>
+        <Label htmlFor="date">{t('date_of_sale')}</Label>
         <Popover>
             <PopoverTrigger asChild>
                 <Button
@@ -102,11 +110,12 @@ function AddSaleForm({ books, setOpen }: { books: Book[], setOpen: (open: boolea
                 )}
                 >
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {date ? format(date, "PPP") : <span>Pick a date</span>}
+                {date ? format(date, "PPP", { locale: dateLocale }) : <span>{t('pick_a_date')}</span>}
                 </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0">
                 <Calendar
+                locale={dateLocale}
                 mode="single"
                 selected={date}
                 onSelect={setDate}
@@ -119,15 +128,15 @@ function AddSaleForm({ books, setOpen }: { books: Book[], setOpen: (open: boolea
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="status">Status</Label>
+        <Label htmlFor="status">{t('status')}</Label>
         <Select name="status" defaultValue='sold'>
           <SelectTrigger>
-            <SelectValue placeholder="Select a status" />
+            <SelectValue placeholder={t('select_status')} />
           </SelectTrigger>
           <SelectContent>
             {(['sold', 'reserved', 'canceled', 'pending'] as SaleStatus[]).map(status => (
                 <SelectItem key={status} value={status} className="capitalize">
-                    {status}
+                    {t(status)}
                 </SelectItem>
             ))}
           </SelectContent>
@@ -135,8 +144,8 @@ function AddSaleForm({ books, setOpen }: { books: Book[], setOpen: (open: boolea
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="notes">Notes</Label>
-        <Textarea id="notes" name="notes" placeholder="Optional notes about the sale." />
+        <Label htmlFor="notes">{t('notes')}</Label>
+        <Textarea id="notes" name="notes" placeholder={t('optional_notes')} />
       </div>
       <SubmitButton />
     </form>
@@ -144,6 +153,7 @@ function AddSaleForm({ books, setOpen }: { books: Book[], setOpen: (open: boolea
 }
 
 export function SalesClient({ sales, books }: { sales: Sale[], books: Book[] }) {
+  const { t } = useI18n();
   const [open, setOpen] = React.useState(false);
   const [filter, setFilter] = React.useState('');
   
@@ -160,28 +170,28 @@ export function SalesClient({ sales, books }: { sales: Sale[], books: Book[] }) 
   const salesWithBookNames = React.useMemo(() => {
     return filteredSales.map(sale => ({
         ...sale,
-        bookName: bookMap.get(sale.bookId)?.name || 'Unknown Book'
+        bookName: bookMap.get(sale.bookId)?.name || t('unknown_book')
     }));
-  }, [filteredSales, bookMap]);
+  }, [filteredSales, bookMap, t]);
 
   return (
     <div className="flex flex-col gap-8">
       <PageHeader
-        title="Sales Records"
-        description="View and manage all your sales transactions."
+        title={t('sales_records')}
+        description={t('sales_records_desc')}
       >
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button size="sm" className="gap-1">
               <PlusCircle className="h-4 w-4" />
-              Record Sale
+              {t('record_sale_button')}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Record a New Sale</DialogTitle>
+              <DialogTitle>{t('record_new_sale_title')}</DialogTitle>
               <DialogDescription>
-                Fill in the details to log a new sale.
+                {t('record_new_sale_desc')}
               </DialogDescription>
             </DialogHeader>
             <AddSaleForm books={books} setOpen={setOpen} />
@@ -191,7 +201,7 @@ export function SalesClient({ sales, books }: { sales: Sale[], books: Book[] }) 
       <Card className="p-4 sm:p-6">
         <div className="mb-4">
           <Input
-            placeholder="Filter by book name or status..."
+            placeholder={t('filter_by_book_or_status')}
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
             className="max-w-sm"

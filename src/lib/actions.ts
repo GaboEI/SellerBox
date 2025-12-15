@@ -6,9 +6,9 @@ import { addBook as dbAddBook, addSale as dbAddSale, getBookByCode, updateBook a
 import type { Book, SaleStatus } from './types';
 
 const bookSchema = z.object({
-  code: z.string().min(1, 'Code is required.'),
-  name: z.string().min(1, 'Name is required.'),
-  quantity: z.coerce.number().min(0, 'Quantity must be non-negative.'),
+  code: z.string().min(1, 'code_required'),
+  name: z.string().min(1, 'name_required'),
+  quantity: z.coerce.number().min(0, 'quantity_non_negative'),
   description: z.string().optional(),
 });
 
@@ -23,15 +23,15 @@ export async function addBook(prevState: any, formData: FormData) {
   if (!validatedFields.success) {
     return {
       errors: validatedFields.error.flatten().fieldErrors,
-      message: 'Error: Please check the fields.',
+      message: 'check_fields_error',
     };
   }
   
   const existingBook = await getBookByCode(validatedFields.data.code);
   if (existingBook) {
       return {
-          errors: { code: ['This code is already in use.'] },
-          message: 'Error: Please use a unique code.'
+          errors: { code: ['code_in_use'] },
+          message: 'unique_code_error'
       }
   }
 
@@ -42,9 +42,9 @@ export async function addBook(prevState: any, formData: FormData) {
     });
     revalidatePath('/catalog');
     revalidatePath('/inventory');
-    return { message: 'Successfully added book.', errors: {}, resetKey: Date.now().toString() };
+    return { message: 'add_book_success', errors: {}, resetKey: Date.now().toString() };
   } catch (e) {
-    return { message: 'Failed to add book.', errors: {} };
+    return { message: 'add_book_fail', errors: {} };
   }
 }
 
@@ -59,15 +59,15 @@ export async function updateBook(id: string, prevState: any, formData: FormData)
   if (!validatedFields.success) {
     return {
       errors: validatedFields.error.flatten().fieldErrors,
-      message: 'Error: Please check the fields.',
+      message: 'check_fields_error',
     };
   }
 
   const existingBook = await getBookByCode(validatedFields.data.code);
   if (existingBook && existingBook.id !== id) {
       return {
-          errors: { code: ['This code is already in use.'] },
-          message: 'Error: Please use a unique code.'
+          errors: { code: ['code_in_use'] },
+          message: 'unique_code_error'
       }
   }
   
@@ -79,9 +79,9 @@ export async function updateBook(id: string, prevState: any, formData: FormData)
     revalidatePath('/catalog');
     revalidatePath('/inventory');
     revalidatePath('/');
-    return { message: 'Successfully updated book.', errors: {}, resetKey: Date.now().toString() };
+    return { message: 'update_book_success', errors: {}, resetKey: Date.now().toString() };
   } catch (e) {
-    return { message: 'Failed to update book.', errors: {} };
+    return { message: 'update_book_fail', errors: {} };
   }
 }
 
@@ -99,8 +99,8 @@ export async function deleteBook(id: string) {
 
 
 const saleSchema = z.object({
-    bookId: z.string().min(1, 'Please select a book.'),
-    date: z.string().min(1, 'Date is required.'),
+    bookId: z.string().min(1, 'select_book_error'),
+    date: z.string().min(1, 'date_required'),
     status: z.enum(['sold', 'reserved', 'canceled', 'pending']),
     notes: z.string().optional(),
 });
@@ -116,7 +116,7 @@ export async function addSale(prevState: any, formData: FormData) {
     if (!validatedFields.success) {
         return {
             errors: validatedFields.error.flatten().fieldErrors,
-            message: 'Error: Please check the fields.',
+            message: 'check_fields_error',
         };
     }
 
@@ -130,8 +130,8 @@ export async function addSale(prevState: any, formData: FormData) {
         revalidatePath('/');
         revalidatePath('/inventory');
         revalidatePath('/catalog');
-        return { message: 'Successfully recorded sale.', errors: {}, resetKey: Date.now().toString() };
+        return { message: 'add_sale_success', errors: {}, resetKey: Date.now().toString() };
     } catch(e) {
-        return { message: 'Failed to record sale.', errors: {} };
+        return { message: 'add_sale_fail', errors: {} };
     }
 }

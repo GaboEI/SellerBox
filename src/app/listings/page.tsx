@@ -20,7 +20,7 @@ export default function ListingsPage() {
 
     return (
         <div className="flex flex-col gap-8">
-            <PageHeader title={t('listing_generator')} description="Create compelling product listings for your books." />
+            <PageHeader title={t('listing_generator')} description={t('listing_generator_desc')} />
             <ListingGenerator books={books} />
         </div>
     )

@@ -6,6 +6,7 @@ import { ArrowUpDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { Sale, SaleStatus } from '@/lib/types';
+import { useI18n } from '../i18n/i18n-provider';
 
 type SaleWithBookName = Sale & { bookName: string };
 
@@ -20,12 +21,13 @@ export const columns: ColumnDef<SaleWithBookName>[] = [
   {
     accessorKey: 'bookName',
     header: ({ column }) => {
+        const { t } = useI18n();
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
         >
-          Book Name
+          {t('book_name')}
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
@@ -35,12 +37,13 @@ export const columns: ColumnDef<SaleWithBookName>[] = [
   {
     accessorKey: 'date',
     header: ({ column }) => {
+        const { t } = useI18n();
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
         >
-          Date
+          {t('date')}
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
@@ -53,15 +56,22 @@ export const columns: ColumnDef<SaleWithBookName>[] = [
   },
   {
     accessorKey: 'status',
-    header: 'Status',
+    header: function CellHeader() {
+        const { t } = useI18n();
+        return t('status');
+    },
     cell: ({ row }) => {
+        const { t } = useI18n();
         const status = row.getValue('status') as SaleStatus;
-        return <Badge variant={statusVariantMap[status]} className="capitalize">{status}</Badge>;
+        return <Badge variant={statusVariantMap[status]} className="capitalize">{t(status)}</Badge>;
     }
   },
   {
     accessorKey: 'notes',
-    header: 'Notes',
+    header: function CellHeader() {
+        const { t } = useI18n();
+        return t('notes');
+    },
     cell: ({ row }) => <div className="max-w-[200px] truncate">{row.getValue('notes') as string}</div>
   },
 ];

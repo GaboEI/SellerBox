@@ -22,7 +22,7 @@ export default function InventoryPage() {
 
   return (
     <div className="flex flex-col gap-8">
-        <PageHeader title={t('inventory')} description="View and manage your book stock." />
+        <PageHeader title={t('inventory')} description={t('inventory_desc')} />
         <CatalogClient books={books} />
     </div>
   )
