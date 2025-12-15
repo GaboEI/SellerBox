@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+import { Settings } from 'lucide-react';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -12,15 +14,16 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useSidebar } from '@/components/ui/sidebar';
-import { LanguageToggle } from '@/components/i18n/language-toggle';
+import { useI18n } from '@/components/i18n/i18n-provider';
 
 export function AppHeader() {
   const { isMobile } = useSidebar();
+  const { t } = useI18n();
   return (
     <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background/80 px-4 backdrop-blur-sm sm:h-16 sm:px-6">
       <SidebarTrigger className="flex md:hidden" />
       <div className="flex-1">
-        <LanguageToggle />
+        {/* LanguageToggle was here */}
       </div>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -45,6 +48,12 @@ export function AppHeader() {
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
+           <DropdownMenuItem asChild>
+              <Link href="/settings">
+                <Settings className="mr-2 h-4 w-4" />
+                <span>{t('settings')}</span>
+              </Link>
+            </DropdownMenuItem>
           <DropdownMenuItem>Log out</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

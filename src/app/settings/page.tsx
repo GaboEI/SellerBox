@@ -2,6 +2,7 @@
 
 import { PageHeader } from "@/components/shared/page-header";
 import { ThemeToggle } from "@/components/settings/theme-toggle";
+import { LanguageToggle } from "@/components/i18n/language-toggle";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useI18n } from "@/components/i18n/i18n-provider";
@@ -19,10 +20,14 @@ export default function SettingsPage() {
                         {t('appearance_desc')}
                     </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-4">
                     <div className="flex items-center justify-between">
                         <Label htmlFor="theme" className="text-base">{t('theme')}</Label>
                         <ThemeToggle />
+                    </div>
+                    <div className="flex items-center justify-between">
+                        <Label htmlFor="language" className="text-base">Idioma</Label>
+                        <LanguageToggle />
                     </div>
                 </CardContent>
             </Card>

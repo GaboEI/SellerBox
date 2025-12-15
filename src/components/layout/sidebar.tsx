@@ -5,7 +5,6 @@ import { usePathname } from 'next/navigation';
 import {
   Home,
   Package,
-  Settings,
   ShoppingBag,
   Tag,
   BarChart3
@@ -19,7 +18,6 @@ import {
   SidebarMenuButton,
   SidebarFooter,
 } from '@/components/ui/sidebar';
-import { ThemeToggle } from '@/components/settings/theme-toggle';
 import { useI18n } from '@/components/i18n/i18n-provider';
 
 export function AppSidebar() {
@@ -62,21 +60,7 @@ export function AppSidebar() {
         ))}
       </SidebarMenu>
       <SidebarFooter>
-        <ThemeToggle />
-         <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-                asChild
-                isActive={pathname === '/settings'}
-                tooltip={t('settings')}
-            >
-                <Link href="/settings">
-                    <Settings />
-                    <span>{t('settings')}</span>
-                </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+        {/* ThemeToggle and Settings link removed from here */}
       </SidebarFooter>
     </Sidebar>
   );
