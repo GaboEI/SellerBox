@@ -1,9 +1,7 @@
 'use client';
 import * as React from 'react';
-import { useActionState } from 'react';
-import { useFormStatus } from 'react-dom';
-import { PlusCircle, Calendar as CalendarIcon } from 'lucide-react';
-import { format } from 'date-fns';
+import { useActionState, useFormStatus } from 'react';
+import { PlusCircle } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -29,11 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { cn } from '@/lib/utils';
 import { useI18n } from '../i18n/i18n-provider';
-import { es, ru, enUS } from 'date-fns/locale';
 import { Card } from '../ui/card';
 
 function SubmitButton() {
@@ -57,10 +51,6 @@ function AddSaleForm({ books, setOpen }: { books: Book[], setOpen: (open: boolea
   const [state, formAction] = useActionState(addSale, initialState);
   const { toast } = useToast();
   const formRef = React.useRef<HTMLFormElement>(null);
-  const [date, setDate] = React.useState<Date | undefined>(new Date());
-  
-  const localeMap: { [key: string]: Locale } = { en: enUS, es, ru };
-  const dateLocale = localeMap[language] || enUS;
 
 
   React.useEffect(() => {
@@ -71,7 +61,6 @@ function AddSaleForm({ books, setOpen }: { books: Book[], setOpen: (open: boolea
       });
       setOpen(false);
       formRef.current?.reset();
-      setDate(new Date());
     } else if (state.message) {
       toast({
         title: t('error'),
@@ -102,35 +91,11 @@ function AddSaleForm({ books, setOpen }: { books: Book[], setOpen: (open: boolea
 
       <div className="space-y-2">
         <Label htmlFor="date">{t('date_of_sale')}</Label>
-        <Popover>
-            <PopoverTrigger asChild>
-                <Button
-                variant={"outline"}
-                className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !date && "text-muted-foreground"
-                )}
-                >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {date ? format(date, "PPP", { locale: dateLocale }) : <span>{t('pick_a_date')}</span>}
-                </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
-                <Calendar
-                key={language}
-                locale={dateLocale}
-                mode="single"
-                selected={date}
-                onSelect={setDate}
-                disabled={{
-                    before: new Date('2025-01-01'),
-                    after: new Date(),
-                }}
-                initialFocus
-                />
-            </PopoverContent>
-        </Popover>
-        <input type="hidden" name="date" value={date?.toISOString()} />
+        <Input
+          id="date"
+          name="date"
+          placeholder="DD.MM.YYYY"
+        />
         {state.errors?.date && <p className="text-sm text-destructive">{t(state.errors.date[0])}</p>}
       </div>
 

@@ -99,7 +99,7 @@ export async function deleteBook(id: string) {
 
 const saleSchema = z.object({
     bookId: z.string().min(1, 'select_book_error'),
-    date: z.string().min(1, 'date_required_error'),
+    date: z.string().regex(/^\d{2}\.\d{2}\.\d{4}$/, 'date_format_error'),
     platform: z.enum(['Avito', 'Ozon']),
 });
 
@@ -116,10 +116,35 @@ export async function addSale(prevState: any, formData: FormData) {
             message: 'check_fields_error',
         };
     }
+    
+    const [day, month, year] = validatedFields.data.date.split('.');
+    const isoDate = `${year}-${month}-${day}`;
+    
+    // Check if date is valid
+    const dateObj = new Date(isoDate);
+    if (isNaN(dateObj.getTime()) || dateObj.getDate() !== parseInt(day, 10)) {
+        return {
+            errors: { date: ['invalid_date_error'] },
+            message: 'check_fields_error',
+        }
+    }
+
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const startDate = new Date('2025-01-01');
+
+    if (dateObj < startDate || dateObj > today) {
+         return {
+            errors: { date: ['date_range_error'] },
+            message: 'check_fields_error',
+        }
+    }
+
 
     try {
         await dbAddSale({
-            ...validatedFields.data,
+            bookId: validatedFields.data.bookId,
+            date: dateObj.toISOString(),
             platform: validatedFields.data.platform as SalePlatform,
         });
         revalidatePath('/sales');

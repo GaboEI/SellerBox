@@ -100,7 +100,7 @@
     "unknown_book": "Unknown Book",
     "recording_sale": "Recording...",
     "date_of_sale": "Date of Sale",
-    "pick_a_date": "Pick a date",
+    "pick_a_date": "DD.MM.YYYY",
     "select_status": "Select a status",
     "record_new_sale_title": "Record a New Sale",
     "record_new_sale_desc": "Fill in the details to log a new sale.",
@@ -140,5 +140,8 @@
     "final_status_desc": "This sale is in a final state and cannot be modified.",
     "edit_sale": "Edit Sale",
     "update_sale_success": "Sale updated successfully.",
-    "update_sale_fail": "Failed to update sale."
+    "update_sale_fail": "Failed to update sale.",
+    "date_format_error": "Please use DD.MM.YYYY format.",
+    "invalid_date_error": "The date is invalid.",
+    "date_range_error": "Date must be after 01.01.2025 and not in the future."
 }

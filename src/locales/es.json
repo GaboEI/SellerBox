@@ -100,7 +100,7 @@
     "unknown_book": "Libro Desconocido",
     "recording_sale": "Registrando...",
     "date_of_sale": "Fecha de Venta",
-    "pick_a_date": "Elige una fecha",
+    "pick_a_date": "DD.MM.AAAA",
     "select_status": "Selecciona un estado",
     "record_new_sale_title": "Registrar una Nueva Venta",
     "record_new_sale_desc": "Rellena los detalles para registrar una nueva venta.",
@@ -140,5 +140,8 @@
     "final_status_desc": "Esta venta está en un estado final y no se puede modificar.",
     "edit_sale": "Editar Venta",
     "update_sale_success": "Venta actualizada con éxito.",
-    "update_sale_fail": "Error al actualizar la venta."
+    "update_sale_fail": "Error al actualizar la venta.",
+    "date_format_error": "Por favor, use el formato DD.MM.AAAA.",
+    "invalid_date_error": "La fecha no es válida.",
+    "date_range_error": "La fecha debe ser posterior al 01.01.2025 y no futura."
 }
