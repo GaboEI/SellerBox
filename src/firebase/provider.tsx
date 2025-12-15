@@ -1,18 +1,19 @@
 'use client';
 
 import React, {
-  DependencyList,
   createContext,
   useContext,
   ReactNode,
   useMemo,
+  useState,
+  useEffect,
+  DependencyList,
 } from 'react';
 import { FirebaseApp } from 'firebase/app';
 import { Firestore } from 'firebase/firestore';
-import { Auth, User } from 'firebase/auth';
+import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { FirebaseStorage } from 'firebase/storage';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
-import { useUser, AuthProvider } from './auth/use-user';
 
 interface FirebaseProviderProps {
   children: ReactNode;
@@ -35,6 +36,27 @@ const FirebaseContext = createContext<FirebaseContextState | undefined>(
   undefined
 );
 
+// Custom hook to manage Firebase auth state
+const useFirebaseAuth = (auth: Auth | null) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [isUserLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (!auth) {
+      setIsLoading(false);
+      return;
+    }
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+      setIsLoading(false);
+    });
+    return () => unsubscribe();
+  }, [auth]);
+
+  return { user, isUserLoading };
+};
+
+
 export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
   children,
   firebaseApp,
@@ -42,28 +64,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
   auth,
   storage,
 }) => {
-  return (
-    <AuthProvider auth={auth}>
-      <FirebaseProviderInternal
-        firebaseApp={firebaseApp}
-        firestore={firestore}
-        auth={auth}
-        storage={storage}
-      >
-        {children}
-      </FirebaseProviderInternal>
-    </AuthProvider>
-  );
-};
-
-const FirebaseProviderInternal: React.FC<FirebaseProviderProps> = ({
-  children,
-  firebaseApp,
-  firestore,
-  auth,
-  storage,
-}) => {
-  const { user, isLoading } = useUser();
+  const { user, isUserLoading } = useFirebaseAuth(auth);
 
   const contextValue = useMemo(
     (): FirebaseContextState => ({
@@ -72,10 +73,11 @@ const FirebaseProviderInternal: React.FC<FirebaseProviderProps> = ({
       auth,
       storage,
       user,
-      isUserLoading: isLoading,
+      isUserLoading,
     }),
-    [firebaseApp, firestore, auth, storage, user, isLoading]
+    [firebaseApp, firestore, auth, storage, user, isUserLoading]
   );
+
 
   return (
     <FirebaseContext.Provider value={contextValue}>
@@ -92,6 +94,12 @@ export const useFirebase = (): FirebaseContextState => {
     throw new Error('useFirebase must be used within a FirebaseProvider.');
   }
   return context;
+};
+
+/** Hook to access the currently authenticated user. */
+export const useUser = (): { user: User | null; isUserLoading: boolean } => {
+  const { user, isUserLoading } = useFirebase();
+  return { user, isUserLoading };
 };
 
 /** Hook para acceder a la instancia de Firebase Auth. */

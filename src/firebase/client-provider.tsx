@@ -9,8 +9,8 @@ interface FirebaseClientProviderProps {
 }
 
 export function FirebaseClientProvider({ children }: FirebaseClientProviderProps) {
-  // Este proveedor pasa las instancias de Firebase ya inicializadas
-  // al contexto para que estén disponibles en toda la aplicación.
+  // This provider passes the initialized Firebase instances
+  // to the context to make them available throughout the application.
   return (
     <FirebaseProvider
       firebaseApp={firebaseApp}
