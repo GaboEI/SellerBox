@@ -1,7 +1,6 @@
 'use client';
 import * as React from 'react';
-import { useActionState } from 'react';
-import { useFormStatus } from 'react-dom';
+import { useActionState, useFormStatus } from 'react';
 import { PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -47,14 +46,16 @@ function AddBookForm({ setOpen }: { setOpen: (open: boolean) => void }) {
   const formRef = React.useRef<HTMLFormElement>(null);
 
   React.useEffect(() => {
-    if (state.message.includes('Success')) {
+    if (!state.message) return;
+
+    if (state.message.includes('success')) {
       toast({
         title: t('success'),
         description: t(state.message),
       });
       setOpen(false);
       formRef.current?.reset();
-    } else if (state.message) {
+    } else {
       toast({
         title: t('error'),
         description: t(state.message),
