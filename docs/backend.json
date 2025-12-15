@@ -149,6 +149,25 @@
         "key",
         "value"
       ]
+    },
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Stores user profile information.",
+      "type": "object",
+      "properties": {
+        "username": {
+          "type": "string",
+          "description": "The user's display name."
+        },
+        "photoUrl": {
+          "type": "string",
+          "description": "URL of the user's profile picture.",
+          "format": "uri"
+        }
+      },
+      "required": [
+        "username"
+      ]
     }
   },
   "auth": {
@@ -235,6 +254,22 @@
             {
               "name": "settingId",
               "description": "Unique identifier for the setting."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "UserProfile",
+          "schema": {
+            "$ref": "#/backend/entities/UserProfile"
+          },
+          "description": "Stores user profiles.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "Unique identifier for the user (matches Auth UID)."
             }
           ]
         }

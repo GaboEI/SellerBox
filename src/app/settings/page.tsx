@@ -9,18 +9,38 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useI18n } from "@/components/i18n/i18n-provider";
-import React, { useEffect } from "react";
-import { useUser } from '@/firebase';
+import React, { useEffect, useState } from "react";
+import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { useRouter } from 'next/navigation';
 import { AppSidebar } from '@/components/layout/sidebar';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { AppHeader } from '@/components/layout/header';
+import { doc, setDoc } from "firebase/firestore";
+import { useToast } from "@/hooks/use-toast";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+
+interface UserProfile {
+    username?: string;
+    photoUrl?: string;
+}
 
 export default function SettingsPage() {
     const { t } = useI18n();
-    const [imagePreview, setImagePreview] = React.useState<string | null>("https://picsum.photos/seed/user/100/100");
     const { user, isUserLoading } = useUser();
     const router = useRouter();
+    const firestore = useFirestore();
+    const { toast } = useToast();
+
+    const userProfileRef = useMemoFirebase(() => {
+        if (!user || !firestore) return null;
+        return doc(firestore, 'users', user.uid);
+    }, [user, firestore]);
+    
+    const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userProfileRef);
+
+    const [username, setUsername] = useState('');
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const [imageFile, setImageFile] = useState<File | null>(null);
 
     useEffect(() => {
         if (!isUserLoading && !user) {
@@ -28,13 +48,17 @@ export default function SettingsPage() {
         }
     }, [isUserLoading, user, router]);
 
-    if (isUserLoading || !user) {
-        return <div>Loading...</div>;
-    }
+    useEffect(() => {
+        if (userProfile) {
+            setUsername(userProfile.username || 'Seller');
+            setImagePreview(userProfile.photoUrl || "https://picsum.photos/seed/user/100/100");
+        }
+    }, [userProfile]);
 
     const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
+          setImageFile(file);
           const reader = new FileReader();
           reader.onloadend = () => {
             setImagePreview(reader.result as string);
@@ -43,6 +67,33 @@ export default function SettingsPage() {
         }
     };
 
+    const handleSaveChanges = async () => {
+        if (!user) return;
+        let photoUrl = userProfile?.photoUrl;
+
+        if (imageFile) {
+            const storage = getStorage();
+            const storageRef = ref(storage, `profile_pictures/${user.uid}`);
+            await uploadBytes(storageRef, imageFile);
+            photoUrl = await getDownloadURL(storageRef);
+        }
+
+        const updatedProfile: UserProfile = {
+            username: username,
+            photoUrl: photoUrl,
+        };
+
+        await setDoc(doc(firestore, 'users', user.uid), updatedProfile, { merge: true });
+
+        toast({
+            title: t('success'),
+            description: "Profile updated successfully.",
+        });
+    };
+
+    if (isUserLoading || isProfileLoading || !user) {
+        return <div>Loading...</div>;
+    }
 
     return (
         <SidebarProvider>
@@ -85,7 +136,7 @@ export default function SettingsPage() {
                                         <div className="flex items-center gap-4">
                                             <Avatar className="h-20 w-20">
                                                 <AvatarImage src={imagePreview || ''} alt="User Avatar" />
-                                                <AvatarFallback>U</AvatarFallback>
+                                                <AvatarFallback>{username?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
                                             </Avatar>
                                             <div className="space-y-2">
                                                 <Label htmlFor="profile-picture">Foto de perfil</Label>
@@ -94,7 +145,7 @@ export default function SettingsPage() {
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="username">Nombre de usuario</Label>
-                                            <Input id="username" defaultValue="Seller" />
+                                            <Input id="username" value={username} onChange={(e) => setUsername(e.target.value)} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label>Gestión de la cuenta</Label>
@@ -106,7 +157,7 @@ export default function SettingsPage() {
                                         </div>
                                     </CardContent>
                                     <CardFooter>
-                                        <Button>Guardar cambios</Button>
+                                        <Button onClick={handleSaveChanges}>Guardar cambios</Button>
                                     </CardFooter>
                                 </Card>
                             </div>

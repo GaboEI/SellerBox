@@ -23,3 +23,8 @@ export type Sale = {
   platform: SalePlatform;
   saleAmount?: number;
 };
+
+export type UserProfile = {
+    username?: string;
+    photoUrl?: string;
+};

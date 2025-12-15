@@ -42,6 +42,13 @@ service cloud.firestore {
     }
 
     /**
+     * Checks if the user is the owner of the document.
+     */
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    /**
      * @description
      *   Manages the master catalog of books. Any authenticated user can read,
      *   create, update, and delete book records.
@@ -159,6 +166,18 @@ service cloud.firestore {
       allow create: if isSignedIn();
       allow update: if isSignedIn() && resource != null;
       allow delete: if isSignedIn() && resource != null;
+    }
+
+    /**
+     * @description Manages user profiles.
+     * @path /users/{userId}
+     * @allow An authenticated user can read and write to their own profile.
+     * @deny An authenticated user cannot access another user's profile.
+     * @principle Path-based ownership: Access is granted if the user's UID
+     *   matches the document ID in the path.
+     */
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
     }
   }
 }

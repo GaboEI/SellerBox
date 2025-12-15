@@ -15,16 +15,45 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useSidebar } from '@/components/ui/sidebar';
 import { useI18n } from '@/components/i18n/i18n-provider';
-import { useAuth } from '@/firebase';
-import { signOut } from 'firebase/auth';
+import { useAuth, useDoc, useFirestore, useUser, useMemoFirebase } from '@/firebase';
+import { signOut, doc } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+
+interface UserProfile {
+    username?: string;
+    photoUrl?: string;
+}
 
 export function AppHeader() {
   const { isMobile } = useSidebar();
   const { t } = useI18n();
   const auth = useAuth();
   const router = useRouter();
+  const { user } = useUser();
+  const firestore = useFirestore();
 
+  const userProfileRef = useMemoFirebase(() => {
+    if (!user || !firestore) return null;
+    return doc(firestore, 'users', user.uid);
+  }, [user, firestore]);
+
+  const { data: userProfile } = useDoc<UserProfile>(userProfileRef);
+
+  const [username, setUsername] = useState('Seller');
+  const [photoUrl, setPhotoUrl] = useState("https://picsum.photos/seed/user/100/100");
+  const [email, setEmail] = useState("seller@example.com");
+
+  useEffect(() => {
+    if (userProfile) {
+        setUsername(userProfile.username || 'Seller');
+        setPhotoUrl(userProfile.photoUrl || "https://picsum.photos/seed/user/100/100");
+    }
+    if (user) {
+        setEmail(user.email || "seller@example.com");
+    }
+  }, [userProfile, user]);
+  
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -45,20 +74,19 @@ export function AppHeader() {
           <Button variant="ghost" className="relative h-8 w-8 rounded-full">
             <Avatar className="h-9 w-9">
               <AvatarImage
-                src="https://picsum.photos/seed/user/100/100"
+                src={photoUrl}
                 alt="User Avatar"
-                data-ai-hint="user avatar"
               />
-              <AvatarFallback>U</AvatarFallback>
+              <AvatarFallback>{username?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
             </Avatar>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-56" align="end" forceMount>
           <DropdownMenuLabel className="font-normal">
             <div className="flex flex-col space-y-1">
-              <p className="text-sm font-medium leading-none">Seller</p>
+              <p className="text-sm font-medium leading-none">{username}</p>
               <p className="text-xs leading-none text-muted-foreground">
-                seller@example.com
+                {email}
               </p>
             </div>
           </DropdownMenuLabel>
