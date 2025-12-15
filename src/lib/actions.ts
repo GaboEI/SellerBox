@@ -40,9 +40,8 @@ export async function addBook(prevState: any, formData: FormData) {
         ...validatedFields.data,
         description: validatedFields.data.description || '',
     });
-    revalidatePath('/');
-    revalidatePath('/catalog');
     revalidatePath('/inventory');
+    revalidatePath('/catalog');
     return { message: 'add_book_success', errors: {}, resetKey: Date.now().toString() };
   } catch (e) {
     console.error(e);
@@ -78,9 +77,8 @@ export async function updateBook(id: string, prevState: any, formData: FormData)
         ...validatedFields.data,
         description: validatedFields.data.description || '',
     });
-    revalidatePath('/');
-    revalidatePath('/catalog');
     revalidatePath('/inventory');
+    revalidatePath('/catalog');
     return { message: 'update_book_success', errors: {}, resetKey: Date.now().toString() };
   } catch (e) {
     return { message: 'update_book_fail', errors: {} };
@@ -90,9 +88,8 @@ export async function updateBook(id: string, prevState: any, formData: FormData)
 export async function deleteBook(id: string) {
     try {
         await dbDeleteBook(id);
-        revalidatePath('/');
-        revalidatePath('/catalog');
         revalidatePath('/inventory');
+        revalidatePath('/catalog');
     } catch(e) {
         // Handle error
         console.error("Failed to delete book", e);

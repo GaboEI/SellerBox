@@ -10,6 +10,8 @@ import { useI18n } from '@/components/i18n/i18n-provider';
 export default function InventoryPage() {
   const { t } = useI18n();
   const [books, setBooks] = React.useState<Book[]>([]);
+  // This key is used to force re-renders when data changes.
+  const [clientKey, setClientKey] = React.useState(Date.now().toString());
 
   React.useEffect(() => {
     async function fetchBooks() {
@@ -17,17 +19,16 @@ export default function InventoryPage() {
       setBooks(booksData);
     }
     fetchBooks();
-  }, []);
+  }, [clientKey]); // Re-fetch books when clientKey changes
 
-
-  // This key forces a re-render when a book is added/updated,
-  // ensuring the list stays in sync.
-  const clientKey = books.map(b => b.id + b.quantity).join(',');
+  const handleDataChange = () => {
+    setClientKey(Date.now().toString());
+  };
 
   return (
     <div className="flex flex-col gap-8">
         <PageHeader title={t('inventory')} description={t('inventory_desc')} />
-        <CatalogClient books={books} key={clientKey} />
+        <CatalogClient books={books} onDataChange={handleDataChange} />
     </div>
   )
 }

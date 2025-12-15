@@ -3,8 +3,7 @@
 import { ColumnDef } from '@tanstack/react-table';
 import { MoreHorizontal, ArrowUpDown } from 'lucide-react';
 import React from 'react';
-import { useActionState } from 'react';
-import { useFormStatus } from 'react-dom';
+import { useFormState, useFormStatus } from 'react-dom';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -52,19 +51,20 @@ function SubmitButton() {
     );
   }
 
-function EditBookForm({ book, setOpen }: { book: Book, setOpen: (open: boolean) => void }) {
+function EditBookForm({ book, setOpen, onDataChange }: { book: Book, setOpen: (open: boolean) => void, onDataChange: () => void }) {
     const { t } = useI18n();
-    const [state, formAction] = useActionState(updateBook.bind(null, book.id), { message: '', errors: {} });
+    const [state, formAction] = useFormState(updateBook.bind(null, book.id), { message: '', errors: {} });
     const { toast } = useToast();
     const formRef = React.useRef<HTMLFormElement>(null);
   
     React.useEffect(() => {
-      if (state.message.includes('Success')) {
+      if (state.message.includes('success')) {
         toast({
           title: t('success'),
           description: t(state.message),
         });
         setOpen(false);
+        onDataChange();
       } else if (state.message) {
         toast({
           title: t('error'),
@@ -72,7 +72,7 @@ function EditBookForm({ book, setOpen }: { book: Book, setOpen: (open: boolean) 
           variant: 'destructive',
         });
       }
-    }, [state, toast, setOpen, t]);
+    }, [state, toast, setOpen, t, onDataChange]);
     
     return (
       <form ref={formRef} action={formAction} className="space-y-4">
@@ -101,7 +101,7 @@ function EditBookForm({ book, setOpen }: { book: Book, setOpen: (open: boolean) 
   }
   
 
-const CellActions: React.FC<{ row: any }> = ({ row }) => {
+const CellActions: React.FC<{ row: any, onDataChange: () => void }> = ({ row, onDataChange }) => {
   const { t } = useI18n();
   const book = row.original as Book;
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
@@ -109,6 +109,7 @@ const CellActions: React.FC<{ row: any }> = ({ row }) => {
 
   const handleDelete = async () => {
     await deleteBook(book.id);
+    onDataChange();
   }
 
   return (
@@ -139,7 +140,7 @@ const CellActions: React.FC<{ row: any }> = ({ row }) => {
                 {t('edit_book_desc')}
             </DialogDescription>
             </DialogHeader>
-            <EditBookForm book={book} setOpen={setIsEditDialogOpen} />
+            <EditBookForm book={book} setOpen={setIsEditDialogOpen} onDataChange={onDataChange} />
         </DialogContent>
       </Dialog>
       
@@ -161,7 +162,7 @@ const CellActions: React.FC<{ row: any }> = ({ row }) => {
   );
 };
 
-export const columns: ColumnDef<Book>[] = [
+export const columns = (onDataChange: () => void): ColumnDef<Book>[] => [
   {
     accessorKey: 'code',
     header: ({ column }) => {
@@ -216,6 +217,6 @@ export const columns: ColumnDef<Book>[] = [
   },
   {
     id: 'actions',
-    cell: ({ row }) => <CellActions row={row} />,
+    cell: ({ row }) => <CellActions row={row} onDataChange={onDataChange} />,
   },
 ];

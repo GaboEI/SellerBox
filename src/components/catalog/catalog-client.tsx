@@ -1,7 +1,6 @@
 'use client';
 import * as React from 'react';
-import { useActionState } from 'react';
-import { useFormStatus } from 'react-dom';
+import { useFormState, useFormStatus } from 'react-dom';
 import { PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -40,9 +39,9 @@ const initialState = {
   resetKey: '',
 };
 
-function AddBookForm({ setOpen }: { setOpen: (open: boolean) => void }) {
+function AddBookForm({ setOpen, onDataChange }: { setOpen: (open: boolean) => void, onDataChange: () => void }) {
   const { t } = useI18n();
-  const [state, formAction] = useActionState(addBook, initialState);
+  const [state, formAction] = useFormState(addBook, initialState);
   const { toast } = useToast();
   const formRef = React.useRef<HTMLFormElement>(null);
 
@@ -56,6 +55,7 @@ function AddBookForm({ setOpen }: { setOpen: (open: boolean) => void }) {
       });
       setOpen(false);
       formRef.current?.reset();
+      onDataChange(); // Notify parent that data has changed
     } else {
       toast({
         title: t('error'),
@@ -63,7 +63,7 @@ function AddBookForm({ setOpen }: { setOpen: (open: boolean) => void }) {
         variant: 'destructive',
       });
     }
-  }, [state, toast, setOpen, t]);
+  }, [state, toast, setOpen, t, onDataChange]);
   
   return (
     <form ref={formRef} action={formAction} key={state.resetKey} className="space-y-4">
@@ -91,7 +91,7 @@ function AddBookForm({ setOpen }: { setOpen: (open: boolean) => void }) {
   );
 }
 
-export function CatalogClient({ books }: { books: Book[] }) {
+export function CatalogClient({ books, onDataChange }: { books: Book[], onDataChange?: () => void }) {
   const { t } = useI18n();
   const [open, setOpen] = React.useState(false);
   const [filter, setFilter] = React.useState('');
@@ -101,6 +101,9 @@ export function CatalogClient({ books }: { books: Book[] }) {
       book.name.toLowerCase().includes(filter.toLowerCase()) ||
       book.code.toLowerCase().includes(filter.toLowerCase())
   );
+
+  const handleDataChange = onDataChange || (() => {});
+  const tableColumns = columns(handleDataChange);
 
   return (
     <div className="flex flex-col gap-8">
@@ -122,7 +125,7 @@ export function CatalogClient({ books }: { books: Book[] }) {
                 {t('add_new_book_desc')}
               </DialogDescription>
             </DialogHeader>
-            <AddBookForm setOpen={setOpen} />
+            <AddBookForm setOpen={setOpen} onDataChange={handleDataChange} />
           </DialogContent>
         </Dialog>
       </PageHeader>
@@ -135,7 +138,7 @@ export function CatalogClient({ books }: { books: Book[] }) {
             className="max-w-sm"
           />
         </div>
-        <DataTable columns={columns} data={filteredBooks} />
+        <DataTable columns={tableColumns} data={filteredBooks} />
       </Card>
     </div>
   );
