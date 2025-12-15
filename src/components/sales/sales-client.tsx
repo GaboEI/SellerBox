@@ -3,7 +3,7 @@ import * as React from 'react';
 import { PlusCircle, Calendar as CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { useActionState } from 'react';
-import { useFormState as useFormStatus } from 'react-dom';
+import { useFormStatus } from 'react-dom';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -38,7 +38,7 @@ import { Card } from '../ui/card';
 
 function SubmitButton() {
   const { t } = useI18n();
-  const { pending } = useFormStatus(addSale, initialState);
+  const { pending } = useFormStatus();
   return (
     <Button type="submit" disabled={pending}>
       {pending ? t('recording_sale') : t('record_sale_button')}
