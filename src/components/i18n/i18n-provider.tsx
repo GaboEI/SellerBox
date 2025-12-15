@@ -36,23 +36,37 @@ const I18nContext = createContext<I18nContextType | null>(null);
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguage] = useState(i18n.language);
-
-  const changeLanguage = (lang: string) => {
-    i18n.changeLanguage(lang);
-  };
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     const handleLanguageChanged = (lng: string) => {
       setLanguage(lng);
+      setIsLoaded(true);
     };
+    i18n.on('initialized', handleLanguageChanged);
     i18n.on('languageChanged', handleLanguageChanged);
+    
+    // If i18next is already initialized, set loaded state
+    if (i18n.isInitialized) {
+        setIsLoaded(true);
+    }
+
     return () => {
+      i18n.off('initialized', handleLanguageChanged);
       i18n.off('languageChanged', handleLanguageChanged);
     };
   }, []);
 
   const t = (key: string) => i18n.t(key);
   
+  const changeLanguage = (lang: string) => {
+    i18n.changeLanguage(lang);
+  };
+  
+  if (!isLoaded) {
+    return null; // Or a loading spinner
+  }
+
   return (
     <I18nContext.Provider value={{ language, changeLanguage, t }}>
       {children}
