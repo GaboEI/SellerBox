@@ -199,7 +199,7 @@ export const columns = (onDataChange: () => void): ColumnDef<Book>[] => [
     accessorKey: 'coverImageUrl',
     header: function PhotoHeader() {
         const { t } = useI18n();
-        return <div className="text-center">{t('cover_photo').toUpperCase()}</div>
+        return <div className="pl-4">{t('cover_photo').toUpperCase()}</div>
     },
     cell: ({ row }) => {
       const imageUrl = row.getValue('coverImageUrl') as string | undefined;
@@ -229,6 +229,7 @@ export const columns = (onDataChange: () => void): ColumnDef<Book>[] => [
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          className="p-0"
         >
           {t('code')}
           <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -245,6 +246,7 @@ export const columns = (onDataChange: () => void): ColumnDef<Book>[] => [
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          className="p-0"
         >
           {t('name')}
           <ArrowUpDown className="ml-2 h-4 w-4" />
