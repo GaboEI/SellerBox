@@ -2,8 +2,7 @@
 import * as React from 'react';
 import { PlusCircle, Calendar as CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
-import { useActionState } from 'react';
-import { useFormStatus } from 'react-dom';
+import { useActionState, useFormStatus } from 'react-dom';
 
 import { Button } from '@/components/ui/button';
 import {
