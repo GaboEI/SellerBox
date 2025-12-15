@@ -2,7 +2,8 @@
 import * as React from 'react';
 import { PlusCircle, Calendar as CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
-import { useFormState } from 'react-dom';
+import { useActionState } from 'react';
+import { useFormState as useFormStatus } from 'react-dom';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -37,7 +38,7 @@ import { Card } from '../ui/card';
 
 function SubmitButton() {
   const { t } = useI18n();
-  const { pending } = useFormState();
+  const { pending } = useFormStatus(addSale, initialState);
   return (
     <Button type="submit" disabled={pending}>
       {pending ? t('recording_sale') : t('record_sale_button')}
@@ -53,7 +54,7 @@ const initialState = {
 
 function AddSaleForm({ books, setOpen }: { books: Book[], setOpen: (open: boolean) => void }) {
   const { t, language } = useI18n();
-  const [state, formAction] = useFormState(addSale, initialState);
+  const [state, formAction] = useActionState(addSale, initialState);
   const { toast } = useToast();
   const formRef = React.useRef<HTMLFormElement>(null);
   const [date, setDate] = React.useState<Date | undefined>(new Date());
