@@ -17,6 +17,7 @@ export default function DashboardPage() {
   const [sales, setSales] = React.useState<Sale[]>([]);
   const [books, setBooks] = React.useState<Book[]>([]);
   const [isClient, setIsClient] = useState(false);
+  const [clientKey, setClientKey] = React.useState(0);
 
   useEffect(() => {
     setIsClient(true);
@@ -30,8 +31,11 @@ export default function DashboardPage() {
       setBooks(booksData);
     }
     fetchData();
-  }, []);
+  }, [clientKey]);
 
+  const handleDataChange = React.useCallback(() => {
+    setClientKey(prevKey => prevKey + 1);
+  }, []);
 
   return (
     <SidebarProvider>

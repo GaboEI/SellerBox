@@ -23,6 +23,7 @@ import { Card } from '../ui/card';
 import Image from 'next/image';
 import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useReducer } from 'react';
+import { useRouter } from 'next/navigation';
 
 function SubmitButton() {
   const { t } = useTranslation();
@@ -59,6 +60,7 @@ function reducer(state: any, action: any) {
 
 function AddBookForm({ setOpen }: { setOpen: (open: boolean) => void }) {
   const { t } = useTranslation();
+  const router = useRouter();
   const [isClient, setIsClient] = useState(false);
   useEffect(() => { setIsClient(true); }, []);
 
@@ -86,6 +88,7 @@ function AddBookForm({ setOpen }: { setOpen: (open: boolean) => void }) {
     if (result.message.includes('success')) {
       dispatch({ type: 'SUCCESS', message: result.message });
       setOpen(false);
+      router.refresh();
     } else {
       dispatch({ type: 'ERROR', message: result.message, errors: result.errors });
     }
@@ -148,7 +151,7 @@ function AddBookForm({ setOpen }: { setOpen: (open: boolean) => void }) {
   );
 }
 
-export function CatalogClient({ books }: { books: BookType[] }) {
+export function CatalogClient({ books, onDataChange }: { books: BookType[], onDataChange: () => void }) {
   const { t } = useTranslation();
   const [isClient, setIsClient] = useState(false);
   useEffect(() => { setIsClient(true); }, []);

@@ -5,6 +5,7 @@ import { PlusCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -69,6 +70,7 @@ function AddSaleForm({ books, setOpen }: { books: Book[], setOpen: (open: boolea
   const { t } = useTranslation();
   const [isClient, setIsClient] = useState(false);
   useEffect(() => { setIsClient(true); }, []);
+  const router = useRouter();
   
   const [state, dispatch] = useReducer(reducer, initialState);
   const { toast } = useToast();
@@ -81,6 +83,7 @@ function AddSaleForm({ books, setOpen }: { books: Book[], setOpen: (open: boolea
     if (result.message.includes('success')) {
       dispatch({ type: 'SUCCESS', message: result.message });
       setOpen(false);
+      router.refresh();
     } else {
       dispatch({ type: 'ERROR', message: result.message, errors: result.errors });
     }
@@ -172,7 +175,7 @@ function AddSaleForm({ books, setOpen }: { books: Book[], setOpen: (open: boolea
   );
 }
 
-export function SalesClient({ sales, books }: { sales: Sale[], books: Book[] }) {
+export function SalesClient({ sales, books, onDataChange }: { sales: Sale[], books: Book[], onDataChange: () => void }) {
   const { t } = useTranslation();
   const [isClient, setIsClient] = useState(false);
   useEffect(() => { setIsClient(true); }, []);

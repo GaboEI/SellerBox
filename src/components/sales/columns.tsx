@@ -48,6 +48,7 @@ import { cn } from '@/lib/utils';
 import { TFunction } from 'i18next';
 import { format, isToday, isYesterday } from 'date-fns';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 type SaleWithBookData = Sale & { bookName: string, coverImageUrl?: string };
 
@@ -94,6 +95,7 @@ function reducer(state: any, action: any) {
 function EditSaleForm({ sale, setOpen, isClient, t }: { sale: SaleWithBookData; setOpen: (open: boolean) => void, isClient: boolean, t: TFunction }) {
   const [state, dispatch] = useReducer(reducer, initialState);
   const { toast } = useToast();
+  const router = useRouter();
   const [currentStatus, setCurrentStatus] = React.useState<SaleStatus>(sale.status);
 
   const isFinalState = sale.status === 'completed' || sale.status === 'sold_in_person' || sale.status === 'canceled';
@@ -103,6 +105,7 @@ function EditSaleForm({ sale, setOpen, isClient, t }: { sale: SaleWithBookData; 
     if (result.message.includes('success')) {
         dispatch({ type: 'SUCCESS', message: result.message });
         setOpen(false);
+        router.refresh();
     } else {
         dispatch({ type: 'ERROR', message: result.message, errors: result.errors });
     }
@@ -159,6 +162,7 @@ function EditSaleForm({ sale, setOpen, isClient, t }: { sale: SaleWithBookData; 
 function CellActions({ row, isClient, t }: { row: any, isClient: boolean, t: TFunction }) {
   const sale = row.original as SaleWithBookData;
   const { toast } = useToast();
+  const router = useRouter();
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
 
@@ -169,6 +173,7 @@ function CellActions({ row, isClient, t }: { row: any, isClient: boolean, t: TFu
         const result = await deleteSale(sale.id);
         if (result.message.includes('success')) {
             toast({ title: t('success'), description: t('delete_sale_success') });
+            router.refresh();
         } else {
             toast({ title: t('error'), description: result.message, variant: 'destructive' });
         }

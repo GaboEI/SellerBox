@@ -6,7 +6,7 @@ import React, { useEffect, useState, useReducer } from 'react';
 import { useFormStatus } from 'react-dom';
 import Image from 'next/image';
 import { TFunction } from 'i18next';
-
+import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -74,6 +74,7 @@ function reducer(state: any, action: any) {
 function EditBookForm({ book, setOpen, isClient, t }: { book: Book, setOpen: (open: boolean) => void, isClient: boolean, t: TFunction }) {
     const [state, dispatch] = useReducer(reducer, initialState);
     const { toast } = useToast();
+    const router = useRouter();
     const [imagePreview, setImagePreview] = React.useState<string | null>(book.coverImageUrl || null);
     const [coverImageUrl, setCoverImageUrl] = React.useState<string>(book.coverImageUrl || '');
 
@@ -95,6 +96,7 @@ function EditBookForm({ book, setOpen, isClient, t }: { book: Book, setOpen: (op
         if (result.message.includes('success')) {
             dispatch({ type: 'SUCCESS', message: result.message });
             setOpen(false);
+            router.refresh();
         } else {
             dispatch({ type: 'ERROR', message: result.message, errors: result.errors });
         }
@@ -158,6 +160,7 @@ function EditBookForm({ book, setOpen, isClient, t }: { book: Book, setOpen: (op
 const CellActions: React.FC<{ row: any, isClient: boolean, t: TFunction }> = ({ row, isClient, t }) => {
   const book = row.original as Book;
   const { toast } = useToast();
+  const router = useRouter();
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
 
@@ -165,6 +168,7 @@ const CellActions: React.FC<{ row: any, isClient: boolean, t: TFunction }> = ({ 
     try {
       await deleteBook(book.id);
       toast({ title: t('success'), description: t('delete_book_success', {bookName: book.name}) });
+      router.refresh();
     } catch (e) {
       toast({ title: t('error'), description: t('failed_to_delete_book'), variant: 'destructive' });
     }

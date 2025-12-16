@@ -15,6 +15,7 @@ export default function SalesPage() {
   const [sales, setSales] = React.useState<Sale[]>([]);
   const [books, setBooks] = React.useState<Book[]>([]);
   const [isClient, setIsClient] = useState(false);
+  const [clientKey, setClientKey] = React.useState(0);
 
   useEffect(() => {
     setIsClient(true);
@@ -28,6 +29,10 @@ export default function SalesPage() {
       setBooks(booksData);
     }
     fetchData();
+  }, [clientKey]);
+
+  const handleDataChange = React.useCallback(() => {
+    setClientKey(prevKey => prevKey + 1);
   }, []);
 
   return (
@@ -36,7 +41,7 @@ export default function SalesPage() {
         <SidebarInset>
             <AppHeader />
             <main className="p-4 lg:p-6">
-                <SalesClient sales={sales} books={books} />
+                <SalesClient sales={sales} books={books} onDataChange={handleDataChange} />
             </main>
         </SidebarInset>
     </SidebarProvider>
