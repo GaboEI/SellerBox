@@ -1,7 +1,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { PlusCircle } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { PageHeader } from '@/components/shared/page-header';
 import { DataTable } from './data-table';
@@ -19,7 +19,7 @@ export function SalesClient({ sales, books }: { sales: Sale[], books: Book[] }) 
   
   const bookMap = new Map(books.map(b => [b.id, b]));
   
-  const tableColumns = React.useMemo(() => getColumns(isClient, t, ()=>{}, ()=>{}), [isClient, t]);
+  const tableColumns = React.useMemo(() => getColumns(isClient, t), [isClient, t]);
 
   const filteredSales = sales.filter(
     (sale) => {
@@ -42,15 +42,15 @@ export function SalesClient({ sales, books }: { sales: Sale[], books: Book[] }) 
   }, [filteredSales, bookMap]);
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-4">
       <PageHeader
         title={isClient ? t('sales_records') : 'Sales Records'}
         description={isClient ? t('view_manage_sales') : 'View and manage all your sales transactions.'}
       >
-        <Button size="sm" className="gap-1" asChild>
+        <Button size="icon" className="h-8 w-8 rounded-full" asChild>
           <Link href="/sales/add">
-            <PlusCircle className="h-4 w-4" />
-            {isClient ? t('record_sale') : 'Record Sale'}
+            <Plus className="h-4 w-4" />
+            <span className="sr-only">{isClient ? t('record_sale') : 'Record Sale'}</span>
           </Link>
         </Button>
       </PageHeader>
