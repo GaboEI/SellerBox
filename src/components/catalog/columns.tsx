@@ -57,8 +57,8 @@ const initialState = {
 
 
 function EditBookForm({ book, setOpen, isClient, t }: { book: Book, setOpen: (open: boolean) => void, isClient: boolean, t: TFunction }) {
-    const { toast } = useToast();
     const router = useRouter();
+    const { toast } = useToast();
     const [imagePreview, setImagePreview] = React.useState<string | null>(book.coverImageUrl || null);
     const [coverImageUrl, setCoverImageUrl] = React.useState<string>(book.coverImageUrl || '');
 
@@ -145,6 +145,7 @@ const CellActions: React.FC<{ row: any, isClient: boolean, t: TFunction }> = ({ 
 
   const handleDelete = async () => {
     const result = await deleteBook(book.id);
+    setIsDeleteDialogOpen(false); 
     if (result && result.message) {
         toast({ title: t('error'), description: result.message, variant: 'destructive'});
     } else {
