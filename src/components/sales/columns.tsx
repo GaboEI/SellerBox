@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { ColumnDef } from '@tanstack/react-table';
@@ -27,7 +27,7 @@ import { Label } from '@/components/ui/label';
 import { updateSale } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { useTranslation } from 'react-i18next';
+import { TFunction } from 'i18next';
 
 
 type SaleWithBookName = Sale & { bookName: string };
@@ -42,18 +42,16 @@ const statusVariantMap: Record<SaleStatus, 'default' | 'secondary' | 'destructiv
 };
 
 
-function SubmitButton() {
-  const { t } = useTranslation();
+function SubmitButton({ isClient, t }: { isClient: boolean, t: TFunction}) {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" disabled={pending}>
-      {pending ? t('saving') : t('save_changes')}
+      {isClient ? (pending ? t('saving') : t('save_changes')) : 'Save Changes' }
     </Button>
   );
 }
 
-function EditSaleForm({ sale, setOpen }: { sale: SaleWithBookName; setOpen: (open: boolean) => void }) {
-  const { t } = useTranslation();
+function EditSaleForm({ sale, setOpen, isClient, t }: { sale: SaleWithBookName; setOpen: (open: boolean) => void, isClient: boolean, t: TFunction }) {
   const [state, formAction] = useActionState(updateSale.bind(null, sale.id), { message: '', errors: {} });
   const { toast } = useToast();
   const [currentStatus, setCurrentStatus] = React.useState<SaleStatus>(sale.status);
@@ -62,28 +60,28 @@ function EditSaleForm({ sale, setOpen }: { sale: SaleWithBookName; setOpen: (ope
 
   React.useEffect(() => {
     if (state.message?.includes('success')) {
-      toast({ title: t('success'), description: t('update_sale_success') });
+      toast({ title: isClient ? t('success') : 'Success', description: isClient ? t('update_sale_success') : 'Sale updated successfully.' });
       setOpen(false);
     } else if (state.message) {
-      toast({ title: t('error'), description: state.message, variant: 'destructive' });
+      toast({ title: isClient ? t('error') : 'Error', description: state.message, variant: 'destructive' });
     }
-  }, [state, toast, setOpen, t]);
+  }, [state, toast, setOpen, t, isClient]);
 
   const showSaleAmount = currentStatus === 'completed' || currentStatus === 'sold_in_person';
 
   return (
     <form action={formAction} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="status">{t('status')}</Label>
+        <Label htmlFor="status">{isClient ? t('status') : 'Status'}</Label>
         <Select name="status" defaultValue={sale.status} onValueChange={(value) => setCurrentStatus(value as SaleStatus)} disabled={isFinalState}>
           <SelectTrigger>
-            <SelectValue placeholder={t('select_status')} />
+            <SelectValue placeholder={isClient ? t('select_status') : 'Select a status'} />
           </SelectTrigger>
           <SelectContent>
             {(['in_process', 'in_preparation', 'shipped', 'sold_in_person', 'completed', 'canceled'] as SaleStatus[]).map(
               (status) => (
                 <SelectItem key={status} value={status} className="capitalize">
-                  {t(status)}
+                  {isClient ? t(status) : status}
                 </SelectItem>
               )
             )}
@@ -93,7 +91,7 @@ function EditSaleForm({ sale, setOpen }: { sale: SaleWithBookName; setOpen: (ope
 
       {showSaleAmount && (
         <div className="space-y-2">
-          <Label htmlFor="saleAmount">{t('sale_amount')}</Label>
+          <Label htmlFor="saleAmount">{isClient ? t('sale_amount') : 'Sale Amount'}</Label>
           <div className="relative">
             <Input id="saleAmount" name="saleAmount" type="number" step="1" placeholder="2499" defaultValue={sale.saleAmount} required />
             <span className="absolute inset-y-0 right-3 flex items-center text-muted-foreground">₽</span>
@@ -101,14 +99,13 @@ function EditSaleForm({ sale, setOpen }: { sale: SaleWithBookName; setOpen: (ope
         </div>
       )}
       
-      {!isFinalState && <SubmitButton />}
+      {!isFinalState && <SubmitButton isClient={isClient} t={t} />}
     </form>
   );
 }
 
 
-function CellActions({ row }: { row: any }) {
-  const { t } = useTranslation();
+function CellActions({ row, isClient, t }: { row: any, isClient: boolean, t: TFunction }) {
   const sale = row.original as SaleWithBookName;
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
   const isFinalState = sale.status === 'completed' || sale.status === 'sold_in_person' || sale.status === 'canceled';
@@ -118,49 +115,43 @@ function CellActions({ row }: { row: any }) {
     <>
       <Button variant="ghost" size="icon" onClick={() => setIsEditDialogOpen(true)} className='h-8 w-8'>
         <Edit className="h-4 w-4" />
-        <span className="sr-only">{t('edit_sale')}</span>
+        <span className="sr-only">{isClient ? t('edit_sale') : 'Edit Sale'}</span>
       </Button>
 
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t('update_sale_status')}</DialogTitle>
+            <DialogTitle>{isClient ? t('update_sale_status') : 'Update Sale Status'}</DialogTitle>
             <DialogDescription>
-              {isFinalState ? t('update_sale_final_desc') : t('update_sale_desc')}
+              {isFinalState ? (isClient ? t('update_sale_final_desc') : 'This sale is in a final state and cannot be modified.') : (isClient ? t('update_sale_desc') : 'Change the status of the sale.')}
             </DialogDescription>
           </DialogHeader>
-          <EditSaleForm sale={sale} setOpen={setIsEditDialogOpen} />
+          <EditSaleForm sale={sale} setOpen={setIsEditDialogOpen} isClient={isClient} t={t} />
         </DialogContent>
       </Dialog>
     </>
   );
 }
 
-export const columns: ColumnDef<SaleWithBookName>[] = [
+export const columns = (isClient: boolean, t: TFunction): ColumnDef<SaleWithBookName>[] => [
   {
     accessorKey: 'bookName',
-    header: ({ column }) => {
-      const { t } = useTranslation();
-      return (
-        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-          {t('book_name')}
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
+    header: ({ column }) => (
+      <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+        {isClient ? t('book_name') : 'Book Name'}
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
     cell: ({ row }) => <div className="font-medium">{row.getValue('bookName')}</div>,
   },
   {
     accessorKey: 'date',
-    header: ({ column }) => {
-       const { t } = useTranslation();
-      return (
-        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-          {t('date')}
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
+    header: ({ column }) => (
+      <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+        {isClient ? t('date') : 'Date'}
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
     cell: ({ row }) => {
       const date = new Date(row.getValue('date'));
       const formatted = date.toLocaleDateString();
@@ -169,21 +160,20 @@ export const columns: ColumnDef<SaleWithBookName>[] = [
   },
   {
     accessorKey: 'status',
-    header: 'Status',
+    header: isClient ? t('status') : 'Status',
     cell: ({ row }) => {
-      const { t } = useTranslation();
       const status = row.getValue('status') as SaleStatus;
-      return <Badge variant={statusVariantMap[status]} className={cn('capitalize')}>{t(status)}</Badge>;
+      return <Badge variant={statusVariantMap[status]} className={cn('capitalize')}>{isClient ? t(status) : status}</Badge>;
     },
   },
   {
     accessorKey: 'platform',
-    header: 'Platform',
+    header: isClient ? t('platform') : 'Platform',
     cell: ({ row }) => <div>{row.getValue('platform') as string}</div>
   },
   {
     accessorKey: 'saleAmount',
-    header: 'Sale Amount',
+    header: isClient ? t('sale_amount') : 'Sale Amount',
     cell: ({ row }) => {
         const amount = row.getValue('saleAmount') as number | undefined;
         if (amount === undefined || amount === null) {
@@ -194,6 +184,6 @@ export const columns: ColumnDef<SaleWithBookName>[] = [
   },
   {
     id: 'actions',
-    cell: ({ row }) => <div className="text-center"><CellActions row={row} /></div>,
+    cell: ({ row }) => <div className="text-center"><CellActions row={row} isClient={isClient} t={t} /></div>,
   },
 ];

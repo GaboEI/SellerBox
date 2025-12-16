@@ -26,11 +26,13 @@ import { Button } from '@/components/ui/button';
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  isClient: boolean;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  isClient,
 }: DataTableProps<TData, TValue>) {
   const { t } = useTranslation();
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -85,7 +87,7 @@ export function DataTable<TData, TValue>({
             ) : (
                 <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                    {t('no_results')}
+                    {isClient ? t('no_results') : 'No results.'}
                 </TableCell>
                 </TableRow>
             )}
@@ -99,7 +101,7 @@ export function DataTable<TData, TValue>({
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
             >
-            {t('previous')}
+            {isClient ? t('previous') : 'Previous'}
             </Button>
             <Button
             variant="outline"
@@ -107,7 +109,7 @@ export function DataTable<TData, TValue>({
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
             >
-            {t('next')}
+            {isClient ? t('next') : 'Next'}
             </Button>
         </div>
     </div>

@@ -71,18 +71,18 @@ function AddBookForm({ setOpen, onDataChange }: { setOpen: (open: boolean) => vo
 
     if (state.message.includes('success')) {
       toast({
-        title: t('success'),
-        description: t('add_book_success'),
+        title: isClient ? t('success') : 'Success!',
+        description: isClient ? t('add_book_success') : 'Successfully added book.',
       });
       setOpen(false);
     } else {
       toast({
-        title: t('error'),
+        title: isClient ? t('error') : 'Error',
         description: state.message,
         variant: 'destructive',
       });
     }
-  }, [state, toast, setOpen, t]);
+  }, [state, toast, setOpen, t, isClient]);
   
   React.useEffect(() => {
     if (state.message.includes('success')) {
@@ -143,7 +143,7 @@ export function CatalogClient({ books, onDataChange }: { books: BookType[], onDa
       book.code.toLowerCase().includes(filter.toLowerCase())
   );
   
-  const tableColumns = columns(onDataChange);
+  const tableColumns = columns(onDataChange, isClient, t);
 
   return (
     <div className="flex flex-col gap-8">
@@ -178,7 +178,7 @@ export function CatalogClient({ books, onDataChange }: { books: BookType[], onDa
             className="max-w-sm"
           />
         </div>
-        <DataTable columns={tableColumns} data={filteredBooks} />
+        <DataTable columns={tableColumns} data={filteredBooks} isClient={isClient} />
       </Card>
     </div>
   );

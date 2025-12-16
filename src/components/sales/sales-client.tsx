@@ -1,6 +1,6 @@
 'use client';
 import * as React from 'react';
-import { useActionState } from 'react';
+import { useActionState } from 'react-dom';
 import { useFormStatus } from 'react-dom';
 import { PlusCircle, Calendar as CalendarIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -72,18 +72,18 @@ function AddSaleForm({ books, setOpen, onDataChange }: { books: Book[], setOpen:
     if (!state.message) return;
     if (state.message.includes('success')) {
       toast({
-        title: t('success'),
-        description: t('add_sale_success'),
+        title: isClient ? t('success') : 'Success!',
+        description: isClient ? t('add_sale_success') : 'Successfully recorded sale.',
       });
       setOpen(false);
     } else {
       toast({
-        title: t('error'),
+        title: isClient ? t('error') : 'Error',
         description: state.message,
         variant: 'destructive',
       });
     }
-  }, [state, toast, setOpen, t]);
+  }, [state, toast, setOpen, t, isClient]);
   
   React.useEffect(() => {
     if (state.message.includes('success')) {
@@ -100,7 +100,7 @@ function AddSaleForm({ books, setOpen, onDataChange }: { books: Book[], setOpen:
         <Label htmlFor="bookId">{isClient ? t('book') : 'Book'}</Label>
         <Select name="bookId">
           <SelectTrigger>
-            <SelectValue placeholder={isClient ? t('select_a_book') : 'Please select a book.'} />
+            <SelectValue placeholder={isClient ? t('please_select_a_book') : 'Please select a book.'} />
           </SelectTrigger>
           <SelectContent>
             {books.map(book => (
@@ -172,6 +172,9 @@ export function SalesClient({ sales, books, onDataChange }: { sales: Sale[], boo
   const [filter, setFilter] = React.useState('');
   
   const bookMap = new Map(books.map(b => [b.id, b]));
+  
+  const tableColumns = columns(isClient, t);
+
 
   const filteredSales = sales.filter(
     (sale) => {
@@ -222,7 +225,7 @@ export function SalesClient({ sales, books, onDataChange }: { sales: Sale[], boo
             className="max-w-sm"
           />
         </div>
-        <DataTable columns={columns} data={salesWithBookNames} />
+        <DataTable columns={tableColumns} data={salesWithBookNames} isClient={isClient} />
       </Card>
     </div>
   );

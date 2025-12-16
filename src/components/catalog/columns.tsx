@@ -2,11 +2,11 @@
 
 import { ColumnDef } from '@tanstack/react-table';
 import { MoreHorizontal, ArrowUpDown } from 'lucide-react';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useFormStatus } from 'react-dom';
 import Image from 'next/image';
 import { useActionState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { TFunction } from 'i18next';
 
 
 import { Button } from '@/components/ui/button';
@@ -42,12 +42,11 @@ import { updateBook, deleteBook } from '@/lib/actions';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 
-function SubmitButton() {
-    const { t } = useTranslation();
+function SubmitButton({ isClient, t }: { isClient: boolean, t: TFunction }) {
     const { pending } = useFormStatus();
     return (
       <Button type="submit" disabled={pending}>
-        {pending ? t('saving') : t('save_changes')}
+        {isClient ? (pending ? t('saving') : t('save_changes')) : 'Save Changes'}
       </Button>
     );
   }
@@ -58,8 +57,7 @@ const initialState = {
     resetKey: Date.now().toString(),
 };
 
-function EditBookForm({ book, setOpen, onDataChange }: { book: Book, setOpen: (open: boolean) => void, onDataChange: () => void }) {
-    const { t } = useTranslation();
+function EditBookForm({ book, setOpen, onDataChange, isClient, t }: { book: Book, setOpen: (open: boolean) => void, onDataChange: () => void, isClient: boolean, t: TFunction }) {
     const [state, formAction] = useActionState(updateBook.bind(null, book.id), initialState);
     const { toast } = useToast();
     const [imagePreview, setImagePreview] = React.useState<string | null>(book.coverImageUrl || null);
@@ -82,34 +80,34 @@ function EditBookForm({ book, setOpen, onDataChange }: { book: Book, setOpen: (o
       if (!state.message) return;
       if (state.message.includes('success')) {
         toast({
-          title: t('success'),
-          description: t('update_book_success'),
+          title: isClient ? t('success') : 'Success!',
+          description: isClient ? t('update_book_success') : 'Book updated successfully.',
         });
         setOpen(false);
         onDataChange();
       } else {
         toast({
-          title: t('error'),
+          title: isClient ? t('error') : 'Error',
           description: state.message,
           variant: 'destructive',
         });
       }
-    }, [state, toast, setOpen, onDataChange, t]);
+    }, [state, toast, setOpen, onDataChange, t, isClient]);
     
     return (
       <form action={formAction} key={state.resetKey} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="code">{t('code_unique')}</Label>
+          <Label htmlFor="code">{isClient ? t('code_unique') : 'Code (Unique)'}</Label>
           <Input id="code" name="code" defaultValue={book.code} required />
           {state.errors?.code && <p className="text-sm text-destructive">{state.errors.code[0]}</p>}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="name">{t('name')}</Label>
+          <Label htmlFor="name">{isClient ? t('name') : 'Name'}</Label>
           <Input id="name" name="name" defaultValue={book.name} required />
           {state.errors?.name && <p className="text-sm text-destructive">{state.errors.name[0]}</p>}
         </div>
         <div className="space-y-2">
-            <Label htmlFor="image-upload">{t('cover_photo')}</Label>
+            <Label htmlFor="image-upload">{isClient ? t('cover_photo') : 'Cover Photo'}</Label>
             <div className="flex items-center gap-4">
                 <div className="flex h-24 w-24 items-center justify-center rounded-lg border bg-muted text-muted-foreground">
                     {imagePreview ? (
@@ -128,14 +126,13 @@ function EditBookForm({ book, setOpen, onDataChange }: { book: Book, setOpen: (o
             </div>
             <input type="hidden" name="coverImageUrl" value={coverImageUrl} />
         </div>
-        <SubmitButton />
+        <SubmitButton isClient={isClient} t={t} />
       </form>
     );
   }
   
 
-const CellActions: React.FC<{ row: any, onDataChange: () => void }> = ({ row, onDataChange }) => {
-  const { t } = useTranslation();
+const CellActions: React.FC<{ row: any, onDataChange: () => void, isClient: boolean, t: TFunction }> = ({ row, onDataChange, isClient, t }) => {
   const book = row.original as Book;
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
@@ -155,39 +152,39 @@ const CellActions: React.FC<{ row: any, onDataChange: () => void }> = ({ row, on
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuLabel>{t('actions')}</DropdownMenuLabel>
+          <DropdownMenuLabel>{isClient ? t('actions') : 'Actions'}</DropdownMenuLabel>
           <DropdownMenuItem onClick={() => navigator.clipboard.writeText(book.code)}>
-            {t('copy_code')}
+            {isClient ? t('copy_code') : 'Copy Code'}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => setIsEditDialogOpen(true)}>{t('edit_book')}</DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)} className="text-destructive focus:text-destructive">{t('delete_book')}</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setIsEditDialogOpen(true)}>{isClient ? t('edit_book') : 'Edit Book'}</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)} className="text-destructive focus:text-destructive">{isClient ? t('delete_book') : 'Delete Book'}</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent>
             <DialogHeader>
-            <DialogTitle>{t('edit_book')}</DialogTitle>
+            <DialogTitle>{isClient ? t('edit_book') : 'Edit Book'}</DialogTitle>
             <DialogDescription>
-                {t('edit_book_desc')}
+                {isClient ? t('edit_book_desc') : 'Make changes to the book details. The code must remain unique.'}
             </DialogDescription>
             </DialogHeader>
-            <EditBookForm book={book} setOpen={setIsEditDialogOpen} onDataChange={onDataChange} />
+            <EditBookForm book={book} setOpen={setIsEditDialogOpen} onDataChange={onDataChange} isClient={isClient} t={t} />
         </DialogContent>
       </Dialog>
       
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
             <AlertDialogHeader>
-            <AlertDialogTitle>{t('are_you_sure')}</AlertDialogTitle>
+            <AlertDialogTitle>{isClient ? t('are_you_sure') : 'Are you sure?'}</AlertDialogTitle>
             <AlertDialogDescription>
-                {t('delete_book_warning')}
+                {isClient ? t('delete_book_warning') : 'This action cannot be undone. This will permanently delete the book.'}
             </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-            <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">{t('delete')}</AlertDialogAction>
+            <AlertDialogCancel>{isClient ? t('cancel') : 'Cancel'}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">{isClient ? t('delete') : 'Delete'}</AlertDialogAction>
             </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -195,12 +192,10 @@ const CellActions: React.FC<{ row: any, onDataChange: () => void }> = ({ row, on
   );
 };
 
-export const columns = (onDataChange: () => void): ColumnDef<Book>[] => {
-  const { t } = useTranslation();
-  return [
+export const columns = (onDataChange: () => void, isClient: boolean, t: TFunction): ColumnDef<Book>[] => [
     {
       accessorKey: 'coverImageUrl',
-      header: t('cover_photo_header'),
+      header: isClient ? t('cover_photo_header') : 'COVER PHOTO',
       cell: ({ row }) => {
         const imageUrl = row.getValue('coverImageUrl') as string | undefined;
         return (
@@ -223,40 +218,35 @@ export const columns = (onDataChange: () => void): ColumnDef<Book>[] => {
     },
     {
       accessorKey: 'code',
-      header: ({ column }) => {
-        return (
+      header: ({ column }) => (
           <Button
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
             className="p-0"
           >
-            {t('code_header')}
+            {isClient ? t('code_header') : 'Code'}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
-        );
-      },
+      ),
       cell: ({ row }) => <div className="font-mono">{row.getValue('code')}</div>,
     },
     {
       accessorKey: 'name',
-      header: ({ column }) => {
-        return (
+      header: ({ column }) => (
           <Button
             variant="ghost"
             onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
             className="p-0"
           >
-            {t('name_header')}
+            {isClient ? t('name_header') : 'Name'}
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
-        );
-      },
+      ),
       cell: ({ row }) => <div className="font-medium">{row.getValue('name')}</div>,
     },
     {
       id: 'actions',
-      cell: ({ row }) => <CellActions row={row} onDataChange={onDataChange} />,
+      cell: ({ row }) => <CellActions row={row} onDataChange={onDataChange} isClient={isClient} t={t} />,
       size: 60,
     },
   ];
-}
