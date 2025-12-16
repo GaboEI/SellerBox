@@ -72,7 +72,7 @@ function reducer(state: any, action: any) {
   return state;
 }
 
-function EditSaleForm({ sale, setOpen, isClient, t }: { sale: SaleWithBookData; setOpen: (open: boolean) => void, isClient: boolean, t: TFunction }) {
+function EditSaleForm({ sale, setOpen, onDataChange, isClient, t }: { sale: SaleWithBookData; setOpen: (open: boolean) => void, onDataChange: () => void, isClient: boolean, t: TFunction }) {
   const [state, dispatch] = useReducer(reducer, initialState);
   const { toast } = useToast();
   const [currentStatus, setCurrentStatus] = React.useState<SaleStatus>(sale.status);
@@ -83,6 +83,7 @@ function EditSaleForm({ sale, setOpen, isClient, t }: { sale: SaleWithBookData; 
     const result = await updateSale(sale.id, null, formData);
     if (result.message.includes('success')) {
         dispatch({ type: 'SUCCESS', message: result.message });
+        onDataChange();
         setOpen(false);
     } else {
         dispatch({ type: 'ERROR', message: result.message, errors: result.errors });
@@ -97,7 +98,7 @@ function EditSaleForm({ sale, setOpen, isClient, t }: { sale: SaleWithBookData; 
             toast({ title: isClient ? t('success') : 'Success', description: isClient ? t('update_sale_success') : 'Sale updated successfully.' });
         }
     }
-  }, [state, toast, isClient, t]);
+  }, [state, toast, onDataChange, isClient, t]);
 
   const showSaleAmount = currentStatus === 'completed' || currentStatus === 'sold_in_person';
 
@@ -137,7 +138,7 @@ function EditSaleForm({ sale, setOpen, isClient, t }: { sale: SaleWithBookData; 
 }
 
 
-function CellActions({ row, isClient, t }: { row: any, isClient: boolean, t: TFunction }) {
+function CellActions({ row, onDataChange, isClient, t }: { row: any, onDataChange: () => void, isClient: boolean, t: TFunction }) {
   const sale = row.original as SaleWithBookData;
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
   const isFinalState = sale.status === 'completed' || sale.status === 'sold_in_person' || sale.status === 'canceled';
@@ -158,7 +159,7 @@ function CellActions({ row, isClient, t }: { row: any, isClient: boolean, t: TFu
               {isFinalState ? (isClient ? t('update_sale_final_desc') : 'This sale is in a final state and cannot be modified.') : (isClient ? t('update_sale_desc') : 'Change the status of the sale.')}
             </DialogDescription>
           </DialogHeader>
-          <EditSaleForm sale={sale} setOpen={setIsEditDialogOpen} isClient={isClient} t={t} />
+          <EditSaleForm sale={sale} setOpen={setIsEditDialogOpen} onDataChange={onDataChange} isClient={isClient} t={t} />
         </DialogContent>
       </Dialog>
     </>
@@ -242,17 +243,23 @@ export const columns = (isClient: boolean, t: TFunction): ColumnDef<SaleWithBook
   },
   {
     accessorKey: 'saleAmount',
-    header: () => <div className="text-right">₽</div>,
+    header: () => <div className="text-center">{isClient ? t('sale_amount') : '₽'}</div>,
     cell: ({ row }) => {
-        const amount = row.getValue('saleAmount') as number | undefined;
-        if (amount === undefined || amount === null) {
-            return <div className="text-center">-</div>;
-        }
-        return <div className="text-right font-medium">{amount.toLocaleString('ru-RU')} ₽</div>;
+      const amount = row.getValue('saleAmount') as number | undefined;
+      if (amount === undefined || amount === null) {
+        return <div className="text-center">-</div>;
+      }
+      const formattedAmount = new Intl.NumberFormat('ru-RU', {
+        style: 'currency',
+        currency: 'RUB',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+      }).format(amount);
+      return <div className="text-right font-medium">{formattedAmount}</div>;
     }
   },
   {
     id: 'actions',
-    cell: ({ row }) => <div className="text-center"><CellActions row={row} isClient={isClient} t={t} /></div>,
+    cell: ({ row }) => <div className="text-center"><CellActions row={row} onDataChange={() => {}} isClient={isClient} t={t} /></div>,
   },
 ];

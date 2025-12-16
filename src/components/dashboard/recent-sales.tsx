@@ -53,6 +53,15 @@ export function RecentSales({ sales, books }: RecentSalesProps) {
           
           const fallback = book.name.substring(0, 2).toUpperCase();
 
+          const formattedAmount = sale.saleAmount
+            ? `+ ${new Intl.NumberFormat('ru-RU', {
+                style: 'currency',
+                currency: 'RUB',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0,
+              }).format(sale.saleAmount)}`
+            : '-';
+
           return (
             <div className="flex items-center gap-4" key={sale.id}>
               <Avatar className="hidden h-9 w-9 sm:flex">
@@ -69,7 +78,7 @@ export function RecentSales({ sales, books }: RecentSalesProps) {
                 </p>
               </div>
               <div className="ml-auto font-medium">
-                {`+ ${sale.saleAmount?.toLocaleString('ru-RU', { style: 'currency', currency: 'RUB', minimumFractionDigits: 0, maximumFractionDigits: 0}) || '-'}`}
+                {formattedAmount}
               </div>
             </div>
           );
