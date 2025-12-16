@@ -48,7 +48,7 @@ export async function addBook(prevState: any, formData: FormData) {
     });
     revalidatePath('/inventory');
     revalidatePath('/catalog');
-    return { message: 'add_book_success', errors: {}, resetKey: Date.now().toString() };
+    return { message: 'add_book_success', errors: {} };
   } catch (e) {
     console.error(e);
     return { message: 'Failed to add book.', errors: {} };
@@ -83,7 +83,7 @@ export async function updateBook(id: string, prevState: any, formData: FormData)
     });
     revalidatePath('/inventory');
     revalidatePath('/catalog');
-    return { message: 'update_book_success', errors: {}, resetKey: Date.now().toString() };
+    return { message: 'update_book_success', errors: {} };
   } catch (e) {
     return { message: 'Failed to update book.', errors: {} };
   }
@@ -150,7 +150,7 @@ export async function addSale(prevState: any, formData: FormData) {
     });
     revalidatePath('/');
     revalidatePath('/sales');
-    return { message: 'add_sale_success', errors: {}, resetKey: Date.now().toString() };
+    return { message: 'add_sale_success', errors: {} };
   } catch (e) {
     console.error(e);
     return { message: 'Failed to record sale.', errors: {} };
@@ -182,7 +182,7 @@ export async function updateSale(id: string, prevState: any, formData: FormData)
     });
     revalidatePath('/');
     revalidatePath('/sales');
-    return { message: 'update_sale_success', errors: {}, resetKey: Date.now().toString() };
+    return { message: 'update_sale_success', errors: {} };
   } catch (e) {
     return { message: 'Failed to update sale.', errors: {} };
   }

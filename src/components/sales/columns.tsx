@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { useActionState } from 'react';
+import React, { useEffect, useState, useReducer } from 'react';
 import { useFormStatus } from 'react-dom';
 import { ColumnDef } from '@tanstack/react-table';
 import { ArrowUpDown, Edit } from 'lucide-react';
@@ -51,21 +50,53 @@ function SubmitButton({ isClient, t }: { isClient: boolean, t: TFunction}) {
   );
 }
 
+const initialState = {
+  message: '',
+  errors: {},
+};
+
+function reducer(state: any, action: any) {
+  if (action.type === 'SUCCESS') {
+    return {
+      message: action.message,
+      errors: {},
+    };
+  }
+  if (action.type === 'ERROR') {
+    return {
+      message: action.message,
+      errors: action.errors || {},
+    };
+  }
+  return state;
+}
+
 function EditSaleForm({ sale, setOpen, isClient, t }: { sale: SaleWithBookName; setOpen: (open: boolean) => void, isClient: boolean, t: TFunction }) {
-  const [state, formAction] = useActionState(updateSale.bind(null, sale.id), { message: '', errors: {} });
+  const [state, dispatch] = useReducer(reducer, initialState);
   const { toast } = useToast();
   const [currentStatus, setCurrentStatus] = React.useState<SaleStatus>(sale.status);
 
   const isFinalState = sale.status === 'completed' || sale.status === 'sold_in_person' || sale.status === 'canceled';
 
-  React.useEffect(() => {
-    if (state.message?.includes('success')) {
-      toast({ title: isClient ? t('success') : 'Success', description: isClient ? t('update_sale_success') : 'Sale updated successfully.' });
-      setOpen(false);
-    } else if (state.message) {
-      toast({ title: isClient ? t('error') : 'Error', description: state.message, variant: 'destructive' });
+  const formAction = async (formData: FormData) => {
+    const result = await updateSale(sale.id, null, formData);
+    if (result.message.includes('success')) {
+        dispatch({ type: 'SUCCESS', message: result.message });
+        setOpen(false);
+    } else {
+        dispatch({ type: 'ERROR', message: result.message, errors: result.errors });
     }
-  }, [state, toast, setOpen, t, isClient]);
+  };
+
+  useEffect(() => {
+    if (state.message) {
+        if (state.errors && Object.keys(state.errors).length > 0) {
+            toast({ title: isClient ? t('error') : 'Error', description: state.message, variant: 'destructive' });
+        } else {
+            toast({ title: isClient ? t('success') : 'Success', description: isClient ? t('update_sale_success') : 'Sale updated successfully.' });
+        }
+    }
+  }, [state, toast, isClient, t]);
 
   const showSaleAmount = currentStatus === 'completed' || currentStatus === 'sold_in_person';
 

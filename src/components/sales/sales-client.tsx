@@ -1,10 +1,9 @@
 'use client';
 import * as React from 'react';
-import { useActionState } from 'react-dom';
 import { useFormStatus } from 'react-dom';
 import { PlusCircle, Calendar as CalendarIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useReducer } from 'react';
 import { format } from 'date-fns';
 
 import { Button } from '@/components/ui/button';
@@ -55,47 +54,67 @@ function SubmitButton() {
 const initialState = {
   message: '',
   errors: {},
-  resetKey: Date.now().toString(),
 };
+
+function reducer(state: any, action: any) {
+    if (action.type === 'SUCCESS') {
+      return {
+        message: action.message,
+        errors: {},
+      };
+    }
+    if (action.type === 'ERROR') {
+      return {
+        message: action.message,
+        errors: action.errors || {},
+      };
+    }
+    return state;
+  }
 
 function AddSaleForm({ books, setOpen, onDataChange }: { books: Book[], setOpen: (open: boolean) => void, onDataChange: () => void }) {
   const { t } = useTranslation();
   const [isClient, setIsClient] = useState(false);
   useEffect(() => { setIsClient(true); }, []);
-  const [state, formAction] = useActionState(addSale, initialState);
+  
+  const [state, dispatch] = useReducer(reducer, initialState);
   const { toast } = useToast();
   const formRef = React.useRef<HTMLFormElement>(null);
   const [date, setDate] = React.useState<Date | undefined>(new Date());
 
-
-  React.useEffect(() => {
-    if (!state.message) return;
-    if (state.message.includes('success')) {
-      toast({
-        title: isClient ? t('success') : 'Success!',
-        description: isClient ? t('add_sale_success') : 'Successfully recorded sale.',
-      });
+  const formAction = async (formData: FormData) => {
+    const result = await addSale(null, formData);
+    if (result.message.includes('success')) {
+      dispatch({ type: 'SUCCESS', message: result.message });
+      onDataChange();
       setOpen(false);
     } else {
-      toast({
-        title: isClient ? t('error') : 'Error',
-        description: state.message,
-        variant: 'destructive',
-      });
+      dispatch({ type: 'ERROR', message: result.message, errors: result.errors });
     }
-  }, [state, toast, setOpen, t, isClient]);
-  
-  React.useEffect(() => {
-    if (state.message.includes('success')) {
-        formRef.current?.reset();
-        setDate(new Date());
-        onDataChange();
+  };
+
+  useEffect(() => {
+    if (state.message) {
+        if (state.errors && Object.keys(state.errors).length > 0) {
+            toast({
+                title: isClient ? t('error') : 'Error',
+                description: state.message,
+                variant: 'destructive',
+            });
+        } else {
+            toast({
+                title: isClient ? t('success') : 'Success!',
+                description: isClient ? t('add_sale_success') : 'Successfully recorded sale.',
+            });
+            formRef.current?.reset();
+            setDate(new Date());
+        }
     }
-  }, [state.resetKey, state.message, onDataChange]);
+  }, [state, toast, isClient, t]);
 
 
   return (
-    <form ref={formRef} key={state.resetKey} action={formAction} className="space-y-4">
+    <form ref={formRef} action={formAction} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="bookId">{isClient ? t('book') : 'Book'}</Label>
         <Select name="bookId">

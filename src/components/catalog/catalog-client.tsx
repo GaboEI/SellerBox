@@ -1,7 +1,6 @@
 'use client';
 import * as React from 'react';
 import { useFormStatus } from 'react-dom';
-import { useActionState } from 'react';
 import { PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -23,7 +22,7 @@ import { Label } from '../ui/label';
 import { Card } from '../ui/card';
 import Image from 'next/image';
 import { useTranslation } from 'react-i18next';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useReducer } from 'react';
 
 function SubmitButton() {
   const { t } = useTranslation();
@@ -40,14 +39,30 @@ function SubmitButton() {
 const initialState = {
   message: '',
   errors: {},
-  resetKey: Date.now().toString(),
 };
+
+function reducer(state: any, action: any) {
+  if (action.type === 'SUCCESS') {
+    return {
+      message: action.message,
+      errors: {},
+    };
+  }
+  if (action.type === 'ERROR') {
+    return {
+      message: action.message,
+      errors: action.errors || {},
+    };
+  }
+  return state;
+}
 
 function AddBookForm({ setOpen, onDataChange }: { setOpen: (open: boolean) => void, onDataChange: () => void }) {
   const { t } = useTranslation();
   const [isClient, setIsClient] = useState(false);
   useEffect(() => { setIsClient(true); }, []);
-  const [state, formAction] = useActionState(addBook, initialState);
+
+  const [state, dispatch] = useReducer(reducer, initialState);
   const { toast } = useToast();
   const formRef = React.useRef<HTMLFormElement>(null);
   const [imagePreview, setImagePreview] = React.useState<string | null>(null);
@@ -66,35 +81,39 @@ function AddBookForm({ setOpen, onDataChange }: { setOpen: (open: boolean) => vo
     }
   };
 
-  React.useEffect(() => {
-    if (!state.message) return;
-
-    if (state.message.includes('success')) {
-      toast({
-        title: isClient ? t('success') : 'Success!',
-        description: isClient ? t('add_book_success') : 'Successfully added book.',
-      });
+  const formAction = async (formData: FormData) => {
+    const result = await addBook(null, formData);
+    if (result.message.includes('success')) {
+      dispatch({ type: 'SUCCESS', message: result.message });
+      onDataChange();
       setOpen(false);
     } else {
-      toast({
-        title: isClient ? t('error') : 'Error',
-        description: state.message,
-        variant: 'destructive',
-      });
+      dispatch({ type: 'ERROR', message: result.message, errors: result.errors });
     }
-  }, [state, toast, setOpen, t, isClient]);
-  
-  React.useEffect(() => {
-    if (state.message.includes('success')) {
+  };
+
+  useEffect(() => {
+    if (state.message) {
+      if (state.errors && Object.keys(state.errors).length > 0) {
+        toast({
+          title: isClient ? t('error') : 'Error',
+          description: state.message,
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: isClient ? t('success') : 'Success!',
+          description: isClient ? t('add_book_success') : 'Successfully added book.',
+        });
         formRef.current?.reset();
         setImagePreview(null);
         setCoverImageUrl('');
-        onDataChange();
+      }
     }
-  }, [state.resetKey, state.message, onDataChange]);
+  }, [state, toast, isClient, t]);
   
   return (
-    <form ref={formRef} action={formAction} key={state.resetKey} className="space-y-4">
+    <form ref={formRef} action={formAction} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="code">{isClient ? t('code_unique') : 'Code (Unique)'}</Label>
         <Input id="code" name="code" required />

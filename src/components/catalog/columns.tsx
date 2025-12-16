@@ -2,10 +2,9 @@
 
 import { ColumnDef } from '@tanstack/react-table';
 import { MoreHorizontal, ArrowUpDown } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useReducer } from 'react';
 import { useFormStatus } from 'react-dom';
 import Image from 'next/image';
-import { useActionState } from 'react';
 import { TFunction } from 'i18next';
 
 
@@ -54,11 +53,26 @@ function SubmitButton({ isClient, t }: { isClient: boolean, t: TFunction }) {
 const initialState = {
     message: '',
     errors: {},
-    resetKey: Date.now().toString(),
 };
 
+function reducer(state: any, action: any) {
+  if (action.type === 'SUCCESS') {
+    return {
+      message: action.message,
+      errors: {},
+    };
+  }
+  if (action.type === 'ERROR') {
+    return {
+      message: action.message,
+      errors: action.errors || {},
+    };
+  }
+  return state;
+}
+
 function EditBookForm({ book, setOpen, onDataChange, isClient, t }: { book: Book, setOpen: (open: boolean) => void, onDataChange: () => void, isClient: boolean, t: TFunction }) {
-    const [state, formAction] = useActionState(updateBook.bind(null, book.id), initialState);
+    const [state, dispatch] = useReducer(reducer, initialState);
     const { toast } = useToast();
     const [imagePreview, setImagePreview] = React.useState<string | null>(book.coverImageUrl || null);
     const [coverImageUrl, setCoverImageUrl] = React.useState<string>(book.coverImageUrl || '');
@@ -76,26 +90,36 @@ function EditBookForm({ book, setOpen, onDataChange, isClient, t }: { book: Book
         }
     };
   
-    React.useEffect(() => {
-      if (!state.message) return;
-      if (state.message.includes('success')) {
-        toast({
-          title: isClient ? t('success') : 'Success!',
-          description: isClient ? t('update_book_success') : 'Book updated successfully.',
-        });
-        setOpen(false);
-        onDataChange();
-      } else {
-        toast({
-          title: isClient ? t('error') : 'Error',
-          description: state.message,
-          variant: 'destructive',
-        });
-      }
-    }, [state, toast, setOpen, onDataChange, t, isClient]);
+    const formAction = async (formData: FormData) => {
+        const result = await updateBook(book.id, null, formData);
+        if (result.message.includes('success')) {
+            dispatch({ type: 'SUCCESS', message: result.message });
+            onDataChange();
+            setOpen(false);
+        } else {
+            dispatch({ type: 'ERROR', message: result.message, errors: result.errors });
+        }
+    };
+
+    useEffect(() => {
+        if (state.message) {
+          if (state.errors && Object.keys(state.errors).length > 0) {
+            toast({
+              title: isClient ? t('error') : 'Error',
+              description: state.message,
+              variant: 'destructive',
+            });
+          } else {
+            toast({
+              title: isClient ? t('success') : 'Success!',
+              description: isClient ? t('update_book_success') : 'Book updated successfully.',
+            });
+          }
+        }
+    }, [state, toast, isClient, t]);
     
     return (
-      <form action={formAction} key={state.resetKey} className="space-y-4">
+      <form action={formAction} className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="code">{isClient ? t('code_unique') : 'Code (Unique)'}</Label>
           <Input id="code" name="code" defaultValue={book.code} required />
