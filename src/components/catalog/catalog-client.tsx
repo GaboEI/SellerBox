@@ -2,7 +2,7 @@
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/shared/page-header';
 import { DataTable } from './data-table';
@@ -81,8 +81,8 @@ export function CatalogClient({
   );
 
   const tableColumns = React.useMemo(
-    () => getColumns(isClient, t, openDeleteDialog),
-    [isClient, t]
+    () => getColumns(t, openDeleteDialog, onBookDeleted),
+    [t, onBookDeleted]
   );
 
   return (
@@ -96,10 +96,10 @@ export function CatalogClient({
               : 'Manage your complete book collection.'
           }
         >
-          <Button size="sm" className="gap-1" asChild>
+          <Button size="icon" asChild>
             <Link href="/inventory/add">
-              <PlusCircle className="h-4 w-4" />
-              {isClient ? t('add_book') : 'Add Book'}
+              <Plus className="h-4 w-4" />
+              <span className="sr-only">{isClient ? t('add_book') : 'Add Book'}</span>
             </Link>
           </Button>
         </PageHeader>
