@@ -14,12 +14,15 @@ import {
 } from '@/components/ui/chart';
 import type { Sale } from '@/lib/types';
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
+
 
 interface SalesChartProps {
   sales: Sale[];
 }
 
 export function SalesChart({ sales }: SalesChartProps) {
+  const { t } = useTranslation();
   const data = useMemo(() => {
     const monthlySales = sales
       .filter((s) => s.status === 'completed' || s.status === 'sold_in_person')
@@ -53,7 +56,7 @@ export function SalesChart({ sales }: SalesChartProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Sales Overview</CardTitle>
+        <CardTitle>{t('sales_overview')}</CardTitle>
       </CardHeader>
       <CardContent className="pl-2">
         <ChartContainer config={chartConfig} className="h-[300px] w-full">

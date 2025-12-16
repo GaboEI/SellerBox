@@ -27,6 +27,8 @@ import { Label } from '@/components/ui/label';
 import { updateSale } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
+
 
 type SaleWithBookName = Sale & { bookName: string };
 
@@ -41,15 +43,17 @@ const statusVariantMap: Record<SaleStatus, 'default' | 'secondary' | 'destructiv
 
 
 function SubmitButton() {
+  const { t } = useTranslation();
   const { pending } = useFormStatus();
   return (
     <Button type="submit" disabled={pending}>
-      {pending ? 'Saving...' : 'Save Changes'}
+      {pending ? t('saving') : t('save_changes')}
     </Button>
   );
 }
 
 function EditSaleForm({ sale, setOpen }: { sale: SaleWithBookName; setOpen: (open: boolean) => void }) {
+  const { t } = useTranslation();
   const [state, formAction] = useActionState(updateSale.bind(null, sale.id), { message: '', errors: {} });
   const { toast } = useToast();
   const [currentStatus, setCurrentStatus] = React.useState<SaleStatus>(sale.status);
@@ -58,28 +62,28 @@ function EditSaleForm({ sale, setOpen }: { sale: SaleWithBookName; setOpen: (ope
 
   React.useEffect(() => {
     if (state.message?.includes('success')) {
-      toast({ title: 'Success!', description: 'Sale updated successfully.' });
+      toast({ title: t('success'), description: t('update_sale_success') });
       setOpen(false);
     } else if (state.message) {
-      toast({ title: 'Error', description: state.message, variant: 'destructive' });
+      toast({ title: t('error'), description: state.message, variant: 'destructive' });
     }
-  }, [state, toast, setOpen]);
+  }, [state, toast, setOpen, t]);
 
   const showSaleAmount = currentStatus === 'completed' || currentStatus === 'sold_in_person';
 
   return (
     <form action={formAction} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="status">Status</Label>
+        <Label htmlFor="status">{t('status')}</Label>
         <Select name="status" defaultValue={sale.status} onValueChange={(value) => setCurrentStatus(value as SaleStatus)} disabled={isFinalState}>
           <SelectTrigger>
-            <SelectValue placeholder='Select a status' />
+            <SelectValue placeholder={t('select_status')} />
           </SelectTrigger>
           <SelectContent>
             {(['in_process', 'in_preparation', 'shipped', 'sold_in_person', 'completed', 'canceled'] as SaleStatus[]).map(
               (status) => (
                 <SelectItem key={status} value={status} className="capitalize">
-                  {status.replace(/_/g, ' ')}
+                  {t(status)}
                 </SelectItem>
               )
             )}
@@ -89,7 +93,7 @@ function EditSaleForm({ sale, setOpen }: { sale: SaleWithBookName; setOpen: (ope
 
       {showSaleAmount && (
         <div className="space-y-2">
-          <Label htmlFor="saleAmount">Sale Amount</Label>
+          <Label htmlFor="saleAmount">{t('sale_amount')}</Label>
           <div className="relative">
             <Input id="saleAmount" name="saleAmount" type="number" step="1" placeholder="2499" defaultValue={sale.saleAmount} required />
             <span className="absolute inset-y-0 right-3 flex items-center text-muted-foreground">₽</span>
@@ -104,6 +108,7 @@ function EditSaleForm({ sale, setOpen }: { sale: SaleWithBookName; setOpen: (ope
 
 
 function CellActions({ row }: { row: any }) {
+  const { t } = useTranslation();
   const sale = row.original as SaleWithBookName;
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
   const isFinalState = sale.status === 'completed' || sale.status === 'sold_in_person' || sale.status === 'canceled';
@@ -113,15 +118,15 @@ function CellActions({ row }: { row: any }) {
     <>
       <Button variant="ghost" size="icon" onClick={() => setIsEditDialogOpen(true)} className='h-8 w-8'>
         <Edit className="h-4 w-4" />
-        <span className="sr-only">Edit Sale</span>
+        <span className="sr-only">{t('edit_sale')}</span>
       </Button>
 
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Update Sale Status</DialogTitle>
+            <DialogTitle>{t('update_sale_status')}</DialogTitle>
             <DialogDescription>
-              {isFinalState ? 'This sale is in a final state and cannot be modified.' : 'Change the status of the sale and enter the final amount if applicable.'}
+              {isFinalState ? t('update_sale_final_desc') : t('update_sale_desc')}
             </DialogDescription>
           </DialogHeader>
           <EditSaleForm sale={sale} setOpen={setIsEditDialogOpen} />
@@ -135,9 +140,10 @@ export const columns: ColumnDef<SaleWithBookName>[] = [
   {
     accessorKey: 'bookName',
     header: ({ column }) => {
+      const { t } = useTranslation();
       return (
         <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-          Book Name
+          {t('book_name')}
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
@@ -147,9 +153,10 @@ export const columns: ColumnDef<SaleWithBookName>[] = [
   {
     accessorKey: 'date',
     header: ({ column }) => {
+       const { t } = useTranslation();
       return (
         <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-          Date
+          {t('date')}
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
@@ -164,8 +171,9 @@ export const columns: ColumnDef<SaleWithBookName>[] = [
     accessorKey: 'status',
     header: 'Status',
     cell: ({ row }) => {
+      const { t } = useTranslation();
       const status = row.getValue('status') as SaleStatus;
-      return <Badge variant={statusVariantMap[status]} className={cn('capitalize')}>{status.replace(/_/g, ' ')}</Badge>;
+      return <Badge variant={statusVariantMap[status]} className={cn('capitalize')}>{t(status)}</Badge>;
     },
   },
   {

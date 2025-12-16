@@ -19,8 +19,11 @@ import { getUserProfile } from '@/lib/data';
 import type { UserProfile } from '@/lib/types';
 import { Skeleton } from '../ui/skeleton';
 import { useUser, useFirestore, doc, onSnapshot } from '@/firebase';
+import { useTranslation } from 'react-i18next';
+
 
 export function AppHeader() {
+  const { t } = useTranslation();
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -91,7 +94,7 @@ export function AppHeader() {
            <DropdownMenuItem asChild>
               <Link href="/settings">
                 <Settings className="mr-2 h-4 w-4" />
-                <span>Settings</span>
+                <span>{t('settings')}</span>
               </Link>
             </DropdownMenuItem>
         </DropdownMenuContent>

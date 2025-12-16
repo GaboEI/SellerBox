@@ -10,6 +10,8 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
+import { useTranslation } from 'react-i18next';
+
 
 import {
   Table,
@@ -30,6 +32,7 @@ export function DataTable<TData, TValue>({
   columns,
   data,
 }: DataTableProps<TData, TValue>) {
+  const { t } = useTranslation();
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const table = useReactTable({
     data,
@@ -82,7 +85,7 @@ export function DataTable<TData, TValue>({
             ) : (
                 <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                    No results.
+                    {t('no_results')}
                 </TableCell>
                 </TableRow>
             )}
@@ -96,7 +99,7 @@ export function DataTable<TData, TValue>({
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
             >
-            Previous
+            {t('previous')}
             </Button>
             <Button
             variant="outline"
@@ -104,7 +107,7 @@ export function DataTable<TData, TValue>({
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
             >
-            Next
+            {t('next')}
             </Button>
         </div>
     </div>

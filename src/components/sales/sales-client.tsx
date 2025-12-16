@@ -3,6 +3,8 @@ import * as React from 'react';
 import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { PlusCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+
 
 import { Button } from '@/components/ui/button';
 import {
@@ -31,10 +33,11 @@ import {
 import { Card } from '../ui/card';
 
 function SubmitButton() {
+  const { t } = useTranslation();
   const { pending } = useFormStatus();
   return (
     <Button type="submit" disabled={pending}>
-      {pending ? 'Recording...' : 'Record Sale'}
+      {pending ? t('recording') : t('record_sale')}
     </Button>
   );
 }
@@ -46,6 +49,7 @@ const initialState = {
 };
 
 function AddSaleForm({ books, setOpen }: { books: Book[], setOpen: (open: boolean) => void }) {
+  const { t } = useTranslation();
   const [state, formAction] = useActionState(addSale, initialState);
   const { toast } = useToast();
   const formRef = React.useRef<HTMLFormElement>(null);
@@ -54,27 +58,27 @@ function AddSaleForm({ books, setOpen }: { books: Book[], setOpen: (open: boolea
   React.useEffect(() => {
     if (state.message.includes('success')) {
       toast({
-        title: 'Success!',
-        description: 'Successfully recorded sale.',
+        title: t('success'),
+        description: t('add_sale_success'),
       });
       setOpen(false);
       formRef.current?.reset();
     } else if (state.message) {
       toast({
-        title: 'Error',
+        title: t('error'),
         description: state.message,
         variant: 'destructive',
       });
     }
-  }, [state, toast, setOpen]);
+  }, [state, toast, setOpen, t]);
 
   return (
     <form ref={formRef} key={state.resetKey} action={formAction} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="bookId">Book</Label>
+        <Label htmlFor="bookId">{t('book')}</Label>
         <Select name="bookId">
           <SelectTrigger>
-            <SelectValue placeholder='Select a book' />
+            <SelectValue placeholder={t('select_a_book')} />
           </SelectTrigger>
           <SelectContent>
             {books.map(book => (
@@ -88,7 +92,7 @@ function AddSaleForm({ books, setOpen }: { books: Book[], setOpen: (open: boolea
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="date">Date of Sale</Label>
+        <Label htmlFor="date">{t('date')}</Label>
         <Input
           id="date"
           name="date"
@@ -98,10 +102,10 @@ function AddSaleForm({ books, setOpen }: { books: Book[], setOpen: (open: boolea
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="platform">Platform</Label>
+        <Label htmlFor="platform">{t('platform')}</Label>
         <Select name="platform" defaultValue='Avito'>
           <SelectTrigger>
-            <SelectValue placeholder='Select a platform' />
+            <SelectValue placeholder={t('select_platform')} />
           </SelectTrigger>
           <SelectContent>
             {(['Avito', 'Ozon'] as SalePlatform[]).map(platform => (
@@ -120,6 +124,7 @@ function AddSaleForm({ books, setOpen }: { books: Book[], setOpen: (open: boolea
 }
 
 export function SalesClient({ sales, books }: { sales: Sale[], books: Book[] }) {
+  const { t } = useTranslation();
   const [open, setOpen] = React.useState(false);
   const [filter, setFilter] = React.useState('');
   
@@ -144,21 +149,21 @@ export function SalesClient({ sales, books }: { sales: Sale[], books: Book[] }) 
   return (
     <div className="flex flex-col gap-8">
       <PageHeader
-        title='Sales Records'
-        description='View and manage all your sales transactions.'
+        title={t('sales_records')}
+        description={t('view_manage_sales')}
       >
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button size="sm" className="gap-1">
               <PlusCircle className="h-4 w-4" />
-              Record Sale
+              {t('record_sale')}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Record a New Sale</DialogTitle>
+              <DialogTitle>{t('record_new_sale')}</DialogTitle>
               <DialogDescription>
-                Fill in the details to log a new sale.
+                {t('record_sale_desc')}
               </DialogDescription>
             </DialogHeader>
             <AddSaleForm books={books} setOpen={setOpen} />
@@ -168,7 +173,7 @@ export function SalesClient({ sales, books }: { sales: Sale[], books: Book[] }) 
       <Card className="p-4 sm:p-6">
         <div className="mb-4">
           <Input
-            placeholder='Filter by book, status, or platform...'
+            placeholder={t('filter_sales')}
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
             className="max-w-sm"

@@ -9,6 +9,7 @@ import {
   Tag,
   BarChart3
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import {
   Sidebar,
@@ -21,12 +22,13 @@ import {
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const { t } = useTranslation();
 
   const menuItems = [
-    { href: '/', label: 'Dashboard', icon: Home },
-    { href: '/inventory', label: 'Warehouse', icon: Package },
-    { href: '/sales', label: 'Sales', icon: ShoppingBag },
-    { href: '/listings', label: 'Listing Generator', icon: Tag },
+    { href: '/', label: 'dashboard', icon: Home },
+    { href: '/inventory', label: 'warehouse', icon: Package },
+    { href: '/sales', label: 'sales', icon: ShoppingBag },
+    { href: '/listings', label: 'listing_generator', icon: Tag },
   ];
 
   return (
@@ -47,11 +49,11 @@ export function AppSidebar() {
             <SidebarMenuButton
               asChild
               isActive={pathname === item.href}
-              tooltip={item.label}
+              tooltip={t(item.label)}
             >
               <Link href={item.href}>
                 <item.icon />
-                <span>{item.label}</span>
+                <span>{t(item.label)}</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

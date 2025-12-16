@@ -87,28 +87,28 @@ export const useFirebase = (): FirebaseContextState => {
   return context;
 };
 
-/** Hook para acceder al usuario autenticado. */
+/** Hook to access the authenticated user. */
 export const useUser = (): { user: User | null; isUserLoading: boolean } => {
     const { user, isUserLoading } = useFirebase();
     return { user, isUserLoading };
 }
 
-/** Hook para acceder a la instancia de Firebase Auth. */
+/** Hook to access the Firebase Auth instance. */
 export const useAuth = (): Auth | null => {
   return useFirebase().auth;
 };
 
-/** Hook para acceder a la instancia de Firestore. */
+/** Hook to access the Firestore instance. */
 export const useFirestore = (): Firestore | null => {
   return useFirebase().firestore;
 };
 
-/** Hook para acceder a la instancia de Firebase Storage. */
+/** Hook to access the Firebase Storage instance. */
 export const useStorage = (): FirebaseStorage | null => {
   return useFirebase().storage;
 };
 
-/** Hook para acceder a la instancia de Firebase App. */
+/** Hook to access the Firebase App instance. */
 export const useFirebaseApp = (): FirebaseApp | null => {
   return useFirebase().firebaseApp;
 };

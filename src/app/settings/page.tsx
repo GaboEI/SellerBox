@@ -17,6 +17,7 @@ import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { AppHeader } from '@/components/layout/header';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { ThemeToggle } from '@/components/settings/theme-toggle';
+import { LanguageToggle } from '@/components/i18n/language-toggle';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getUserProfile } from '@/lib/data';
@@ -24,9 +25,10 @@ import type { UserProfile } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore, doc, useDoc, setDoc } from '@/firebase';
-import { setDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { useTranslation } from 'react-i18next';
 
 export default function SettingsPage() {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
@@ -73,11 +75,11 @@ export default function SettingsPage() {
   const handleSave = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!user || !firestore) {
-      toast({ title: 'Error', description: 'You must be logged in.', variant: 'destructive' });
+      toast({ title: t('error'), description: t('must_be_logged_in'), variant: 'destructive' });
       return;
     }
     if (!username) {
-        toast({ title: 'Error', description: 'Username is required.', variant: 'destructive' });
+        toast({ title: t('error'), description: t('username_is_required'), variant: 'destructive' });
         return;
     }
 
@@ -90,19 +92,21 @@ export default function SettingsPage() {
       }
       
       const userDocRef = doc(firestore, 'users', user.uid);
-      
-      // Using a non-blocking update
-      setDocumentNonBlocking(userDocRef, updates, { merge: true });
+      await setDoc(userDocRef, updates, { merge: true });
 
       toast({
-        title: 'Success!',
-        description: 'Profile update in progress.',
+        title: t('success'),
+        description: t('profile_updated'),
       });
       setImagePreview(null);
       setPhotoUrlDataUri('');
 
     } catch (e: any) {
-        // Errors will be caught by the non-blocking helper's catch block
+        toast({
+            title: t('error'),
+            description: e.message || t('could_not_update_profile'),
+            variant: 'destructive',
+        });
     } finally {
       setIsSaving(false);
     }
@@ -124,20 +128,24 @@ export default function SettingsPage() {
         <main className="p-4 lg:p-6">
           <div className="flex flex-col gap-8">
             <PageHeader
-              title='Settings'
-              description='Customize your experience.'
+              title={t('settings')}
+              description={t('customize_your_experience')}
             />
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
               <div className="lg:col-span-1">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Appearance</CardTitle>
-                    <CardDescription>Adjust the look and feel of the application.</CardDescription>
+                    <CardTitle>{t('appearance')}</CardTitle>
+                    <CardDescription>{t('adjust_look_and_feel')}</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <Label htmlFor="theme">Theme</Label>
+                      <Label htmlFor="theme">{t('theme')}</Label>
                       <ThemeToggle />
+                    </div>
+                     <div className="flex items-center justify-between">
+                      <Label htmlFor="language">{t('language')}</Label>
+                      <LanguageToggle />
                     </div>
                   </CardContent>
                 </Card>
@@ -146,8 +154,8 @@ export default function SettingsPage() {
                 <form onSubmit={handleSave}>
                   <Card>
                     <CardHeader>
-                      <CardTitle>Account</CardTitle>
-                      <CardDescription>Manage your profile information and account settings.</CardDescription>
+                      <CardTitle>{t('account')}</CardTitle>
+                      <CardDescription>{t('manage_profile_info')}</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
                       {isLoading ? (
@@ -169,7 +177,7 @@ export default function SettingsPage() {
                           </Avatar>
                           <div className="space-y-1">
                             <Label htmlFor="photoUrl">
-                              Profile picture
+                              {t('profile_picture')}
                             </Label>
                             <Input
                               id="photoUrl"
@@ -182,7 +190,7 @@ export default function SettingsPage() {
                         </div>
                       )}
                       <div className="space-y-2">
-                        <Label htmlFor="username">Username</Label>
+                        <Label htmlFor="username">{t('username')}</Label>
                         {isLoading ? (
                           <Skeleton className="h-10 w-full" />
                         ) : (
@@ -198,7 +206,7 @@ export default function SettingsPage() {
                     </CardContent>
                     <CardFooter className="border-t px-6 py-4">
                        <Button type="submit" disabled={isSaving} className="w-full sm:w-auto">
-                         {isSaving ? 'Saving...' : 'Save Changes'}
+                         {isSaving ? t('saving') : t('save_changes')}
                        </Button>
                     </CardFooter>
                   </Card>

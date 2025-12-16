@@ -9,6 +9,8 @@ import {
 } from '@/components/ui/card';
 import type { Book, Sale } from '@/lib/types';
 import Image from 'next/image';
+import { useTranslation } from 'react-i18next';
+
 
 interface RecentSalesProps {
   sales: Sale[];
@@ -16,6 +18,7 @@ interface RecentSalesProps {
 }
 
 export function RecentSales({ sales, books }: RecentSalesProps) {
+  const { t } = useTranslation();
   const recentSales = sales
     .filter((s) => s.status === 'completed' || s.status === 'sold_in_person')
     .sort((a, b) => b.date.getTime() - a.date.getTime())
@@ -26,7 +29,7 @@ export function RecentSales({ sales, books }: RecentSalesProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Recent Sales</CardTitle>
+        <CardTitle>{t('recent_sales')}</CardTitle>
       </CardHeader>
       <CardContent className="grid gap-8">
         {recentSales.map((sale) => {

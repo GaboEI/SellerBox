@@ -10,8 +10,10 @@ import type { Book, Sale } from '@/lib/types';
 import { AppSidebar } from '@/components/layout/sidebar';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { AppHeader } from '@/components/layout/header';
+import { useTranslation } from 'react-i18next';
 
 export default function DashboardPage() {
+  const { t } = useTranslation();
   const [sales, setSales] = React.useState<Sale[]>([]);
   const [books, setBooks] = React.useState<Book[]>([]);
 
@@ -33,8 +35,8 @@ export default function DashboardPage() {
         <main className="p-4 lg:p-6">
           <div className="flex flex-col gap-8">
             <PageHeader
-              title="Dashboard"
-              description="An overview of your sales and inventory."
+              title={t('dashboard')}
+              description={t('overview_sales_inventory')}
             />
             <StatsCards sales={sales} books={books} />
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">

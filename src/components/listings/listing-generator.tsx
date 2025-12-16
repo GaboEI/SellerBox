@@ -26,8 +26,11 @@ import { generateEnhancedListingText } from '@/ai/flows/generate-enhanced-listin
 import { Wand2, Copy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '../ui/skeleton';
+import { useTranslation } from 'react-i18next';
+
 
 export function ListingGenerator({ books }: { books: Book[] }) {
+  const { t } = useTranslation();
   const [selectedBookId, setSelectedBookId] = React.useState<string | null>(null);
   const [listingText, setListingText] = React.useState('');
   const [imagePreview, setImagePreview] = React.useState<string | null>(null);
@@ -44,11 +47,11 @@ export function ListingGenerator({ books }: { books: Book[] }) {
 
   React.useEffect(() => {
     if (selectedBook) {
-      setListingText(`Check out this amazing book: ${selectedBook.name}!`);
+      setListingText(t('check_out_book', { bookName: selectedBook.name }));
     } else {
       setListingText('');
     }
-  }, [selectedBook]);
+  }, [selectedBook, t]);
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -64,8 +67,8 @@ export function ListingGenerator({ books }: { books: Book[] }) {
   const handleEnhanceText = async () => {
     if (!selectedBook) {
       toast({
-        title: 'No book selected',
-        description: 'Please select a book first.',
+        title: t('no_book_selected'),
+        description: t('please_select_book_first'),
         variant: 'destructive',
       });
       return;
@@ -79,14 +82,14 @@ export function ListingGenerator({ books }: { books: Book[] }) {
       });
       setListingText(result.enhancedListingText);
       toast({
-        title: 'Text Enhanced!',
-        description: 'The listing description has been refined by AI.',
+        title: t('text_enhanced'),
+        description: t('text_enhanced_desc'),
       });
     } catch (error) {
       console.error(error);
       toast({
-        title: 'Enhancement Failed',
-        description: 'Could not generate enhanced text. Please try again.',
+        title: t('enhancement_failed'),
+        description: t('enhancement_failed_desc'),
         variant: 'destructive',
       });
     } finally {
@@ -96,22 +99,22 @@ export function ListingGenerator({ books }: { books: Book[] }) {
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    toast({ title: 'Copied to clipboard!' });
+    toast({ title: t('copied_to_clipboard') });
   };
 
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
       <Card>
         <CardHeader>
-          <CardTitle>Controls</CardTitle>
-          <CardDescription>Select a book, upload an image, and craft your listing.</CardDescription>
+          <CardTitle>{t('controls')}</CardTitle>
+          <CardDescription>{t('listing_controls_desc')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="book-select">Book</Label>
+            <Label htmlFor="book-select">{t('book')}</Label>
             <Select onValueChange={setSelectedBookId}>
               <SelectTrigger id="book-select">
-                <SelectValue placeholder='Select a book from your catalog' />
+                <SelectValue placeholder={t('select_a_book')} />
               </SelectTrigger>
               <SelectContent>
                 {books.map((book) => (
@@ -123,15 +126,15 @@ export function ListingGenerator({ books }: { books: Book[] }) {
             </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="image-upload">Cover Image</Label>
+            <Label htmlFor="image-upload">{t('cover_image')}</Label>
             <Input id="image-upload" type="file" accept="image/*" onChange={handleImageUpload} />
           </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label htmlFor="listing-text">Listing Text</Label>
+              <Label htmlFor="listing-text">{t('listing_text')}</Label>
               <Button variant="ghost" size="sm" onClick={handleEnhanceText} disabled={isGenerating || !selectedBook}>
                 <Wand2 className="mr-2 h-4 w-4" />
-                {isGenerating ? 'Enhancing...' : 'Enhance with AI'}
+                {isGenerating ? t('enhancing') : t('enhance_with_ai')}
               </Button>
             </div>
             {isGenerating ? (
@@ -146,7 +149,7 @@ export function ListingGenerator({ books }: { books: Book[] }) {
                     value={listingText}
                     onChange={(e) => setListingText(e.target.value)}
                     rows={8}
-                    placeholder='Write your book description here...'
+                    placeholder={t('write_description_here')}
                 />
             )}
           </div>
@@ -157,17 +160,17 @@ export function ListingGenerator({ books }: { books: Book[] }) {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-                <CardTitle>Preview</CardTitle>
-                <CardDescription>This is how your listing will appear.</CardDescription>
+                <CardTitle>{t('preview')}</CardTitle>
+                <CardDescription>{t('listing_preview_desc')}</CardDescription>
             </div>
             <div className="flex items-center gap-2">
                 <Select onValueChange={(value) => setImageFit(value as 'cover' | 'contain')} defaultValue={imageFit}>
                     <SelectTrigger className="w-[120px]">
-                        <SelectValue placeholder='Image Fit' />
+                        <SelectValue placeholder={t('image_fit')} />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="cover">Fill Frame</SelectItem>
-                        <SelectItem value="contain">Fit Image</SelectItem>
+                        <SelectItem value="cover">{t('fill_frame')}</SelectItem>
+                        <SelectItem value="contain">{t('fit_image')}</SelectItem>
                     </SelectContent>
                 </Select>
             </div>
@@ -185,17 +188,17 @@ export function ListingGenerator({ books }: { books: Book[] }) {
           </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-                <h3 className="font-headline text-2xl font-bold">{selectedBook?.name || 'Book Title'}</h3>
+                <h3 className="font-headline text-2xl font-bold">{selectedBook?.name || t('book_title')}</h3>
                 <Button variant="ghost" size="icon" onClick={() => copyToClipboard(selectedBook?.name || '')}>
                     <Copy className="h-4 w-4" />
-                    <span className="sr-only">Copy title</span>
+                    <span className="sr-only">{t('copy_title')}</span>
                 </Button>
             </div>
             <div className="relative">
-                <p className="text-muted-foreground">{listingText || 'Your compelling book description will appear here.'}</p>
+                <p className="text-muted-foreground">{listingText || t('compelling_desc_placeholder')}</p>
                  <Button variant="ghost" size="icon" className="absolute -top-2 right-0" onClick={() => copyToClipboard(listingText)}>
                     <Copy className="h-4 w-4" />
-                    <span className="sr-only">Copy description</span>
+                    <span className="sr-only">{t('copy_description')}</span>
                 </Button>
             </div>
           </div>

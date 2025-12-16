@@ -4,6 +4,8 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from '@/components/settings/theme-provider';
 import { FirebaseProvider, initializeFirebase } from '@/firebase';
+import { I18nProvider } from '@/components/i18n/i18n-provider';
+import { useEffect } from 'react';
 
 // Metadata ya no puede exportarse desde un layout de cliente,
 // pero el título se puede establecer en la plantilla HTML si es necesario.
@@ -32,17 +34,19 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased">
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <FirebaseProvider
-            firebaseApp={firebaseApp}
-            auth={auth}
-            firestore={firestore}
-            storage={storage}
-          >
-            {children}
-          </FirebaseProvider>
-          <Toaster />
-        </ThemeProvider>
+        <I18nProvider>
+          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+            <FirebaseProvider
+              firebaseApp={firebaseApp}
+              auth={auth}
+              firestore={firestore}
+              storage={storage}
+            >
+              {children}
+            </FirebaseProvider>
+            <Toaster />
+          </ThemeProvider>
+        </I18nProvider>
       </body>
     </html>
   );

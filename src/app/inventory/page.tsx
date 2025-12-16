@@ -8,9 +8,11 @@ import type { Book } from '@/lib/types';
 import { AppSidebar } from '@/components/layout/sidebar';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { AppHeader } from '@/components/layout/header';
+import { useTranslation } from 'react-i18next';
 
 
 export default function InventoryPage() {
+  const { t } = useTranslation();
   const [books, setBooks] = React.useState<Book[]>([]);
   const [clientKey, setClientKey] = React.useState(Date.now().toString());
 
@@ -33,7 +35,7 @@ export default function InventoryPage() {
         <AppHeader />
         <main className="p-4 lg:p-6">
           <div className="flex flex-col gap-8">
-              <PageHeader title='Warehouse' description='View and manage your book stock.' />
+              <PageHeader title={t('warehouse')} description={t('view_manage_stock')} />
               <CatalogClient books={books} onDataChange={handleDataChange} />
           </div>
         </main>
