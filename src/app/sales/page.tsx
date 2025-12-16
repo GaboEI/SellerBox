@@ -15,7 +15,6 @@ export default function SalesPage() {
   const [sales, setSales] = React.useState<Sale[]>([]);
   const [books, setBooks] = React.useState<Book[]>([]);
   const [isClient, setIsClient] = useState(false);
-  const [clientKey, setClientKey] = useState(0);
 
   useEffect(() => {
     setIsClient(true);
@@ -30,15 +29,7 @@ export default function SalesPage() {
 
   useEffect(() => {
     fetchData();
-  }, [fetchData, clientKey]);
-  
-  const handleDataChange = useCallback(() => {
-    setClientKey(prevKey => prevKey + 1);
-  }, []);
-
-  const handleSaleDeleted = useCallback((deletedSaleId: string) => {
-    setSales(prevSales => prevSales.filter(sale => sale.id !== deletedSaleId));
-  }, []);
+  }, [fetchData]);
 
   return (
     <SidebarProvider>
@@ -49,8 +40,6 @@ export default function SalesPage() {
                 <SalesClient 
                     sales={sales} 
                     books={books} 
-                    onDataChange={handleDataChange} 
-                    onSaleDeleted={handleSaleDeleted} 
                 />
             </main>
         </SidebarInset>

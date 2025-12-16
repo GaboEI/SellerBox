@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { ColumnDef } from '@tanstack/react-table';
 import { ArrowUpDown, Edit } from 'lucide-react';
 import type { Sale, SaleStatus } from '@/lib/types';
@@ -10,7 +11,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
@@ -30,9 +30,8 @@ const statusVariantMap: Record<SaleStatus, 'default' | 'secondary' | 'destructiv
   canceled: 'destructive',
 };
 
-function CellActions({ row, isClient, t, onEdit, onDelete }: { row: any, isClient: boolean, t: TFunction, onEdit: (sale: SaleWithBookData) => void, onDelete: (sale: SaleWithBookData) => void }) {
+function CellActions({ row, isClient, t }: { row: any, isClient: boolean, t: TFunction }) {
   const sale = row.original as SaleWithBookData;
-  const isFinalState = sale.status === 'completed' || sale.status === 'sold_in_person' || sale.status === 'canceled';
 
   return (
     <>
@@ -45,9 +44,9 @@ function CellActions({ row, isClient, t, onEdit, onDelete }: { row: any, isClien
             </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => onEdit(sale)}>{isClient ? t('edit_sale') : 'Edit Sale'}</DropdownMenuItem>
-          {!isFinalState && <DropdownMenuSeparator />}
-          {!isFinalState && <DropdownMenuItem onClick={() => onDelete(sale)} className="text-destructive focus:text-destructive">{isClient ? t('delete_sale') : 'Delete Sale'}</DropdownMenuItem>}
+          <DropdownMenuItem asChild>
+            <Link href={`/sales/edit/${sale.id}`}>{isClient ? t('edit_sale') : 'Edit Sale'}</Link>
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
@@ -62,7 +61,7 @@ const formatDate = (date: Date, t: TFunction, isClient: boolean) => {
     return format(date, 'dd.MM.yy');
 };
 
-export const getColumns = (isClient: boolean, t: TFunction, onEdit: (sale: SaleWithBookData) => void, onDelete: (sale: SaleWithBookData) => void): ColumnDef<SaleWithBookData>[] => [
+export const getColumns = (isClient: boolean, t: TFunction): ColumnDef<SaleWithBookData>[] => [
   {
     accessorKey: 'coverImageUrl',
     header: () => <div className="text-center">{isClient ? t('photo') : 'Photo'}</div>,
@@ -147,6 +146,6 @@ export const getColumns = (isClient: boolean, t: TFunction, onEdit: (sale: SaleW
   },
   {
     id: 'actions',
-    cell: ({ row }) => <CellActions row={row} isClient={isClient} t={t} onEdit={onEdit} onDelete={onDelete} />,
+    cell: ({ row }) => <CellActions row={row} isClient={isClient} t={t} />,
   },
 ];

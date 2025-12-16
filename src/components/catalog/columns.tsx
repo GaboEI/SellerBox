@@ -4,6 +4,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { MoreHorizontal, ArrowUpDown } from 'lucide-react';
 import React from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { TFunction } from 'i18next';
 
 import { Button } from '@/components/ui/button';
@@ -21,10 +22,8 @@ import type { Book } from '@/lib/types';
 const CellActions: React.FC<{
   row: any,
   isClient: boolean,
-  t: TFunction,
-  onEdit: (book: Book) => void,
-  onDelete: (book: Book) => void
-}> = ({ row, isClient, t, onEdit, onDelete }) => {
+  t: TFunction
+}> = ({ row, isClient, t }) => {
   const book = row.original as Book;
 
   return (
@@ -42,15 +41,16 @@ const CellActions: React.FC<{
             {isClient ? t('copy_code') : 'Copy Code'}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => onEdit(book)}>{isClient ? t('edit_book') : 'Edit Book'}</DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onDelete(book)} className="text-destructive focus:text-destructive">{isClient ? t('delete_book') : 'Delete Book'}</DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href={`/inventory/edit/${book.id}`}>{isClient ? t('edit_book') : 'Edit Book'}</Link>
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </>
   );
 };
 
-export const getColumns = (isClient: boolean, t: TFunction, onEdit: (book: Book) => void, onDelete: (book: Book) => void): ColumnDef<Book>[] => [
+export const getColumns = (isClient: boolean, t: TFunction): ColumnDef<Book>[] => [
     {
       accessorKey: 'coverImageUrl',
       header: isClient ? t('cover_photo_header') : 'COVER PHOTO',
@@ -104,7 +104,7 @@ export const getColumns = (isClient: boolean, t: TFunction, onEdit: (book: Book)
     },
     {
       id: 'actions',
-      cell: ({ row }) => <CellActions row={row} isClient={isClient} t={t} onEdit={onEdit} onDelete={onDelete} />,
+      cell: ({ row }) => <CellActions row={row} isClient={isClient} t={t} />,
       size: 60,
     },
   ];

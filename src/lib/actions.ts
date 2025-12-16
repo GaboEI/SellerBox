@@ -1,18 +1,35 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import {
   addBook as dbAddBook,
   addSale as dbAddSale,
   getBookByCode,
+  getBookById as dbGetBookById,
   updateBook as dbUpdateBook,
   deleteBook as dbDeleteBook,
   updateSale as dbUpdateSale,
   deleteSale as dbDeleteSale,
+  getSaleById as dbGetSaleById,
+  getBooks as dbGetBooks,
 } from './data';
 import type { Book, SalePlatform, SaleStatus } from './types';
 import { parse } from 'date-fns';
+
+export async function getBooks() {
+  return await dbGetBooks();
+}
+
+export async function getBookById(id: string) {
+    return await dbGetBookById(id);
+}
+
+export async function getSaleById(id: string) {
+    return await dbGetSaleById(id);
+}
+
 
 const bookSchema = z.object({
   code: z.string().min(1, 'Code is required.'),
@@ -47,13 +64,13 @@ export async function addBook(prevState: any, formData: FormData) {
       ...validatedFields.data,
       coverImageUrl: validatedFields.data.coverImageUrl || '',
     });
-    revalidatePath('/inventory');
-    revalidatePath('/');
-    return { message: 'add_book_success', errors: {} };
   } catch (e) {
     console.error(e);
     return { message: 'Failed to add book.', errors: {} };
   }
+
+  revalidatePath('/inventory');
+  redirect('/inventory');
 }
 
 export async function updateBook(id: string, prevState: any, formData: FormData) {
@@ -82,23 +99,23 @@ export async function updateBook(id: string, prevState: any, formData: FormData)
     await dbUpdateBook(id, {
       ...validatedFields.data,
     });
-    revalidatePath('/inventory');
-    revalidatePath('/');
-    return { message: 'update_book_success', errors: {} };
   } catch (e) {
     return { message: 'Failed to update book.', errors: {} };
   }
+
+  revalidatePath('/inventory');
+  revalidatePath(`/inventory/edit/${id}`);
+  redirect('/inventory');
 }
 
 export async function deleteBook(id: string) {
   try {
     await dbDeleteBook(id);
-    revalidatePath('/inventory');
-    revalidatePath('/');
   } catch (e) {
     console.error('Failed to delete book', e);
     return { message: 'Failed to delete book' };
   }
+  revalidatePath('/inventory');
 }
 
 const saleSchema = z.object({
@@ -154,13 +171,14 @@ export async function addSale(prevState: any, formData: FormData) {
       date: dateObj.toISOString(),
       platform: validatedFields.data.platform as SalePlatform,
     });
-    revalidatePath('/');
-    revalidatePath('/sales');
-    return { message: 'add_sale_success', errors: {} };
   } catch (e) {
     console.error(e);
     return { message: 'Failed to record sale.', errors: {} };
   }
+
+  revalidatePath('/');
+  revalidatePath('/sales');
+  redirect('/sales');
 }
 
 const updateSaleSchema = z.object({
@@ -186,22 +204,23 @@ export async function updateSale(id: string, prevState: any, formData: FormData)
       ...validatedFields.data,
       status: validatedFields.data.status as SaleStatus,
     });
-    revalidatePath('/');
-    revalidatePath('/sales');
-    return { message: 'update_sale_success', errors: {} };
   } catch (e) {
     return { message: 'Failed to update sale.', errors: {} };
   }
+  
+  revalidatePath('/');
+  revalidatePath('/sales');
+  revalidatePath(`/sales/edit/${id}`);
+  redirect('/sales');
 }
 
 export async function deleteSale(id: string) {
     try {
         await dbDeleteSale(id);
-        revalidatePath('/');
-        revalidatePath('/sales');
-        return { message: 'delete_sale_success' };
     } catch (e) {
         console.error('Failed to delete sale', e);
         return { message: 'failed_to_delete_sale' };
     }
+    revalidatePath('/');
+    revalidatePath('/sales');
 }

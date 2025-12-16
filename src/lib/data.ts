@@ -104,6 +104,10 @@ export async function getSales(): Promise<Sale[]> {
     date: new Date(sale.date),
   }));
 }
+export async function getSaleById(id: string): Promise<Sale | undefined> {
+    const sales = await getSales();
+    return sales.find((sale) => sale.id === id);
+}
 export async function addSale(
   sale: Omit<Sale, 'id' | 'status' | 'date'> & { date: string }
 ): Promise<Sale> {
