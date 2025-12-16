@@ -1,6 +1,7 @@
 'use client';
 import * as React from 'react';
 import { useFormStatus, useFormState } from 'react-dom';
+import { usePathname } from 'next/navigation';
 import { PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -217,22 +218,44 @@ export function CatalogClient({ books, onDataChange, onBookDeleted }: { books: B
   const [openDeleteDialog, setOpenDeleteDialog] = React.useState(false);
   const [selectedBook, setSelectedBook] = React.useState<BookType | null>(null);
   const [filter, setFilter] = React.useState('');
+  const pathname = usePathname();
 
-  const handleEditClick = (book: BookType) => {
+  useEffect(() => {
+    setOpenAddDialog(false);
+    setOpenEditDialog(false);
+    setOpenDeleteDialog(false);
+    setSelectedBook(null);
+  }, [pathname]);
+
+  const handleEditOpen = (book: BookType) => {
     setSelectedBook(book);
     setOpenEditDialog(true);
   };
 
-  const handleDeleteClick = (book: BookType) => {
+  const handleEditClose = (open: boolean) => {
+    if (!open) {
+      setSelectedBook(null);
+    }
+    setOpenEditDialog(open);
+  }
+
+  const handleDeleteOpen = (book: BookType) => {
     setSelectedBook(book);
     setOpenDeleteDialog(true);
   };
   
+  const handleDeleteClose = (open: boolean) => {
+    if (!open) {
+      setSelectedBook(null);
+    }
+    setOpenDeleteDialog(open);
+  }
+
   const handleDeleteConfirm = async () => {
     if (!selectedBook) return;
 
     const result = await deleteBook(selectedBook.id);
-    setOpenDeleteDialog(false); 
+    handleDeleteClose(false); 
     if (result && result.message) {
         toast({ title: t('error'), description: result.message, variant: 'destructive'});
     } else {
@@ -247,7 +270,7 @@ export function CatalogClient({ books, onDataChange, onBookDeleted }: { books: B
       book.code.toLowerCase().includes(filter.toLowerCase())
   );
   
-  const tableColumns = React.useMemo(() => getColumns(isClient, t, handleEditClick, handleDeleteClick), [isClient, t]);
+  const tableColumns = React.useMemo(() => getColumns(isClient, t, handleEditOpen, handleDeleteOpen), [isClient, t]);
 
   return (
     <div className="flex flex-col gap-8">
@@ -286,7 +309,7 @@ export function CatalogClient({ books, onDataChange, onBookDeleted }: { books: B
       </Card>
 
       {/* Edit Dialog */}
-      <Dialog open={openEditDialog} onOpenChange={setOpenEditDialog}>
+      <Dialog open={openEditDialog} onOpenChange={handleEditClose}>
         <DialogContent>
             <DialogHeader>
             <DialogTitle>{isClient ? t('edit_book') : 'Edit Book'}</DialogTitle>
@@ -299,7 +322,7 @@ export function CatalogClient({ books, onDataChange, onBookDeleted }: { books: B
       </Dialog>
       
       {/* Delete Dialog */}
-      <AlertDialog open={openDeleteDialog} onOpenChange={setOpenDeleteDialog}>
+      <AlertDialog open={openDeleteDialog} onOpenChange={handleDeleteClose}>
         <AlertDialogContent>
             <AlertDialogHeader>
             <AlertDialogTitle>{isClient ? t('are_you_sure') : 'Are you sure?'}</AlertDialogTitle>

@@ -1,6 +1,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import { useFormStatus, useFormState } from 'react-dom';
+import { usePathname } from 'next/navigation';
 import { PlusCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
@@ -60,7 +61,7 @@ const initialState = {
 
 
 function AddSaleForm({ books, setOpen, onDataChange, isClient, t }: { books: Book[], setOpen: (open: boolean) => void, onDataChange: () => void, isClient: boolean, t: any }) {
-  const [state, formAction] = useFormState(addSale, initialState);
+  const [state, formAction] = React.useActionState(addSale, initialState);
   const { toast } = useToast();
   const formRef = React.useRef<HTMLFormElement>(null);
   
@@ -222,24 +223,47 @@ export function SalesClient({ sales, books, onDataChange, onSaleDeleted }: { sal
   const [openDeleteDialog, setOpenDeleteDialog] = React.useState(false);
   const [selectedSale, setSelectedSale] = React.useState<SaleWithBookData | null>(null);
   const [filter, setFilter] = React.useState('');
+  const pathname = usePathname();
   
   const bookMap = new Map(books.map(b => [b.id, b]));
   
-  const handleEditClick = (sale: SaleWithBookData) => {
+  useEffect(() => {
+    setOpenAddDialog(false);
+    setOpenEditDialog(false);
+    setOpenDeleteDialog(false);
+    setSelectedSale(null);
+  }, [pathname]);
+
+
+  const handleEditOpen = (sale: SaleWithBookData) => {
     setSelectedSale(sale);
     setOpenEditDialog(true);
   };
   
-  const handleDeleteClick = (sale: SaleWithBookData) => {
+  const handleEditClose = (open: boolean) => {
+    if (!open) {
+      setSelectedSale(null);
+    }
+    setOpenEditDialog(open);
+  };
+
+  const handleDeleteOpen = (sale: SaleWithBookData) => {
     setSelectedSale(sale);
     setOpenDeleteDialog(true);
   };
+
+  const handleDeleteClose = (open: boolean) => {
+    if (!open) {
+        setSelectedSale(null);
+    }
+    setOpenDeleteDialog(open);
+  }
 
   const handleDeleteConfirm = async () => {
     if (!selectedSale) return;
     
     const result = await deleteSale(selectedSale.id);
-    setOpenDeleteDialog(false);
+    handleDeleteClose(false);
     
     if (result.message) {
         if (result.message.includes('success')) {
@@ -253,7 +277,7 @@ export function SalesClient({ sales, books, onDataChange, onSaleDeleted }: { sal
     }
   };
 
-  const tableColumns = React.useMemo(() => getColumns(isClient, t, handleEditClick, handleDeleteClick), [isClient, t]);
+  const tableColumns = React.useMemo(() => getColumns(isClient, t, handleEditOpen, handleDeleteOpen), [isClient, t]);
 
   const filteredSales = sales.filter(
     (sale) => {
@@ -312,7 +336,7 @@ export function SalesClient({ sales, books, onDataChange, onSaleDeleted }: { sal
       </Card>
       
       {/* Edit Dialog */}
-      <Dialog open={openEditDialog} onOpenChange={setOpenEditDialog}>
+      <Dialog open={openEditDialog} onOpenChange={handleEditClose}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{isClient ? t('update_sale_status') : 'Update Sale Status'}</DialogTitle>
@@ -327,7 +351,7 @@ export function SalesClient({ sales, books, onDataChange, onSaleDeleted }: { sal
       </Dialog>
       
       {/* Delete Dialog */}
-      <AlertDialog open={openDeleteDialog} onOpenChange={setOpenDeleteDialog}>
+      <AlertDialog open={openDeleteDialog} onOpenChange={handleDeleteClose}>
         <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>{isClient ? t('are_you_sure_delete') : 'Are you absolutely sure?'}</AlertDialogTitle>
