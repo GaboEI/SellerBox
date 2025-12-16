@@ -27,6 +27,7 @@ import { updateSale } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { TFunction } from 'i18next';
+import { format, isToday, isYesterday } from 'date-fns';
 
 
 type SaleWithBookName = Sale & { bookName: string };
@@ -164,6 +165,13 @@ function CellActions({ row, isClient, t }: { row: any, isClient: boolean, t: TFu
   );
 }
 
+const formatDate = (date: Date, t: TFunction, isClient: boolean) => {
+    if (!isClient) return '';
+    if (isToday(date)) return t('today');
+    if (isYesterday(date)) return t('yesterday');
+    return format(date, 'dd.MM.yy');
+};
+
 export const columns = (isClient: boolean, t: TFunction): ColumnDef<SaleWithBookName>[] => [
   {
     accessorKey: 'bookName',
@@ -178,15 +186,16 @@ export const columns = (isClient: boolean, t: TFunction): ColumnDef<SaleWithBook
   {
     accessorKey: 'date',
     header: ({ column }) => (
-      <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-        {isClient ? t('date') : 'Date'}
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
+        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+            <div className="text-center w-full">
+                {isClient ? t('date') : 'Date'}
+            </div>
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
     ),
     cell: ({ row }) => {
-      const date = new Date(row.getValue('date'));
-      const formatted = date.toLocaleDateString();
-      return <div className="font-medium">{formatted}</div>;
+        const date = new Date(row.getValue('date'));
+        return <div className="text-center font-medium">{formatDate(date, t, isClient)}</div>;
     },
   },
   {
@@ -205,8 +214,8 @@ export const columns = (isClient: boolean, t: TFunction): ColumnDef<SaleWithBook
   },
   {
     accessorKey: 'platform',
-    header: isClient ? t('platform') : 'Platform',
-    cell: ({ row }) => <div>{row.getValue('platform') as string}</div>
+    header: () => <div className="text-center">{isClient ? t('platform') : 'Platform'}</div>,
+    cell: ({ row }) => <div className="text-center">{row.getValue('platform') as string}</div>
   },
   {
     accessorKey: 'saleAmount',

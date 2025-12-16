@@ -10,6 +10,8 @@ import {
 import type { Book, Sale } from '@/lib/types';
 import Image from 'next/image';
 import { useTranslation } from 'react-i18next';
+import { format, isToday, isYesterday } from 'date-fns';
+import { useState, useEffect } from 'react';
 
 
 interface RecentSalesProps {
@@ -19,6 +21,19 @@ interface RecentSalesProps {
 
 export function RecentSales({ sales, books }: RecentSalesProps) {
   const { t } = useTranslation();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  const formatDate = (date: Date) => {
+    if (!isClient) return '';
+    if (isToday(date)) return t('today');
+    if (isYesterday(date)) return t('yesterday');
+    return format(date, 'dd.MM.yy');
+  };
+
   const recentSales = sales
     .filter((s) => s.status === 'completed' || s.status === 'sold_in_person')
     .sort((a, b) => b.date.getTime() - a.date.getTime())
@@ -29,7 +44,7 @@ export function RecentSales({ sales, books }: RecentSalesProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{t('recent_sales')}</CardTitle>
+        <CardTitle>{isClient ? t('recent_sales') : 'Recent Sales'}</CardTitle>
       </CardHeader>
       <CardContent className="grid gap-8">
         {recentSales.map((sale) => {
@@ -50,7 +65,7 @@ export function RecentSales({ sales, books }: RecentSalesProps) {
               <div className="grid gap-1">
                 <p className="text-sm font-medium leading-none">{book.name}</p>
                 <p className="text-sm text-muted-foreground">
-                  {sale.date.toLocaleDateString()}
+                  {formatDate(sale.date)}
                 </p>
               </div>
               <div className="ml-auto font-medium">

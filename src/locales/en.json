@@ -125,5 +125,7 @@
   "dark": "Dark",
   "system": "System",
   "change": "Change",
-  "select_date": "Select date"
+  "select_date": "Select date",
+  "today": "Today",
+  "yesterday": "Yesterday"
 }
