@@ -11,6 +11,7 @@ import {
   updateSale as dbUpdateSale,
 } from './data';
 import type { Book, SalePlatform, SaleStatus } from './types';
+import { format, parse } from 'date-fns';
 
 const bookSchema = z.object({
   code: z.string().min(1, 'Code is required.'),
@@ -101,7 +102,7 @@ export async function deleteBook(id: string) {
 
 const saleSchema = z.object({
   bookId: z.string().min(1, 'Please select a book.'),
-  date: z.string().regex(/^\d{2}\.\d{2}\.\d{4}$/, 'Please use DD.MM.YYYY format.'),
+  date: z.string().min(1, 'Please select a date.'),
   platform: z.enum(['Avito', 'Ozon']),
 });
 
@@ -119,12 +120,11 @@ export async function addSale(prevState: any, formData: FormData) {
     };
   }
 
-  const [day, month, year] = validatedFields.data.date.split('.');
-  const isoDate = `${year}-${month}-${day}`;
+  
+  const dateObj = new Date(validatedFields.data.date);
 
   // Check if date is valid
-  const dateObj = new Date(isoDate);
-  if (isNaN(dateObj.getTime()) || dateObj.getDate() !== parseInt(day, 10)) {
+  if (isNaN(dateObj.getTime())) {
     return {
       errors: { date: ['The date is invalid.'] },
       message: 'Error: Please check the fields.',

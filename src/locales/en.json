@@ -124,5 +124,6 @@
   "light": "Light",
   "dark": "Dark",
   "system": "System",
-  "change": "Change"
+  "change": "Change",
+  "select_date": "Select date"
 }
