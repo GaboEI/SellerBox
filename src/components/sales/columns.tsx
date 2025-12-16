@@ -13,17 +13,26 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from '@/components/ui/dialog';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+
 import {
   Select,
   SelectContent,
@@ -152,26 +161,18 @@ function CellActions({ row, onDataChange, isClient, t }: { row: any, onDataChang
   const sale = row.original as SaleWithBookData;
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
-  const [masterKey, setMasterKey] = React.useState('');
-  const { toast } = useToast();
 
   const isFinalState = sale.status === 'completed' || sale.status === 'sold_in_person' || sale.status === 'canceled';
 
   const handleDelete = async () => {
-    const result = await deleteSale(sale.id, masterKey);
-    if (result.message.includes('success')) {
-        onDataChange();
-        toast({ title: t('success'), description: t('delete_sale_success') });
-        setIsDeleteDialogOpen(false);
-    } else {
-        toast({ title: t('error'), description: result.message, variant: 'destructive'});
-    }
+    await deleteSale(sale.id);
+    onDataChange();
   }
 
 
   return (
     <>
-    <div className="flex justify-center">
+    <div className="flex justify-end">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="h-8 w-8 p-0">
@@ -204,21 +205,11 @@ function CellActions({ row, onDataChange, isClient, t }: { row: any, onDataChang
             <AlertDialogHeader>
               <AlertDialogTitle>{isClient ? t('are_you_sure_delete') : 'Are you absolutely sure?'}</AlertDialogTitle>
               <AlertDialogDescription>
-                {isClient ? t('delete_sale_warning') : 'This action is dangerous and cannot be undone. To proceed, please enter the master key.'}
+                {isClient ? t('delete_book_warning') : 'This will permanently delete the sale record.'}
               </AlertDialogDescription>
             </AlertDialogHeader>
-            <div className="space-y-2">
-                <Label htmlFor="master-key">{isClient ? t('master_key') : 'Master Key'}</Label>
-                <Input 
-                    id="master-key" 
-                    type="password"
-                    value={masterKey}
-                    onChange={(e) => setMasterKey(e.target.value)}
-                    placeholder="*****************"
-                />
-            </div>
             <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => setMasterKey('')}>{isClient ? t('cancel') : 'Cancel'}</AlertDialogCancel>
+              <AlertDialogCancel>{isClient ? t('cancel') : 'Cancel'}</AlertDialogCancel>
               <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">{isClient ? t('delete') : 'Delete'}</AlertDialogAction>
             </AlertDialogFooter>
         </AlertDialogContent>

@@ -13,7 +13,7 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart';
 import type { Sale } from '@/lib/types';
-import { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
 
@@ -23,6 +23,12 @@ interface SalesChartProps {
 
 export function SalesChart({ sales }: SalesChartProps) {
   const { t } = useTranslation();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   const data = useMemo(() => {
     const monthlySales = sales
       .filter((s) => s.status === 'completed' || s.status === 'sold_in_person')
@@ -56,7 +62,7 @@ export function SalesChart({ sales }: SalesChartProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{t('sales_overview')}</CardTitle>
+        <CardTitle>{isClient ? t('sales_overview') : 'Sales Overview'}</CardTitle>
       </CardHeader>
       <CardContent className="pl-2">
         <ChartContainer config={chartConfig} className="h-[300px] w-full">

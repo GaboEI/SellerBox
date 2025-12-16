@@ -10,12 +10,17 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useTranslation } from 'react-i18next';
+import React, { useState, useEffect } from 'react';
 
 
 export function ThemeToggle() {
   const { setTheme } = useTheme();
   const { t } = useTranslation();
+  const [isClient, setIsClient] = useState(false);
 
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   return (
     <DropdownMenu>
@@ -28,13 +33,13 @@ export function ThemeToggle() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={() => setTheme('light')}>
-          {t('light')}
+          {isClient ? t('light') : 'Light'}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme('dark')}>
-          {t('dark')}
+          {isClient ? t('dark') : 'Dark'}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme('system')}>
-          {t('system')}
+          {isClient ? t('system') : 'System'}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
