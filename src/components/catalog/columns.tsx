@@ -3,7 +3,7 @@
 import { ColumnDef } from '@tanstack/react-table';
 import { MoreHorizontal, ArrowUpDown } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
-import { useFormStatus, useFormState } from 'react-dom';
+import { useFormStatus } from 'react-dom';
 import Image from 'next/image';
 import { TFunction } from 'i18next';
 import { useRouter } from 'next/navigation';
@@ -63,7 +63,7 @@ function EditBookForm({ book, setOpen, onDataChange, isClient, t }: { book: Book
     const [coverImageUrl, setCoverImageUrl] = React.useState<string>(book.coverImageUrl || '');
 
     const updateBookWithId = updateBook.bind(null, book.id);
-    const [state, formAction] = useFormState(updateBookWithId, initialState);
+    const [state, formAction] = React.useActionState(updateBookWithId, initialState);
 
 
     const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
