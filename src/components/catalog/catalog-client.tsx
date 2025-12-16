@@ -1,6 +1,6 @@
 'use client';
 import * as React from 'react';
-import { useFormStatus } from 'react-dom';
+import { useFormStatus, useFormState } from 'react-dom';
 import { PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -43,7 +43,7 @@ const initialState = {
 };
 
 
-function AddBookForm({ setOpen }: { setOpen: (open: boolean) => void }) {
+function AddBookForm({ setOpen, onDataChange }: { setOpen: (open: boolean) => void, onDataChange: () => void }) {
   const { t } = useTranslation();
   const router = useRouter();
   const [isClient, setIsClient] = useState(false);
@@ -85,10 +85,10 @@ function AddBookForm({ setOpen }: { setOpen: (open: boolean) => void }) {
         setImagePreview(null);
         setCoverImageUrl('');
         setOpen(false);
-        router.refresh();
+        onDataChange();
       }
     }
-  }, [state, toast, isClient, t, setOpen, router]);
+  }, [state, toast, isClient, t, setOpen, onDataChange]);
   
   return (
     <form ref={formRef} action={formAction} className="space-y-4">
@@ -127,7 +127,7 @@ function AddBookForm({ setOpen }: { setOpen: (open: boolean) => void }) {
   );
 }
 
-export function CatalogClient({ books }: { books: BookType[] }) {
+export function CatalogClient({ books, onDataChange, onBookDeleted }: { books: BookType[], onDataChange: () => void, onBookDeleted: (id: string) => void }) {
   const { t } = useTranslation();
   const [isClient, setIsClient] = useState(false);
   useEffect(() => { setIsClient(true); }, []);
@@ -140,7 +140,7 @@ export function CatalogClient({ books }: { books: BookType[] }) {
       book.code.toLowerCase().includes(filter.toLowerCase())
   );
   
-  const tableColumns = columns(isClient, t);
+  const tableColumns = React.useMemo(() => columns(isClient, t, onDataChange, onBookDeleted), [isClient, t, onDataChange, onBookDeleted]);
 
   return (
     <div className="flex flex-col gap-8">
@@ -162,7 +162,7 @@ export function CatalogClient({ books }: { books: BookType[] }) {
                 {isClient ? t('add_book_desc') : 'Enter the details for the new book to add it to your catalog.'}
               </DialogDescription>
             </DialogHeader>
-            <AddBookForm setOpen={setOpen} />
+            <AddBookForm setOpen={setOpen} onDataChange={onDataChange} />
           </DialogContent>
         </Dialog>
       </PageHeader>

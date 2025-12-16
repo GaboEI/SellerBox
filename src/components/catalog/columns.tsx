@@ -56,7 +56,7 @@ const initialState = {
 };
 
 
-function EditBookForm({ book, setOpen, isClient, t }: { book: Book, setOpen: (open: boolean) => void, isClient: boolean, t: TFunction }) {
+function EditBookForm({ book, setOpen, onDataChange, isClient, t }: { book: Book, setOpen: (open: boolean) => void, onDataChange: () => void, isClient: boolean, t: TFunction }) {
     const router = useRouter();
     const { toast } = useToast();
     const [imagePreview, setImagePreview] = React.useState<string | null>(book.coverImageUrl || null);
@@ -93,10 +93,10 @@ function EditBookForm({ book, setOpen, isClient, t }: { book: Book, setOpen: (op
               description: isClient ? t('update_book_success') : 'Book updated successfully.',
             });
             setOpen(false);
-            router.refresh();
+            onDataChange();
           }
         }
-    }, [state, toast, isClient, t, setOpen, router]);
+    }, [state, toast, isClient, t, setOpen, onDataChange]);
     
     return (
       <form action={formAction} className="space-y-4">
@@ -136,10 +136,9 @@ function EditBookForm({ book, setOpen, isClient, t }: { book: Book, setOpen: (op
   }
   
 
-const CellActions: React.FC<{ row: any, isClient: boolean, t: TFunction }> = ({ row, isClient, t }) => {
+const CellActions: React.FC<{ row: any, isClient: boolean, t: TFunction, onDataChange: () => void, onBookDeleted: (id: string) => void }> = ({ row, isClient, t, onDataChange, onBookDeleted }) => {
   const book = row.original as Book;
   const { toast } = useToast();
-  const router = useRouter();
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
 
@@ -150,7 +149,7 @@ const CellActions: React.FC<{ row: any, isClient: boolean, t: TFunction }> = ({ 
         toast({ title: t('error'), description: result.message, variant: 'destructive'});
     } else {
         toast({ title: t('success'), description: t('delete_book_success', {bookName: book.name}) });
-        router.refresh();
+        onBookDeleted(book.id); // Update local state instead of refreshing
     }
   }
 
@@ -182,7 +181,7 @@ const CellActions: React.FC<{ row: any, isClient: boolean, t: TFunction }> = ({ 
                 {isClient ? t('edit_book_desc') : 'Make changes to the book details. The code must remain unique.'}
             </DialogDescription>
             </DialogHeader>
-            <EditBookForm book={book} setOpen={setIsEditDialogOpen} isClient={isClient} t={t} />
+            <EditBookForm book={book} setOpen={setIsEditDialogOpen} onDataChange={onDataChange} isClient={isClient} t={t} />
         </DialogContent>
       </Dialog>
       
@@ -204,7 +203,7 @@ const CellActions: React.FC<{ row: any, isClient: boolean, t: TFunction }> = ({ 
   );
 };
 
-export const columns = (isClient: boolean, t: TFunction): ColumnDef<Book>[] => [
+export const columns = (isClient: boolean, t: TFunction, onDataChange: () => void, onBookDeleted: (id: string) => void): ColumnDef<Book>[] => [
     {
       accessorKey: 'coverImageUrl',
       header: isClient ? t('cover_photo_header') : 'COVER PHOTO',
@@ -258,7 +257,7 @@ export const columns = (isClient: boolean, t: TFunction): ColumnDef<Book>[] => [
     },
     {
       id: 'actions',
-      cell: ({ row }) => <CellActions row={row} isClient={isClient} t={t} />,
+      cell: ({ row }) => <CellActions row={row} isClient={isClient} t={t} onDataChange={onDataChange} onBookDeleted={onBookDeleted} />,
       size: 60,
     },
   ];
