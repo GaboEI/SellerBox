@@ -176,13 +176,18 @@ export default function SettingsPage() {
                             <Label htmlFor="photoUrl">
                               {isClient ? t('profile_picture') : 'Profile picture'}
                             </Label>
-                            <Input
-                              id="photoUrl"
-                              type="file"
-                              accept="image/*"
-                              onChange={handleFileChange}
-                              className="max-w-xs"
-                            />
+                             <div className="relative">
+                                <Button type="button" variant="outline" className="relative">
+                                {isClient ? t('change') : 'Change'}
+                                <Input
+                                    id="photoUrl"
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleFileChange}
+                                    className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                                />
+                                </Button>
+                            </div>
                           </div>
                         </div>
                       )}

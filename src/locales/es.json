@@ -123,5 +123,6 @@
   "could_not_update_profile": "No se pudo actualizar el perfil.",
   "light": "Claro",
   "dark": "Oscuro",
-  "system": "Sistema"
+  "system": "Sistema",
+  "change": "Cambiar"
 }

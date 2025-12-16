@@ -27,13 +27,13 @@ export function LanguageToggle() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={() => changeLanguage('en')}>
-          English
+          <span className="mr-2">🇬🇧</span> English
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => changeLanguage('es')}>
-          Español
+          <span className="mr-2">🇪🇸</span> Español
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => changeLanguage('ru')}>
-          Русский
+          <span className="mr-2">🇷🇺</span> Русский
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
