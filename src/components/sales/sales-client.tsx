@@ -1,7 +1,7 @@
 'use client';
 import * as React from 'react';
 import { useFormStatus } from 'react-dom';
-import { PlusCircle, Calendar as CalendarIcon } from 'lucide-react';
+import { PlusCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useReducer } from 'react';
 import { format } from 'date-fns';
@@ -31,12 +31,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card } from '../ui/card';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 
 function SubmitButton() {
@@ -80,7 +74,8 @@ function AddSaleForm({ books, setOpen, onDataChange }: { books: Book[], setOpen:
   const [state, dispatch] = useReducer(reducer, initialState);
   const { toast } = useToast();
   const formRef = React.useRef<HTMLFormElement>(null);
-  const [date, setDate] = React.useState<Date | undefined>(new Date());
+  
+  const defaultDate = format(new Date(), 'dd.MM.yy');
 
   const formAction = async (formData: FormData) => {
     const result = await addSale(null, formData);
@@ -107,7 +102,6 @@ function AddSaleForm({ books, setOpen, onDataChange }: { books: Book[], setOpen:
                 description: isClient ? t('add_sale_success') : 'Successfully recorded sale.',
             });
             formRef.current?.reset();
-            setDate(new Date());
         }
     }
   }, [state, toast, isClient, t]);
@@ -134,30 +128,12 @@ function AddSaleForm({ books, setOpen, onDataChange }: { books: Book[], setOpen:
 
       <div className="space-y-2">
         <Label htmlFor="date">{isClient ? t('date') : 'Date'}</Label>
-        <Popover>
-            <PopoverTrigger asChild>
-                <Button
-                variant={'outline'}
-                className={cn(
-                    'w-full justify-start text-left font-normal',
-                    !date && 'text-muted-foreground'
-                )}
-                >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {date ? format(date, 'PPP') : <span>{isClient ? t('select_date') : 'Select date'}</span>}
-                </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
-                <Calendar
-                mode="single"
-                selected={date}
-                onSelect={setDate}
-                initialFocus
-                />
-            </PopoverContent>
-        </Popover>
-        <input type="hidden" name="date" value={date ? format(date, 'yyyy-MM-dd') : ''} />
-
+        <Input
+          id="date"
+          name="date"
+          placeholder="dd.mm.yy"
+          defaultValue={defaultDate}
+        />
         {state.errors?.date && <p className="text-sm text-destructive">{state.errors.date[0]}</p>}
       </div>
 

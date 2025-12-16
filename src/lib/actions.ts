@@ -11,7 +11,7 @@ import {
   updateSale as dbUpdateSale,
 } from './data';
 import type { Book, SalePlatform, SaleStatus } from './types';
-import { format, parse } from 'date-fns';
+import { parse } from 'date-fns';
 
 const bookSchema = z.object({
   code: z.string().min(1, 'Code is required.'),
@@ -120,24 +120,29 @@ export async function addSale(prevState: any, formData: FormData) {
     };
   }
 
+  let dateObj: Date;
+  try {
+    dateObj = parse(validatedFields.data.date, 'dd.MM.yy', new Date());
+  } catch (error) {
+    return {
+      errors: { date: ['The date is invalid. Please use dd.mm.yy format.'] },
+      message: 'Error: Please check the fields.',
+    };
+  }
   
-  const dateObj = new Date(validatedFields.data.date);
-
-  // Check if date is valid
   if (isNaN(dateObj.getTime())) {
     return {
-      errors: { date: ['The date is invalid.'] },
+      errors: { date: ['The date is invalid. Please use dd.mm.yy format.'] },
       message: 'Error: Please check the fields.',
     };
   }
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const startDate = new Date('2025-01-01');
-
-  if (dateObj < startDate || dateObj > today) {
+  
+  if (dateObj > today) {
     return {
-      errors: { date: ['Date must be after 01.01.2025 and not in the future.'] },
+      errors: { date: ['Date cannot be in the future.'] },
       message: 'Error: Please check the fields.',
     };
   }
