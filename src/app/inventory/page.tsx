@@ -28,16 +28,17 @@ export default function InventoryPage() {
     fetchBooks();
   }, [fetchBooks]);
   
+  const handleBookDeleted = (bookId: string) => {
+    setBooks(prevBooks => prevBooks.filter(book => book.id !== bookId));
+  };
+  
   return (
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
         <AppHeader />
         <main className="p-4 lg:p-6">
-          <div className="flex flex-col gap-8">
-              <PageHeader title={isClient ? t('warehouse') : 'Warehouse'} description={isClient ? t('view_manage_stock') : 'View and manage your book stock.'} />
-              <CatalogClient books={books} />
-          </div>
+          <CatalogClient books={books} onBookDeleted={handleBookDeleted} />
         </main>
       </SidebarInset>
     </SidebarProvider>

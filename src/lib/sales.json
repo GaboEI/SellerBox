@@ -3,7 +3,7 @@
     "id": "s3",
     "bookId": "3",
     "date": "2024-05-02T00:00:00.000Z",
-    "status": "in_preparation",
+    "status": "canceled",
     "platform": "Avito",
     "saleAmount": 0
   },
@@ -13,13 +13,6 @@
     "date": "2024-05-04T00:00:00.000Z",
     "status": "canceled",
     "platform": "Avito"
-  },
-  {
-    "id": "s6",
-    "bookId": "5",
-    "date": "2024-05-10T00:00:00.000Z",
-    "status": "shipped",
-    "platform": "Ozon"
   },
   {
     "id": "s7",
@@ -40,6 +33,13 @@
     "date": "2025-12-15T00:00:00.000Z",
     "platform": "Avito",
     "id": "s1765846697346",
+    "status": "in_process"
+  },
+  {
+    "bookId": "1765825862177",
+    "date": "2025-12-16T00:00:00.000Z",
+    "platform": "Ozon",
+    "id": "s1765878040900",
     "status": "in_process"
   }
 ]
