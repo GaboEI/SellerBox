@@ -19,7 +19,7 @@ export function SalesClient({ sales, books }: { sales: Sale[], books: Book[] }) 
   
   const bookMap = new Map(books.map(b => [b.id, b]));
   
-  const tableColumns = React.useMemo(() => getColumns(isClient, t), [isClient, t]);
+  const tableColumns = React.useMemo(() => getColumns(isClient, t, ()=>{}, ()=>{}), [isClient, t]);
 
   const filteredSales = sales.filter(
     (sale) => {

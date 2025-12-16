@@ -95,8 +95,8 @@ export function CatalogClient({
   );
 
   const tableColumns = React.useMemo(
-    () => getColumns(t, openDeleteDialog),
-    [t]
+    () => getColumns(t, openDeleteDialog, isClient),
+    [t, isClient]
   );
 
   return (
@@ -134,6 +134,7 @@ export function CatalogClient({
             <DataTable
               columns={tableColumns}
               data={filteredBooks}
+              isClient={isClient}
             />
           </CardContent>
         </Card>

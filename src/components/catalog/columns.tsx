@@ -58,12 +58,13 @@ const CellActions: React.FC<{
 
 export const getColumns = (
   t: TFunction,
-  onDelete: (book: Book) => void
+  onDelete: (book: Book) => void,
+  isClient: boolean,
 ): ColumnDef<Book>[] => [
   {
     accessorKey: 'coverImageUrl',
     header: () => (
-      <div className="text-center">{t('cover_photo_header')}</div>
+      <div className="text-center">{isClient ? t('cover_photo_header') : 'COVER PHOTO'}</div>
     ),
     cell: ({ row }) => {
       const imageUrl = row.getValue('coverImageUrl') as string | undefined;
@@ -93,7 +94,7 @@ export const getColumns = (
         onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
         className="p-0"
       >
-        {t('code_header')}
+        {isClient ? t('code_header') : 'Code'}
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
@@ -107,7 +108,7 @@ export const getColumns = (
         onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
         className="p-0"
       >
-        {t('name_header')}
+        {isClient ? t('name_header') : 'Name'}
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
@@ -117,7 +118,7 @@ export const getColumns = (
   },
   {
     id: 'actions',
-    header: () => <div className="text-right">{t('actions')}</div>,
+    header: () => <div className="text-right">{isClient ? t('actions') : 'Actions'}</div>,
     cell: ({ row }) => (
       <div className="flex justify-end">
         <CellActions row={row} t={t} onDelete={onDelete} />

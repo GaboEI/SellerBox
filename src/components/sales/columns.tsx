@@ -14,14 +14,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from '@/components/ui/dialog';
-import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -188,6 +180,7 @@ export const getColumns = (isClient: boolean, t: TFunction, onEdit: (sale: SaleW
   },
   {
     id: 'actions',
+    header: () => <div className="text-right">{isClient ? t('actions') : 'Actions'}</div>,
     cell: ({ row }) => <CellActions row={row} isClient={isClient} t={t} onEdit={onEdit} onDelete={onDelete} />,
   },
 ];
