@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useFormStatus, useFormState } from 'react-dom';
+import { useFormStatus } from 'react-dom';
 import { ColumnDef } from '@tanstack/react-table';
 import { ArrowUpDown, Edit, Trash2 } from 'lucide-react';
 import type { Sale, SaleStatus } from '@/lib/types';
@@ -83,7 +83,7 @@ function EditSaleForm({ sale, setOpen, isClient, t }: { sale: SaleWithBookData; 
   const [currentStatus, setCurrentStatus] = React.useState<SaleStatus>(sale.status);
 
   const updateSaleWithId = updateSale.bind(null, sale.id);
-  const [state, formAction] = useFormState(updateSaleWithId, initialState);
+  const [state, formAction] = React.useActionState(updateSaleWithId, initialState);
 
 
   const isFinalState = sale.status === 'completed' || sale.status === 'sold_in_person' || sale.status === 'canceled';

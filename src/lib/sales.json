@@ -1,13 +1,5 @@
 [
   {
-    "id": "s2",
-    "bookId": "2",
-    "date": "2024-05-02T00:00:00.000Z",
-    "status": "completed",
-    "platform": "Ozon",
-    "saleAmount": 2500
-  },
-  {
     "id": "s3",
     "bookId": "3",
     "date": "2024-05-02T00:00:00.000Z",
