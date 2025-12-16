@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { getBooks } from '@/lib/data';
 import { CatalogClient } from '@/components/catalog/catalog-client';
 import { PageHeader } from '@/components/shared/page-header';
@@ -15,6 +15,11 @@ export default function InventoryPage() {
   const { t } = useTranslation();
   const [books, setBooks] = React.useState<Book[]>([]);
   const [clientKey, setClientKey] = React.useState(Date.now().toString());
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   React.useEffect(() => {
     async function fetchBooks() {
@@ -35,7 +40,7 @@ export default function InventoryPage() {
         <AppHeader />
         <main className="p-4 lg:p-6">
           <div className="flex flex-col gap-8">
-              <PageHeader title={t('warehouse')} description={t('view_manage_stock')} />
+              <PageHeader title={isClient ? t('warehouse') : 'Warehouse'} description={isClient ? t('view_manage_stock') : 'View and manage your book stock.'} />
               <CatalogClient books={books} onDataChange={handleDataChange} />
           </div>
         </main>

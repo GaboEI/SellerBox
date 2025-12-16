@@ -5,7 +5,7 @@ import { StatsCards } from '@/components/dashboard/stats-cards';
 import { SalesChart } from '@/components/dashboard/sales-chart';
 import { RecentSales } from '@/components/dashboard/recent-sales';
 import { PageHeader } from '@/components/shared/page-header';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import type { Book, Sale } from '@/lib/types';
 import { AppSidebar } from '@/components/layout/sidebar';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
@@ -16,6 +16,11 @@ export default function DashboardPage() {
   const { t } = useTranslation();
   const [sales, setSales] = React.useState<Sale[]>([]);
   const [books, setBooks] = React.useState<Book[]>([]);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   React.useEffect(() => {
     async function fetchData() {
@@ -35,8 +40,8 @@ export default function DashboardPage() {
         <main className="p-4 lg:p-6">
           <div className="flex flex-col gap-8">
             <PageHeader
-              title={t('dashboard')}
-              description={t('overview_sales_inventory')}
+              title={isClient ? t('dashboard') : 'Dashboard'}
+              description={isClient ? t('overview_sales_inventory') : 'An overview of your sales and inventory.'}
             />
             <StatsCards sales={sales} books={books} />
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">

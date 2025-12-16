@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ListingGenerator } from "@/components/listings/listing-generator";
 import { PageHeader } from "@/components/shared/page-header";
 import { getBooks } from "@/lib/data";
@@ -12,6 +12,11 @@ import { useTranslation } from 'react-i18next';
 export default function ListingsPage() {
     const { t } = useTranslation();
     const [books, setBooks] = React.useState<Book[]>([]);
+    const [isClient, setIsClient] = useState(false);
+
+    useEffect(() => {
+      setIsClient(true);
+    }, []);
 
     React.useEffect(() => {
         async function fetchBooks() {
@@ -28,7 +33,7 @@ export default function ListingsPage() {
                 <AppHeader />
                 <main className="p-4 lg:p-6">
                     <div className="flex flex-col gap-8">
-                        <PageHeader title={t('listing_generator')} description={t('create_compelling_listings')} />
+                        <PageHeader title={isClient ? t('listing_generator') : 'Listing Generator'} description={isClient ? t('create_compelling_listings') : 'Create compelling product listings for your books.'} />
                         <ListingGenerator books={books} />
                     </div>
                 </main>

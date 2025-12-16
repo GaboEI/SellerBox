@@ -15,7 +15,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import React, { useState, useEffect, useMemo } from 'react';
-import { getUserProfile } from '@/lib/data';
 import type { UserProfile } from '@/lib/types';
 import { Skeleton } from '../ui/skeleton';
 import { useUser, useFirestore, doc, onSnapshot } from '@/firebase';
@@ -27,6 +26,11 @@ export function AppHeader() {
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
     if (isUserLoading || !firestore || !user) {
@@ -40,9 +44,7 @@ export function AppHeader() {
         if (docSnap.exists()) {
             setProfile(docSnap.data() as UserProfile);
         } else {
-            // If the profile doesn't exist, we can create a default one
-            // or handle it as needed. For now, we'll set it to null.
-            getUserProfile(firestore, user).then(setProfile);
+            setProfile(null);
         }
     });
 
@@ -94,7 +96,7 @@ export function AppHeader() {
            <DropdownMenuItem asChild>
               <Link href="/settings">
                 <Settings className="mr-2 h-4 w-4" />
-                <span>{t('settings')}</span>
+                <span>{isClient ? t('settings') : 'Settings'}</span>
               </Link>
             </DropdownMenuItem>
         </DropdownMenuContent>

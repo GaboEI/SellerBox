@@ -27,10 +27,13 @@ import { Wand2, Copy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '../ui/skeleton';
 import { useTranslation } from 'react-i18next';
+import { useState, useEffect } from 'react';
 
 
 export function ListingGenerator({ books }: { books: Book[] }) {
   const { t } = useTranslation();
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => { setIsClient(true); }, []);
   const [selectedBookId, setSelectedBookId] = React.useState<string | null>(null);
   const [listingText, setListingText] = React.useState('');
   const [imagePreview, setImagePreview] = React.useState<string | null>(null);
@@ -47,11 +50,11 @@ export function ListingGenerator({ books }: { books: Book[] }) {
 
   React.useEffect(() => {
     if (selectedBook) {
-      setListingText(t('check_out_book', { bookName: selectedBook.name }));
+      setListingText(isClient ? t('check_out_book', { bookName: selectedBook.name }) : `Check out this book: ${selectedBook.name}`);
     } else {
       setListingText('');
     }
-  }, [selectedBook, t]);
+  }, [selectedBook, t, isClient]);
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -106,15 +109,15 @@ export function ListingGenerator({ books }: { books: Book[] }) {
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
       <Card>
         <CardHeader>
-          <CardTitle>{t('controls')}</CardTitle>
-          <CardDescription>{t('listing_controls_desc')}</CardDescription>
+          <CardTitle>{isClient ? t('controls') : 'Controls'}</CardTitle>
+          <CardDescription>{isClient ? t('listing_controls_desc') : 'Select a book, upload an image, and craft your listing.'}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="book-select">{t('book')}</Label>
+            <Label htmlFor="book-select">{isClient ? t('book') : 'Book'}</Label>
             <Select onValueChange={setSelectedBookId}>
               <SelectTrigger id="book-select">
-                <SelectValue placeholder={t('select_a_book')} />
+                <SelectValue placeholder={isClient ? t('select_a_book') : 'Select a book'} />
               </SelectTrigger>
               <SelectContent>
                 {books.map((book) => (
@@ -126,15 +129,15 @@ export function ListingGenerator({ books }: { books: Book[] }) {
             </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="image-upload">{t('cover_image')}</Label>
+            <Label htmlFor="image-upload">{isClient ? t('cover_image') : 'Cover Image'}</Label>
             <Input id="image-upload" type="file" accept="image/*" onChange={handleImageUpload} />
           </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label htmlFor="listing-text">{t('listing_text')}</Label>
+              <Label htmlFor="listing-text">{isClient ? t('listing_text') : 'Listing Text'}</Label>
               <Button variant="ghost" size="sm" onClick={handleEnhanceText} disabled={isGenerating || !selectedBook}>
                 <Wand2 className="mr-2 h-4 w-4" />
-                {isGenerating ? t('enhancing') : t('enhance_with_ai')}
+                {isClient ? (isGenerating ? t('enhancing') : t('enhance_with_ai')) : 'Enhance with AI'}
               </Button>
             </div>
             {isGenerating ? (
@@ -149,7 +152,7 @@ export function ListingGenerator({ books }: { books: Book[] }) {
                     value={listingText}
                     onChange={(e) => setListingText(e.target.value)}
                     rows={8}
-                    placeholder={t('write_description_here')}
+                    placeholder={isClient ? t('write_description_here') : 'Write your book description here...'}
                 />
             )}
           </div>
@@ -160,17 +163,17 @@ export function ListingGenerator({ books }: { books: Book[] }) {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-                <CardTitle>{t('preview')}</CardTitle>
-                <CardDescription>{t('listing_preview_desc')}</CardDescription>
+                <CardTitle>{isClient ? t('preview') : 'Preview'}</CardTitle>
+                <CardDescription>{isClient ? t('listing_preview_desc') : 'This is how your listing will appear.'}</CardDescription>
             </div>
             <div className="flex items-center gap-2">
                 <Select onValueChange={(value) => setImageFit(value as 'cover' | 'contain')} defaultValue={imageFit}>
                     <SelectTrigger className="w-[120px]">
-                        <SelectValue placeholder={t('image_fit')} />
+                        <SelectValue placeholder={isClient ? t('image_fit') : 'Image Fit'} />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="cover">{t('fill_frame')}</SelectItem>
-                        <SelectItem value="contain">{t('fit_image')}</SelectItem>
+                        <SelectItem value="cover">{isClient ? t('fill_frame') : 'Fill Frame'}</SelectItem>
+                        <SelectItem value="contain">{isClient ? t('fit_image') : 'Fit Image'}</SelectItem>
                     </SelectContent>
                 </Select>
             </div>
@@ -188,17 +191,17 @@ export function ListingGenerator({ books }: { books: Book[] }) {
           </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-                <h3 className="font-headline text-2xl font-bold">{selectedBook?.name || t('book_title')}</h3>
+                <h3 className="font-headline text-2xl font-bold">{selectedBook?.name || (isClient ? t('book_title') : 'Book Title')}</h3>
                 <Button variant="ghost" size="icon" onClick={() => copyToClipboard(selectedBook?.name || '')}>
                     <Copy className="h-4 w-4" />
-                    <span className="sr-only">{t('copy_title')}</span>
+                    <span className="sr-only">{isClient ? t('copy_title') : 'Copy title'}</span>
                 </Button>
             </div>
             <div className="relative">
-                <p className="text-muted-foreground">{listingText || t('compelling_desc_placeholder')}</p>
+                <p className="text-muted-foreground">{listingText || (isClient ? t('compelling_desc_placeholder') : 'Your compelling book description will appear here.')}</p>
                  <Button variant="ghost" size="icon" className="absolute -top-2 right-0" onClick={() => copyToClipboard(listingText)}>
                     <Copy className="h-4 w-4" />
-                    <span className="sr-only">{t('copy_description')}</span>
+                    <span className="sr-only">{isClient ? t('copy_description') : 'Copy description'}</span>
                 </Button>
             </div>
           </div>

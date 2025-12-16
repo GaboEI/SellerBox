@@ -10,6 +10,7 @@ import {
   BarChart3
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import React, { useState, useEffect } from 'react';
 
 import {
   Sidebar,
@@ -23,6 +24,11 @@ import {
 export function AppSidebar() {
   const pathname = usePathname();
   const { t } = useTranslation();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const menuItems = [
     { href: '/', label: 'dashboard', icon: Home },
@@ -49,11 +55,11 @@ export function AppSidebar() {
             <SidebarMenuButton
               asChild
               isActive={pathname === item.href}
-              tooltip={t(item.label)}
+              tooltip={isClient ? t(item.label) : item.label}
             >
               <Link href={item.href}>
                 <item.icon />
-                <span>{t(item.label)}</span>
+                <span>{isClient ? t(item.label) : item.label}</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

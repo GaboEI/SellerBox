@@ -20,18 +20,23 @@ import { ThemeToggle } from '@/components/settings/theme-toggle';
 import { LanguageToggle } from '@/components/i18n/language-toggle';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getUserProfile } from '@/lib/data';
-import type { UserProfile } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { useUser, useFirestore, doc, useDoc, setDoc } from '@/firebase';
+import { useUser, useFirestore, doc, setDoc, useDoc } from '@/firebase';
 import { useTranslation } from 'react-i18next';
+import type { UserProfile } from '@/lib/types';
+
 
 export default function SettingsPage() {
   const { t } = useTranslation();
   const { toast } = useToast();
   const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [photoUrlDataUri, setPhotoUrlDataUri] = useState<string>('');
@@ -50,14 +55,6 @@ export default function SettingsPage() {
       setUsername(profile.username || user?.displayName || '');
     }
   }, [profile, user]);
-
-  useEffect(() => {
-    async function fetchProfile() {
-      if (isUserLoading || !firestore || !user || profile !== undefined) return;
-      await getUserProfile(firestore, user);
-    }
-    fetchProfile();
-  }, [user, isUserLoading, firestore, profile]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -128,23 +125,23 @@ export default function SettingsPage() {
         <main className="p-4 lg:p-6">
           <div className="flex flex-col gap-8">
             <PageHeader
-              title={t('settings')}
-              description={t('customize_your_experience')}
+              title={isClient ? t('settings') : 'Settings'}
+              description={isClient ? t('customize_your_experience') : 'Customize your experience.'}
             />
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
               <div className="lg:col-span-1">
                 <Card>
                   <CardHeader>
-                    <CardTitle>{t('appearance')}</CardTitle>
-                    <CardDescription>{t('adjust_look_and_feel')}</CardDescription>
+                    <CardTitle>{isClient ? t('appearance') : 'Appearance'}</CardTitle>
+                    <CardDescription>{isClient ? t('adjust_look_and_feel') : 'Adjust the look and feel of the application.'}</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <Label htmlFor="theme">{t('theme')}</Label>
+                      <Label htmlFor="theme">{isClient ? t('theme') : 'Theme'}</Label>
                       <ThemeToggle />
                     </div>
                      <div className="flex items-center justify-between">
-                      <Label htmlFor="language">{t('language')}</Label>
+                      <Label htmlFor="language">{isClient ? t('language') : 'Language'}</Label>
                       <LanguageToggle />
                     </div>
                   </CardContent>
@@ -154,8 +151,8 @@ export default function SettingsPage() {
                 <form onSubmit={handleSave}>
                   <Card>
                     <CardHeader>
-                      <CardTitle>{t('account')}</CardTitle>
-                      <CardDescription>{t('manage_profile_info')}</CardDescription>
+                      <CardTitle>{isClient ? t('account') : 'Account'}</CardTitle>
+                      <CardDescription>{isClient ? t('manage_profile_info') : 'Manage your profile information and account settings.'}</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
                       {isLoading ? (
@@ -177,7 +174,7 @@ export default function SettingsPage() {
                           </Avatar>
                           <div className="space-y-1">
                             <Label htmlFor="photoUrl">
-                              {t('profile_picture')}
+                              {isClient ? t('profile_picture') : 'Profile picture'}
                             </Label>
                             <Input
                               id="photoUrl"
@@ -190,7 +187,7 @@ export default function SettingsPage() {
                         </div>
                       )}
                       <div className="space-y-2">
-                        <Label htmlFor="username">{t('username')}</Label>
+                        <Label htmlFor="username">{isClient ? t('username') : 'Username'}</Label>
                         {isLoading ? (
                           <Skeleton className="h-10 w-full" />
                         ) : (
@@ -206,7 +203,7 @@ export default function SettingsPage() {
                     </CardContent>
                     <CardFooter className="border-t px-6 py-4">
                        <Button type="submit" disabled={isSaving} className="w-full sm:w-auto">
-                         {isSaving ? t('saving') : t('save_changes')}
+                         {isClient ? (isSaving ? t('saving') : t('save_changes')) : 'Save Changes'}
                        </Button>
                     </CardFooter>
                   </Card>

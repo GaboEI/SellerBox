@@ -4,7 +4,7 @@ import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { PlusCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-
+import { useState, useEffect } from 'react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -34,10 +34,12 @@ import { Card } from '../ui/card';
 
 function SubmitButton() {
   const { t } = useTranslation();
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => { setIsClient(true); }, []);
   const { pending } = useFormStatus();
   return (
     <Button type="submit" disabled={pending}>
-      {pending ? t('recording') : t('record_sale')}
+      {isClient ? (pending ? t('recording') : t('record_sale')) : 'Record Sale'}
     </Button>
   );
 }
@@ -50,6 +52,8 @@ const initialState = {
 
 function AddSaleForm({ books, setOpen }: { books: Book[], setOpen: (open: boolean) => void }) {
   const { t } = useTranslation();
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => { setIsClient(true); }, []);
   const [state, formAction] = useActionState(addSale, initialState);
   const { toast } = useToast();
   const formRef = React.useRef<HTMLFormElement>(null);
@@ -75,10 +79,10 @@ function AddSaleForm({ books, setOpen }: { books: Book[], setOpen: (open: boolea
   return (
     <form ref={formRef} key={state.resetKey} action={formAction} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="bookId">{t('book')}</Label>
+        <Label htmlFor="bookId">{isClient ? t('book') : 'Book'}</Label>
         <Select name="bookId">
           <SelectTrigger>
-            <SelectValue placeholder={t('select_a_book')} />
+            <SelectValue placeholder={isClient ? t('select_a_book') : 'Please select a book.'} />
           </SelectTrigger>
           <SelectContent>
             {books.map(book => (
@@ -92,7 +96,7 @@ function AddSaleForm({ books, setOpen }: { books: Book[], setOpen: (open: boolea
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="date">{t('date')}</Label>
+        <Label htmlFor="date">{isClient ? t('date') : 'Date'}</Label>
         <Input
           id="date"
           name="date"
@@ -102,10 +106,10 @@ function AddSaleForm({ books, setOpen }: { books: Book[], setOpen: (open: boolea
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="platform">{t('platform')}</Label>
+        <Label htmlFor="platform">{isClient ? t('platform') : 'Platform'}</Label>
         <Select name="platform" defaultValue='Avito'>
           <SelectTrigger>
-            <SelectValue placeholder={t('select_platform')} />
+            <SelectValue placeholder={isClient ? t('select_platform') : 'Select a platform'} />
           </SelectTrigger>
           <SelectContent>
             {(['Avito', 'Ozon'] as SalePlatform[]).map(platform => (
@@ -125,6 +129,8 @@ function AddSaleForm({ books, setOpen }: { books: Book[], setOpen: (open: boolea
 
 export function SalesClient({ sales, books }: { sales: Sale[], books: Book[] }) {
   const { t } = useTranslation();
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => { setIsClient(true); }, []);
   const [open, setOpen] = React.useState(false);
   const [filter, setFilter] = React.useState('');
   
@@ -149,21 +155,21 @@ export function SalesClient({ sales, books }: { sales: Sale[], books: Book[] }) 
   return (
     <div className="flex flex-col gap-8">
       <PageHeader
-        title={t('sales_records')}
-        description={t('view_manage_sales')}
+        title={isClient ? t('sales_records') : 'Sales Records'}
+        description={isClient ? t('view_manage_sales') : 'View and manage all your sales transactions.'}
       >
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button size="sm" className="gap-1">
               <PlusCircle className="h-4 w-4" />
-              {t('record_sale')}
+              {isClient ? t('record_sale') : 'Record Sale'}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>{t('record_new_sale')}</DialogTitle>
+              <DialogTitle>{isClient ? t('record_new_sale') : 'Record a New Sale'}</DialogTitle>
               <DialogDescription>
-                {t('record_sale_desc')}
+                {isClient ? t('record_sale_desc') : 'Fill in the details to log a new sale.'}
               </DialogDescription>
             </DialogHeader>
             <AddSaleForm books={books} setOpen={setOpen} />
@@ -173,7 +179,7 @@ export function SalesClient({ sales, books }: { sales: Sale[], books: Book[] }) 
       <Card className="p-4 sm:p-6">
         <div className="mb-4">
           <Input
-            placeholder={t('filter_sales')}
+            placeholder={isClient ? t('filter_sales') : 'Filter by book, status, or platform...'}
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
             className="max-w-sm"
