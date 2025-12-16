@@ -1,6 +1,6 @@
 'use client';
-import React, { useReducer, useEffect, useState } from 'react';
-import { useFormStatus } from 'react-dom';
+import React, { useEffect, useState } from 'react';
+import { useFormStatus, useFormState } from 'react-dom';
 import { PlusCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
@@ -50,21 +50,6 @@ const initialState = {
   errors: {},
 };
 
-function reducer(state: any, action: any) {
-    if (action.type === 'SUCCESS') {
-      return {
-        message: action.message,
-        errors: {},
-      };
-    }
-    if (action.type === 'ERROR') {
-      return {
-        message: action.message,
-        errors: action.errors || {},
-      };
-    }
-    return state;
-  }
 
 function AddSaleForm({ books, setOpen }: { books: Book[], setOpen: (open: boolean) => void }) {
   const { t } = useTranslation();
@@ -72,25 +57,14 @@ function AddSaleForm({ books, setOpen }: { books: Book[], setOpen: (open: boolea
   useEffect(() => { setIsClient(true); }, []);
   const router = useRouter();
   
-  const [state, dispatch] = useReducer(reducer, initialState);
+  const [state, formAction] = useFormState(addSale, initialState);
   const { toast } = useToast();
   const formRef = React.useRef<HTMLFormElement>(null);
   
   const defaultDate = format(new Date(), 'dd.MM.yy');
 
-  const formAction = async (formData: FormData) => {
-    const result = await addSale(null, formData);
-    if (result.message.includes('success')) {
-      dispatch({ type: 'SUCCESS', message: result.message });
-      setOpen(false);
-      router.refresh();
-    } else {
-      dispatch({ type: 'ERROR', message: result.message, errors: result.errors });
-    }
-  };
-
   useEffect(() => {
-    if (state.message) {
+    if (state?.message) {
         if (state.errors && Object.keys(state.errors).length > 0) {
             toast({
                 title: isClient ? t('error') : 'Error',
@@ -103,9 +77,11 @@ function AddSaleForm({ books, setOpen }: { books: Book[], setOpen: (open: boolea
                 description: isClient ? t('add_sale_success') : 'Successfully recorded sale.',
             });
             formRef.current?.reset();
+            setOpen(false);
+            router.refresh();
         }
     }
-  }, [state, toast, isClient, t]);
+  }, [state, toast, isClient, t, setOpen, router]);
 
 
   return (
@@ -175,7 +151,7 @@ function AddSaleForm({ books, setOpen }: { books: Book[], setOpen: (open: boolea
   );
 }
 
-export function SalesClient({ sales, books, onDataChange }: { sales: Sale[], books: Book[], onDataChange: () => void }) {
+export function SalesClient({ sales, books }: { sales: Sale[], books: Book[] }) {
   const { t } = useTranslation();
   const [isClient, setIsClient] = useState(false);
   useEffect(() => { setIsClient(true); }, []);

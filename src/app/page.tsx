@@ -17,13 +17,12 @@ export default function DashboardPage() {
   const [sales, setSales] = React.useState<Sale[]>([]);
   const [books, setBooks] = React.useState<Book[]>([]);
   const [isClient, setIsClient] = useState(false);
-  const [clientKey, setClientKey] = React.useState(0);
 
   useEffect(() => {
     setIsClient(true);
   }, []);
 
-  React.useEffect(() => {
+  useEffect(() => {
     async function fetchData() {
       const salesData = await getSales();
       const booksData = await getBooks();
@@ -31,10 +30,6 @@ export default function DashboardPage() {
       setBooks(booksData);
     }
     fetchData();
-  }, [clientKey]);
-
-  const handleDataChange = React.useCallback(() => {
-    setClientKey(prevKey => prevKey + 1);
   }, []);
 
   return (

@@ -2,8 +2,8 @@
 
 import { ColumnDef } from '@tanstack/react-table';
 import { MoreHorizontal, ArrowUpDown } from 'lucide-react';
-import React, { useEffect, useState, useReducer } from 'react';
-import { useFormStatus } from 'react-dom';
+import React, { useEffect, useState } from 'react';
+import { useFormStatus, useFormState } from 'react-dom';
 import Image from 'next/image';
 import { TFunction } from 'i18next';
 import { useRouter } from 'next/navigation';
@@ -55,28 +55,16 @@ const initialState = {
     errors: {},
 };
 
-function reducer(state: any, action: any) {
-  if (action.type === 'SUCCESS') {
-    return {
-      message: action.message,
-      errors: {},
-    };
-  }
-  if (action.type === 'ERROR') {
-    return {
-      message: action.message,
-      errors: action.errors || {},
-    };
-  }
-  return state;
-}
 
 function EditBookForm({ book, setOpen, isClient, t }: { book: Book, setOpen: (open: boolean) => void, isClient: boolean, t: TFunction }) {
-    const [state, dispatch] = useReducer(reducer, initialState);
     const { toast } = useToast();
     const router = useRouter();
     const [imagePreview, setImagePreview] = React.useState<string | null>(book.coverImageUrl || null);
     const [coverImageUrl, setCoverImageUrl] = React.useState<string>(book.coverImageUrl || '');
+
+    const updateBookWithId = updateBook.bind(null, book.id);
+    const [state, formAction] = useFormState(updateBookWithId, initialState);
+
 
     const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -91,19 +79,8 @@ function EditBookForm({ book, setOpen, isClient, t }: { book: Book, setOpen: (op
         }
     };
   
-    const formAction = async (formData: FormData) => {
-        const result = await updateBook(book.id, null, formData);
-        if (result.message.includes('success')) {
-            dispatch({ type: 'SUCCESS', message: result.message });
-            setOpen(false);
-            router.refresh();
-        } else {
-            dispatch({ type: 'ERROR', message: result.message, errors: result.errors });
-        }
-    };
-
     useEffect(() => {
-        if (state.message) {
+        if (state?.message) {
           if (state.errors && Object.keys(state.errors).length > 0) {
             toast({
               title: isClient ? t('error') : 'Error',
@@ -115,9 +92,11 @@ function EditBookForm({ book, setOpen, isClient, t }: { book: Book, setOpen: (op
               title: isClient ? t('success') : 'Success!',
               description: isClient ? t('update_book_success') : 'Book updated successfully.',
             });
+            setOpen(false);
+            router.refresh();
           }
         }
-    }, [state, toast, isClient, t]);
+    }, [state, toast, isClient, t, setOpen, router]);
     
     return (
       <form action={formAction} className="space-y-4">

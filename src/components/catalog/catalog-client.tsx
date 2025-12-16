@@ -22,7 +22,7 @@ import { Label } from '../ui/label';
 import { Card } from '../ui/card';
 import Image from 'next/image';
 import { useTranslation } from 'react-i18next';
-import { useState, useEffect, useReducer } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 function SubmitButton() {
@@ -42,21 +42,6 @@ const initialState = {
   errors: {},
 };
 
-function reducer(state: any, action: any) {
-  if (action.type === 'SUCCESS') {
-    return {
-      message: action.message,
-      errors: {},
-    };
-  }
-  if (action.type === 'ERROR') {
-    return {
-      message: action.message,
-      errors: action.errors || {},
-    };
-  }
-  return state;
-}
 
 function AddBookForm({ setOpen }: { setOpen: (open: boolean) => void }) {
   const { t } = useTranslation();
@@ -64,7 +49,7 @@ function AddBookForm({ setOpen }: { setOpen: (open: boolean) => void }) {
   const [isClient, setIsClient] = useState(false);
   useEffect(() => { setIsClient(true); }, []);
 
-  const [state, dispatch] = useReducer(reducer, initialState);
+  const [state, formAction] = React.useReducer((_: any, formData: FormData) => addBook(null, formData), initialState);
   const { toast } = useToast();
   const formRef = React.useRef<HTMLFormElement>(null);
   const [imagePreview, setImagePreview] = React.useState<string | null>(null);
@@ -83,19 +68,8 @@ function AddBookForm({ setOpen }: { setOpen: (open: boolean) => void }) {
     }
   };
 
-  const formAction = async (formData: FormData) => {
-    const result = await addBook(null, formData);
-    if (result.message.includes('success')) {
-      dispatch({ type: 'SUCCESS', message: result.message });
-      setOpen(false);
-      router.refresh();
-    } else {
-      dispatch({ type: 'ERROR', message: result.message, errors: result.errors });
-    }
-  };
-
   useEffect(() => {
-    if (state.message) {
+    if (state?.message) {
       if (state.errors && Object.keys(state.errors).length > 0) {
         toast({
           title: isClient ? t('error') : 'Error',
@@ -110,9 +84,11 @@ function AddBookForm({ setOpen }: { setOpen: (open: boolean) => void }) {
         formRef.current?.reset();
         setImagePreview(null);
         setCoverImageUrl('');
+        setOpen(false);
+        router.refresh();
       }
     }
-  }, [state, toast, isClient, t]);
+  }, [state, toast, isClient, t, setOpen, router]);
   
   return (
     <form ref={formRef} action={formAction} className="space-y-4">
@@ -151,7 +127,7 @@ function AddBookForm({ setOpen }: { setOpen: (open: boolean) => void }) {
   );
 }
 
-export function CatalogClient({ books, onDataChange }: { books: BookType[], onDataChange: () => void }) {
+export function CatalogClient({ books }: { books: BookType[] }) {
   const { t } = useTranslation();
   const [isClient, setIsClient] = useState(false);
   useEffect(() => { setIsClient(true); }, []);
