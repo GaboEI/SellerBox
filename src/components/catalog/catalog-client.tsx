@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { deleteBook } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 
 export function CatalogClient({
   books,
@@ -40,7 +40,6 @@ export function CatalogClient({
   const [filter, setFilter] = React.useState('');
 
   const { toast } = useToast();
-  const router = useRouter();
   const pathname = usePathname();
 
   // State for delete dialog
@@ -75,8 +74,6 @@ export function CatalogClient({
         description: result.message,
         variant: 'destructive',
       });
-      // If deletion fails, we might need to refresh to get consistent state
-      router.refresh();
     } else {
       toast({
         title: t('success'),
@@ -113,7 +110,7 @@ export function CatalogClient({
               : 'Manage your complete book collection.'
           }
         >
-          <Button size="icon" asChild>
+          <Button size="icon" className="h-8 w-8 rounded-full" asChild>
             <Link href="/inventory/add">
               <Plus className="h-4 w-4" />
               <span className="sr-only">{isClient ? t('add_book') : 'Add Book'}</span>
@@ -144,10 +141,10 @@ export function CatalogClient({
       <AlertDialog
         open={isDeleteDialogOpen}
         onOpenChange={(open) => {
-            setIsDeleteDialogOpen(open);
             if (!open) {
                 setSelectedBookToDelete(null);
             }
+            setIsDeleteDialogOpen(open);
         }}
       >
         <AlertDialogContent>
