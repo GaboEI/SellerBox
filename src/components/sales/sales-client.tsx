@@ -1,10 +1,11 @@
 'use client';
-import * as React from 'react';
+import *G React from 'react';
 import { useFormStatus } from 'react-dom';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, Calendar as CalendarIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useReducer } from 'react';
 import { format } from 'date-fns';
+import Image from 'next/image';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -32,6 +33,8 @@ import {
 } from '@/components/ui/select';
 import { Card } from '../ui/card';
 import { cn } from '@/lib/utils';
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
+import { Calendar } from '../ui/calendar';
 
 function SubmitButton() {
   const { t } = useTranslation();
@@ -118,7 +121,22 @@ function AddSaleForm({ books, setOpen, onDataChange }: { books: Book[], setOpen:
           <SelectContent>
             {books.map(book => (
               <SelectItem key={book.id} value={book.id}>
-                {book.name}
+                <div className="flex items-center gap-2">
+                  <div className="flex h-8 w-6 flex-shrink-0 items-center justify-center rounded-sm border bg-muted text-xs font-bold text-muted-foreground">
+                  {book.coverImageUrl ? (
+                      <Image 
+                        src={book.coverImageUrl}
+                        alt={book.name}
+                        width={24}
+                        height={32}
+                        className="h-full w-full rounded-sm object-cover"
+                      />
+                    ) : (
+                      <span>?</span>
+                    )}
+                  </div>
+                  <span>{book.name}</span>
+                </div>
               </SelectItem>
             ))}
           </SelectContent>
@@ -180,11 +198,15 @@ export function SalesClient({ sales, books, onDataChange }: { sales: Sale[], boo
     }
   );
 
-  const salesWithBookNames = React.useMemo(() => {
-    return filteredSales.map(sale => ({
-        ...sale,
-        bookName: bookMap.get(sale.bookId)?.name || 'Unknown Book'
-    }));
+  const salesWithBookData = React.useMemo(() => {
+    return filteredSales.map(sale => {
+        const book = bookMap.get(sale.bookId);
+        return {
+            ...sale,
+            bookName: book?.name || 'Unknown Book',
+            coverImageUrl: book?.coverImageUrl
+        }
+    });
   }, [filteredSales, bookMap]);
 
   return (
@@ -220,7 +242,7 @@ export function SalesClient({ sales, books, onDataChange }: { sales: Sale[], boo
             className="max-w-sm"
           />
         </div>
-        <DataTable columns={tableColumns} data={salesWithBookNames} isClient={isClient} />
+        <DataTable columns={tableColumns} data={salesWithBookData} isClient={isClient} />
       </Card>
     </div>
   );

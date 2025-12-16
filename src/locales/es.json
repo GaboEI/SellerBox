@@ -105,9 +105,9 @@
   "add_sale_success": "Venta registrada correctamente.",
   "failed_to_record_sale": "No se pudo registrar la venta.",
   "please_select_a_book": "Por favor, selecciona un libro.",
-  "date_format_error": "Por favor, usa el formato DD.MM.AAAA.",
+  "date_format_error": "Por favor, usa el formato dd.mm.yy.",
   "invalid_date_error": "La fecha no es válida.",
-  "date_range_error": "La fecha debe ser posterior al 01.01.2025 y no futura.",
+  "date_range_error": "La fecha no puede ser en el futuro.",
   "customize_your_experience": "Personaliza tu experiencia.",
   "appearance": "Apariencia",
   "adjust_look_and_feel": "Ajusta el aspecto de la aplicación.",
@@ -127,5 +127,6 @@
   "change": "Cambiar",
   "select_date": "Seleccionar fecha",
   "today": "Hoy",
-  "yesterday": "Ayer"
+  "yesterday": "Ayer",
+  "photo": "Foto"
 }

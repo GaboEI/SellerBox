@@ -28,9 +28,9 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { TFunction } from 'i18next';
 import { format, isToday, isYesterday } from 'date-fns';
+import Image from 'next/image';
 
-
-type SaleWithBookName = Sale & { bookName: string };
+type SaleWithBookData = Sale & { bookName: string, coverImageUrl?: string };
 
 const statusVariantMap: Record<SaleStatus, 'default' | 'secondary' | 'destructive' | 'outline' | 'success' | 'warning'> = {
   in_process: 'warning',
@@ -72,7 +72,7 @@ function reducer(state: any, action: any) {
   return state;
 }
 
-function EditSaleForm({ sale, setOpen, isClient, t }: { sale: SaleWithBookName; setOpen: (open: boolean) => void, isClient: boolean, t: TFunction }) {
+function EditSaleForm({ sale, setOpen, isClient, t }: { sale: SaleWithBookData; setOpen: (open: boolean) => void, isClient: boolean, t: TFunction }) {
   const [state, dispatch] = useReducer(reducer, initialState);
   const { toast } = useToast();
   const [currentStatus, setCurrentStatus] = React.useState<SaleStatus>(sale.status);
@@ -138,7 +138,7 @@ function EditSaleForm({ sale, setOpen, isClient, t }: { sale: SaleWithBookName; 
 
 
 function CellActions({ row, isClient, t }: { row: any, isClient: boolean, t: TFunction }) {
-  const sale = row.original as SaleWithBookName;
+  const sale = row.original as SaleWithBookData;
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
   const isFinalState = sale.status === 'completed' || sale.status === 'sold_in_person' || sale.status === 'canceled';
 
@@ -172,7 +172,30 @@ const formatDate = (date: Date, t: TFunction, isClient: boolean) => {
     return format(date, 'dd.MM.yy');
 };
 
-export const columns = (isClient: boolean, t: TFunction): ColumnDef<SaleWithBookName>[] => [
+export const columns = (isClient: boolean, t: TFunction): ColumnDef<SaleWithBookData>[] => [
+  {
+    accessorKey: 'coverImageUrl',
+    header: () => <div className="text-center">{isClient ? t('photo') : 'Photo'}</div>,
+    cell: ({ row }) => {
+      const { bookName, coverImageUrl } = row.original;
+      return (
+        <div className="flex h-12 w-9 flex-shrink-0 items-center justify-center rounded-sm border bg-muted text-lg font-bold text-muted-foreground">
+          {coverImageUrl ? (
+            <Image 
+              src={coverImageUrl}
+              alt={bookName}
+              width={36}
+              height={48}
+              className="h-full w-full rounded-sm object-cover"
+            />
+          ) : (
+            <span>?</span>
+          )}
+        </div>
+      )
+    },
+    size: 60,
+  },
   {
     accessorKey: 'bookName',
     header: ({ column }) => (
@@ -219,7 +242,7 @@ export const columns = (isClient: boolean, t: TFunction): ColumnDef<SaleWithBook
   },
   {
     accessorKey: 'saleAmount',
-    header: () => <div className="text-right">{isClient ? t('sale_amount') : 'Sale Amount'}</div>,
+    header: () => <div className="text-right">₽</div>,
     cell: ({ row }) => {
         const amount = row.getValue('saleAmount') as number | undefined;
         if (amount === undefined || amount === null) {

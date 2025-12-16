@@ -105,9 +105,9 @@
   "add_sale_success": "Successfully recorded sale.",
   "failed_to_record_sale": "Failed to record sale.",
   "please_select_a_book": "Please select a book.",
-  "date_format_error": "Please use DD.MM.YYYY format.",
+  "date_format_error": "Please use dd.mm.yy format.",
   "invalid_date_error": "The date is invalid.",
-  "date_range_error": "Date must be after 01.01.2025 and not in the future.",
+  "date_range_error": "Date cannot be in the future.",
   "customize_your_experience": "Customize your experience.",
   "appearance": "Appearance",
   "adjust_look_and_feel": "Adjust the look and feel of the application.",
@@ -127,5 +127,6 @@
   "change": "Change",
   "select_date": "Select date",
   "today": "Today",
-  "yesterday": "Yesterday"
+  "yesterday": "Yesterday",
+  "photo": "Photo"
 }

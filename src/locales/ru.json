@@ -105,9 +105,9 @@
   "add_sale_success": "Продажа успешно записана.",
   "failed_to_record_sale": "Не удалось записать продажу.",
   "please_select_a_book": "Пожалуйста, выберите книгу.",
-  "date_format_error": "Пожалуйста, используйте формат ДД.ММ.ГГГГ.",
+  "date_format_error": "Пожалуйста, используйте формат дд.мм.гг.",
   "invalid_date_error": "Неверная дата.",
-  "date_range_error": "Дата должна быть после 01.01.2025 и не в будущем.",
+  "date_range_error": "Дата не может быть в будущем.",
   "customize_your_experience": "Настройте свой опыт.",
   "appearance": "Внешний вид",
   "adjust_look_and_feel": "Настройте внешний вид приложения.",
@@ -119,7 +119,6 @@
   "username": "Имя пользователя",
   "must_be_logged_in": "Вы должны войти в систему.",
   "username_is_required": "Имя пользователя обязательно.",
-  "profile_updated": "Профиль обновляется.",
   "could_not_update_profile": "Не удалось обновить профиль.",
   "light": "Светлая",
   "dark": "Темная",
@@ -127,5 +126,6 @@
   "change": "Изменить",
   "select_date": "Выберите дату",
   "today": "Сегодня",
-  "yesterday": "Вчера"
+  "yesterday": "Вчера",
+  "photo": "Фото"
 }
