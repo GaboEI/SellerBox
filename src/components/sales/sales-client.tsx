@@ -1,5 +1,5 @@
 'use client';
-import *G React from 'react';
+import * as React from 'react';
 import { useFormStatus } from 'react-dom';
 import { PlusCircle, Calendar as CalendarIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
