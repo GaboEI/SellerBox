@@ -1,6 +1,6 @@
 'use client';
 import * as React from 'react';
-import { useFormStatus, useFormState } from 'react-dom';
+import { useFormStatus } from 'react-dom';
 import { PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -49,7 +49,7 @@ function AddBookForm({ setOpen }: { setOpen: (open: boolean) => void }) {
   const [isClient, setIsClient] = useState(false);
   useEffect(() => { setIsClient(true); }, []);
 
-  const [state, formAction] = useFormState(addBook, initialState);
+  const [state, formAction] = React.useActionState(addBook, initialState);
   const { toast } = useToast();
   const formRef = React.useRef<HTMLFormElement>(null);
   const [imagePreview, setImagePreview] = React.useState<string | null>(null);
