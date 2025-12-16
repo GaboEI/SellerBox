@@ -185,14 +185,16 @@ export default function EditSalePage() {
                           />
                         </SelectTrigger>
                         <SelectContent>
-                          {[
+                          {(
+                          [
                             'in_process',
                             'in_preparation',
                             'shipped',
                             'sold_in_person',
                             'completed',
                             'canceled',
-                          ] as SaleStatus[]).map((status) => (
+                          ] as SaleStatus[]
+                        ).map((status) => (
                             <SelectItem
                               key={status}
                               value={status}
