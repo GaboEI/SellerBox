@@ -85,7 +85,7 @@
   "date": "Date",
   "status": "Status",
   "platform": "Platform",
-  "sale_amount": "₽",
+  "sale_amount_header": "₽",
   "unknown_book": "Unknown Book",
   "in_process": "In Process",
   "in_preparation": "In Preparation",
@@ -128,5 +128,12 @@
   "select_date": "Select date",
   "today": "Today",
   "yesterday": "Yesterday",
-  "photo": "Photo"
+  "photo": "Photo",
+  "delete_sale": "Delete Sale",
+  "are_you_sure_delete": "Are you absolutely sure?",
+  "delete_sale_warning": "This action is dangerous and cannot be undone. To proceed, please enter the master key.",
+  "master_key": "Master Key",
+  "delete_sale_success": "Sale deleted successfully.",
+  "incorrect_master_key": "Incorrect master key.",
+  "failed_to_delete_sale": "Failed to delete sale."
 }

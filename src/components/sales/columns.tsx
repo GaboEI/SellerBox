@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useReducer } from 'react';
 import { useFormStatus } from 'react-dom';
 import { ColumnDef } from '@tanstack/react-table';
-import { ArrowUpDown, Edit } from 'lucide-react';
+import { ArrowUpDown, Edit, Trash2 } from 'lucide-react';
 import type { Sale, SaleStatus } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -15,6 +15,16 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -23,7 +33,7 @@ import {
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { updateSale } from '@/lib/actions';
+import { updateSale, deleteSale } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { TFunction } from 'i18next';
@@ -124,7 +134,7 @@ function EditSaleForm({ sale, setOpen, onDataChange, isClient, t }: { sale: Sale
 
       {showSaleAmount && (
         <div className="space-y-2">
-          <Label htmlFor="saleAmount">{isClient ? t('sale_amount') : 'Sale Amount'}</Label>
+          <Label htmlFor="saleAmount">{isClient ? t('sale_amount_header') : 'Sale Amount'}</Label>
           <div className="relative">
             <Input id="saleAmount" name="saleAmount" type="number" step="1" placeholder="2499" defaultValue={sale.saleAmount} required />
             <span className="absolute inset-y-0 right-3 flex items-center text-muted-foreground">₽</span>
@@ -141,15 +151,41 @@ function EditSaleForm({ sale, setOpen, onDataChange, isClient, t }: { sale: Sale
 function CellActions({ row, onDataChange, isClient, t }: { row: any, onDataChange: () => void, isClient: boolean, t: TFunction }) {
   const sale = row.original as SaleWithBookData;
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
+  const [masterKey, setMasterKey] = React.useState('');
+  const { toast } = useToast();
+
   const isFinalState = sale.status === 'completed' || sale.status === 'sold_in_person' || sale.status === 'canceled';
+
+  const handleDelete = async () => {
+    const result = await deleteSale(sale.id, masterKey);
+    if (result.message.includes('success')) {
+        onDataChange();
+        toast({ title: t('success'), description: t('delete_sale_success') });
+        setIsDeleteDialogOpen(false);
+    } else {
+        toast({ title: t('error'), description: result.message, variant: 'destructive'});
+    }
+  }
 
 
   return (
     <>
-      <Button variant="ghost" size="icon" onClick={() => setIsEditDialogOpen(true)} className='h-8 w-8'>
-        <Edit className="h-4 w-4" />
-        <span className="sr-only">{isClient ? t('edit_sale') : 'Edit Sale'}</span>
-      </Button>
+    <div className="flex justify-center">
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <Edit className="h-4 w-4" />
+            </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={() => setIsEditDialogOpen(true)}>{isClient ? t('edit_sale') : 'Edit Sale'}</DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)} className="text-destructive focus:text-destructive">{isClient ? t('delete_sale') : 'Delete Sale'}</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
 
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent>
@@ -162,6 +198,31 @@ function CellActions({ row, onDataChange, isClient, t }: { row: any, onDataChang
           <EditSaleForm sale={sale} setOpen={setIsEditDialogOpen} onDataChange={onDataChange} isClient={isClient} t={t} />
         </DialogContent>
       </Dialog>
+      
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{isClient ? t('are_you_sure_delete') : 'Are you absolutely sure?'}</AlertDialogTitle>
+              <AlertDialogDescription>
+                {isClient ? t('delete_sale_warning') : 'This action is dangerous and cannot be undone. To proceed, please enter the master key.'}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="space-y-2">
+                <Label htmlFor="master-key">{isClient ? t('master_key') : 'Master Key'}</Label>
+                <Input 
+                    id="master-key" 
+                    type="password"
+                    value={masterKey}
+                    onChange={(e) => setMasterKey(e.target.value)}
+                    placeholder="*****************"
+                />
+            </div>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setMasterKey('')}>{isClient ? t('cancel') : 'Cancel'}</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">{isClient ? t('delete') : 'Delete'}</AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
@@ -173,7 +234,7 @@ const formatDate = (date: Date, t: TFunction, isClient: boolean) => {
     return format(date, 'dd.MM.yy');
 };
 
-export const columns = (isClient: boolean, t: TFunction): ColumnDef<SaleWithBookData>[] => [
+export const columns = (onDataChange: () => void, isClient: boolean, t: TFunction): ColumnDef<SaleWithBookData>[] => [
   {
     accessorKey: 'coverImageUrl',
     header: () => <div className="text-center">{isClient ? t('photo') : 'Photo'}</div>,
@@ -210,10 +271,8 @@ export const columns = (isClient: boolean, t: TFunction): ColumnDef<SaleWithBook
   {
     accessorKey: 'date',
     header: ({ column }) => (
-        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-            <div className="text-center w-full">
+        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')} className="w-full justify-center">
                 {isClient ? t('date') : 'Date'}
-            </div>
             <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
     ),
@@ -229,7 +288,7 @@ export const columns = (isClient: boolean, t: TFunction): ColumnDef<SaleWithBook
         const status = row.getValue('status') as SaleStatus;
         return (
           <div className="flex justify-center">
-            <Badge variant={statusVariantMap[status]} className={cn('w-28 justify-center capitalize')}>
+            <Badge variant={statusVariantMap[status]} className={cn('flex w-28 justify-center capitalize')}>
               {isClient ? t(status) : status}
             </Badge>
           </div>
@@ -243,7 +302,7 @@ export const columns = (isClient: boolean, t: TFunction): ColumnDef<SaleWithBook
   },
   {
     accessorKey: 'saleAmount',
-    header: () => <div className="text-center">{isClient ? t('sale_amount') : '₽'}</div>,
+    header: () => <div className="w-full text-center">{isClient ? t('sale_amount_header') : '₽'}</div>,
     cell: ({ row }) => {
       const amount = row.getValue('saleAmount') as number | undefined;
       if (amount === undefined || amount === null) {
@@ -260,6 +319,6 @@ export const columns = (isClient: boolean, t: TFunction): ColumnDef<SaleWithBook
   },
   {
     id: 'actions',
-    cell: ({ row }) => <div className="text-center"><CellActions row={row} onDataChange={() => {}} isClient={isClient} t={t} /></div>,
+    cell: ({ row }) => <CellActions row={row} onDataChange={onDataChange} isClient={isClient} t={t} />,
   },
 ];

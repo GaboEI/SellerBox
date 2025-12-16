@@ -1,9 +1,8 @@
 'use client';
-import * as React from 'react';
+import React, { useReducer, useEffect, useState } from 'react';
 import { useFormStatus } from 'react-dom';
-import { PlusCircle, Calendar as CalendarIcon } from 'lucide-react';
+import { PlusCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useState, useEffect, useReducer } from 'react';
 import { format } from 'date-fns';
 import Image from 'next/image';
 
@@ -32,9 +31,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card } from '../ui/card';
-import { cn } from '@/lib/utils';
-import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
-import { Calendar } from '../ui/calendar';
 
 function SubmitButton() {
   const { t } = useTranslation();
@@ -149,7 +145,7 @@ function AddSaleForm({ books, setOpen, onDataChange }: { books: Book[], setOpen:
         <Input
           id="date"
           name="date"
-          placeholder="dd.mm.yy"
+          placeholder="dd.MM.yy"
           defaultValue={defaultDate}
         />
         {state.errors?.date && <p className="text-sm text-destructive">{state.errors.date[0]}</p>}
@@ -186,7 +182,7 @@ export function SalesClient({ sales, books, onDataChange }: { sales: Sale[], boo
   
   const bookMap = new Map(books.map(b => [b.id, b]));
   
-  const tableColumns = React.useMemo(() => columns(isClient, t), [isClient, t]);
+  const tableColumns = React.useMemo(() => columns(onDataChange, isClient, t), [isClient, t, onDataChange]);
 
 
   const filteredSales = sales.filter(

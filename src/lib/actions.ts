@@ -9,6 +9,7 @@ import {
   updateBook as dbUpdateBook,
   deleteBook as dbDeleteBook,
   updateSale as dbUpdateSale,
+  deleteSale as dbDeleteSale,
 } from './data';
 import type { Book, SalePlatform, SaleStatus } from './types';
 import { parse } from 'date-fns';
@@ -191,4 +192,22 @@ export async function updateSale(id: string, prevState: any, formData: FormData)
   } catch (e) {
     return { message: 'Failed to update sale.', errors: {} };
   }
+}
+
+export async function deleteSale(id: string, masterKey: string) {
+    const MASTER_KEY = "G@bi98072216508";
+
+    if (masterKey !== MASTER_KEY) {
+        return { message: 'Clave maestra incorrecta.' };
+    }
+
+    try {
+        await dbDeleteSale(id);
+        revalidatePath('/');
+        revalidatePath('/sales');
+        return { message: 'delete_sale_success' };
+    } catch (e) {
+        console.error('Failed to delete sale', e);
+        return { message: 'No se pudo eliminar la venta.' };
+    }
 }

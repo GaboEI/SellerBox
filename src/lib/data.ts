@@ -161,6 +161,12 @@ export async function getSalesByBookId(bookId: string): Promise<Sale[]> {
   const sales = await getSales();
   return sales.filter((sale) => sale.bookId === bookId);
 }
+export async function deleteSale(id: string): Promise<void> {
+    let sales = await getSales();
+    const updatedSales = sales.filter((sale) => sale.id !== id);
+    await writeData(salesFilePath, updatedSales);
+}
+
 
 // --- User Profile ---
 export async function getUserProfile(db: Firestore, user: User | null): Promise<UserProfileType | null> {

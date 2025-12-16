@@ -85,7 +85,7 @@
   "date": "Дата",
   "status": "Статус",
   "platform": "Платформа",
-  "sale_amount": "₽",
+  "sale_amount_header": "₽",
   "unknown_book": "Неизвестная книга",
   "in_process": "В обработке",
   "in_preparation": "Подготовка",
@@ -119,6 +119,7 @@
   "username": "Имя пользователя",
   "must_be_logged_in": "Вы должны войти в систему.",
   "username_is_required": "Имя пользователя обязательно.",
+  "profile_updated": "Обновление профиля в процессе.",
   "could_not_update_profile": "Не удалось обновить профиль.",
   "light": "Светлая",
   "dark": "Темная",
@@ -127,5 +128,12 @@
   "select_date": "Выберите дату",
   "today": "Сегодня",
   "yesterday": "Вчера",
-  "photo": "Фото"
+  "photo": "Фото",
+  "delete_sale": "Удалить продажу",
+  "are_you_sure_delete": "Вы абсолютно уверены?",
+  "delete_sale_warning": "Это действие опасно и не может быть отменено. Для продолжения введите мастер-ключ.",
+  "master_key": "Мастер-ключ",
+  "delete_sale_success": "Продажа успешно удалена.",
+  "incorrect_master_key": "Неверный мастер-ключ.",
+  "failed_to_delete_sale": "Не удалось удалить продажу."
 }

@@ -85,7 +85,7 @@
   "date": "Fecha",
   "status": "Estado",
   "platform": "Plataforma",
-  "sale_amount": "₽",
+  "sale_amount_header": "₽",
   "unknown_book": "Libro Desconocido",
   "in_process": "En Proceso",
   "in_preparation": "En Preparación",
@@ -128,5 +128,12 @@
   "select_date": "Seleccionar fecha",
   "today": "Hoy",
   "yesterday": "Ayer",
-  "photo": "Foto"
+  "photo": "Foto",
+  "delete_sale": "Eliminar Venta",
+  "are_you_sure_delete": "¿Estás absolutamente seguro?",
+  "delete_sale_warning": "Esta acción es peligrosa y no se puede deshacer. Para proceder, por favor introduce la clave maestra.",
+  "master_key": "Clave Maestra",
+  "delete_sale_success": "Venta eliminada correctamente.",
+  "incorrect_master_key": "Clave maestra incorrecta.",
+  "failed_to_delete_sale": "No se pudo eliminar la venta."
 }
