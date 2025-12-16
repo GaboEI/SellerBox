@@ -1,9 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ColumnDef } from '@tanstack/react-table';
-import { ArrowUpDown, Edit } from 'lucide-react';
+import { ArrowUpDown, Edit, Trash2 } from 'lucide-react';
 import type { Sale, SaleStatus } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +13,39 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Label } from '../ui/label';
+import { Input } from '../ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { useFormState, useFormStatus } from 'react-dom';
+import { updateSale } from '@/lib/actions';
+import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
+
 
 import { cn } from '@/lib/utils';
 import { TFunction } from 'i18next';
@@ -30,7 +63,13 @@ const statusVariantMap: Record<SaleStatus, 'default' | 'secondary' | 'destructiv
   canceled: 'destructive',
 };
 
-function CellActions({ row, isClient, t }: { row: any, isClient: boolean, t: TFunction }) {
+const initialState = {
+  message: '',
+  errors: {},
+};
+
+
+function CellActions({ row, isClient, t, onEdit, onDelete }: { row: any, isClient: boolean, t: TFunction, onEdit: (sale: SaleWithBookData) => void, onDelete: (sale: SaleWithBookData) => void }) {
   const sale = row.original as SaleWithBookData;
 
   return (
@@ -47,6 +86,9 @@ function CellActions({ row, isClient, t }: { row: any, isClient: boolean, t: TFu
           <DropdownMenuItem asChild>
             <Link href={`/sales/edit/${sale.id}`}>{isClient ? t('edit_sale') : 'Edit Sale'}</Link>
           </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onDelete(sale)}>
+            <span className="text-destructive">{isClient ? t('delete_sale') : 'Delete Sale'}</span>
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
@@ -61,7 +103,7 @@ const formatDate = (date: Date, t: TFunction, isClient: boolean) => {
     return format(date, 'dd.MM.yy');
 };
 
-export const getColumns = (isClient: boolean, t: TFunction): ColumnDef<SaleWithBookData>[] => [
+export const getColumns = (isClient: boolean, t: TFunction, onEdit: (sale: SaleWithBookData) => void, onDelete: (sale: SaleWithBookData) => void): ColumnDef<SaleWithBookData>[] => [
   {
     accessorKey: 'coverImageUrl',
     header: () => <div className="text-center">{isClient ? t('photo') : 'Photo'}</div>,
@@ -146,6 +188,6 @@ export const getColumns = (isClient: boolean, t: TFunction): ColumnDef<SaleWithB
   },
   {
     id: 'actions',
-    cell: ({ row }) => <CellActions row={row} isClient={isClient} t={t} />,
+    cell: ({ row }) => <CellActions row={row} isClient={isClient} t={t} onEdit={onEdit} onDelete={onDelete} />,
   },
 ];
