@@ -12,7 +12,6 @@ import {
 } from '@tanstack/react-table';
 import { useTranslation } from 'react-i18next';
 
-
 import {
   Table,
   TableBody,
@@ -26,13 +25,11 @@ import { Button } from '@/components/ui/button';
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
-  isClient: boolean;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
-  isClient,
 }: DataTableProps<TData, TValue>) {
   const { t } = useTranslation();
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -55,68 +52,82 @@ export function DataTable<TData, TValue>({
 
   return (
     <div>
-        <div className="rounded-md border">
+      <div className="rounded-md border">
         <Table>
-            <TableHeader>
+          <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
+              <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
-                    return (
-                    <TableHead key={header.id}>
-                        {header.isPlaceholder
+                  return (
+                    <TableHead
+                      key={header.id}
+                      style={{
+                        width:
+                          header.getSize() !== 150
+                            ? `${header.getSize()}px`
+                            : undefined,
+                      }}
+                    >
+                      {header.isPlaceholder
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
                             header.getContext()
-                            )}
+                          )}
                     </TableHead>
-                    );
+                  );
                 })}
-                </TableRow>
+              </TableRow>
             ))}
-            </TableHeader>
-            <TableBody>
+          </TableHeader>
+          <TableBody>
             {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
+              table.getRowModel().rows.map((row) => (
                 <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && 'selected'}
+                  key={row.id}
+                  data-state={row.getIsSelected() && 'selected'}
                 >
-                    {row.getVisibleCells().map((cell) => (
+                  {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
                     </TableCell>
-                    ))}
+                  ))}
                 </TableRow>
-                ))
+              ))
             ) : (
-                <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
-                    {isClient ? t('no_results') : 'No results.'}
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
+                  {t('no_results')}
                 </TableCell>
-                </TableRow>
+              </TableRow>
             )}
-            </TableBody>
+          </TableBody>
         </Table>
-        </div>
-        <div className="flex items-center justify-end space-x-2 py-4">
-            <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-            >
-            {isClient ? t('previous') : 'Previous'}
-            </Button>
-            <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-            >
-            {isClient ? t('next') : 'Next'}
-            </Button>
-        </div>
+      </div>
+      <div className="flex items-center justify-end space-x-2 py-4">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => table.previousPage()}
+          disabled={!table.getCanPreviousPage()}
+        >
+          {t('previous')}
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => table.nextPage()}
+          disabled={!table.getCanNextPage()}
+        >
+          {t('next')}
+        </Button>
+      </div>
     </div>
   );
 }

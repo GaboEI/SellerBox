@@ -1,13 +1,12 @@
 'use client';
 import * as React from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { PlusCircle, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/shared/page-header';
 import { DataTable } from './data-table';
-import { getColumns, SaleWithBookData } from './columns';
-import type { Book as BookType, Sale } from '@/lib/types';
+import { getColumns } from './columns';
+import type { Book as BookType } from '@/lib/types';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '../ui/card';
 import { useTranslation } from 'react-i18next';
@@ -24,6 +23,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { deleteBook } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
+import { usePathname, useRouter } from 'next/navigation';
 
 export function CatalogClient({
   books,
@@ -41,6 +41,7 @@ export function CatalogClient({
 
   const { toast } = useToast();
   const router = useRouter();
+  const pathname = usePathname();
 
   // State for delete dialog
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -51,16 +52,31 @@ export function CatalogClient({
     setSelectedBookToDelete(book);
     setIsDeleteDialogOpen(true);
   };
+  
+  useEffect(() => {
+    // Cleanup state when navigating away from the page
+    return () => {
+      setIsDeleteDialogOpen(false);
+      setSelectedBookToDelete(null);
+    };
+  }, [pathname]);
 
   const handleDeleteConfirm = async () => {
     if (!selectedBookToDelete) return;
+
+    // Close the dialog first
+    setIsDeleteDialogOpen(false);
+    
     const result = await deleteBook(selectedBookToDelete.id);
+    
     if (result && result.message) {
       toast({
         title: t('error'),
         description: result.message,
         variant: 'destructive',
       });
+      // If deletion fails, we might need to refresh to get consistent state
+      router.refresh();
     } else {
       toast({
         title: t('success'),
@@ -68,9 +84,10 @@ export function CatalogClient({
           bookName: selectedBookToDelete.name,
         }),
       });
+      // Update local state instead of global refresh
       onBookDeleted(selectedBookToDelete.id);
     }
-    setIsDeleteDialogOpen(false);
+    // Reset selected book after action
     setSelectedBookToDelete(null);
   };
 
@@ -81,8 +98,8 @@ export function CatalogClient({
   );
 
   const tableColumns = React.useMemo(
-    () => getColumns(t, openDeleteDialog, onBookDeleted),
-    [t, onBookDeleted]
+    () => getColumns(t, openDeleteDialog),
+    [t]
   );
 
   return (
@@ -120,14 +137,18 @@ export function CatalogClient({
             <DataTable
               columns={tableColumns}
               data={filteredBooks}
-              isClient={isClient}
             />
           </CardContent>
         </Card>
       </div>
       <AlertDialog
         open={isDeleteDialogOpen}
-        onOpenChange={setIsDeleteDialogOpen}
+        onOpenChange={(open) => {
+            setIsDeleteDialogOpen(open);
+            if (!open) {
+                setSelectedBookToDelete(null);
+            }
+        }}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
