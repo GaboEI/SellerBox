@@ -85,7 +85,7 @@
   "date": "Дата",
   "status": "Статус",
   "platform": "Платформа",
-  "sale_amount": "Сумма продажи",
+  "sale_amount": "₽",
   "unknown_book": "Неизвестная книга",
   "in_process": "В обработке",
   "in_preparation": "Подготовка",
