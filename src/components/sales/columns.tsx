@@ -159,14 +159,24 @@ function EditSaleForm({ sale, setOpen, onDataChange, isClient, t }: { sale: Sale
 
 function CellActions({ row, onDataChange, isClient, t }: { row: any, onDataChange: () => void, isClient: boolean, t: TFunction }) {
   const sale = row.original as SaleWithBookData;
+  const { toast } = useToast();
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
 
   const isFinalState = sale.status === 'completed' || sale.status === 'sold_in_person' || sale.status === 'canceled';
 
   const handleDelete = async () => {
-    await deleteSale(sale.id);
-    onDataChange();
+    try {
+        const result = await deleteSale(sale.id);
+        if (result.message.includes('success')) {
+            toast({ title: t('success'), description: t('delete_sale_success') });
+            onDataChange();
+        } else {
+            toast({ title: t('error'), description: result.message, variant: 'destructive' });
+        }
+    } catch(e) {
+        toast({ title: t('error'), description: t('failed_to_delete_sale'), variant: 'destructive' });
+    }
   }
 
 
@@ -205,7 +215,7 @@ function CellActions({ row, onDataChange, isClient, t }: { row: any, onDataChang
             <AlertDialogHeader>
               <AlertDialogTitle>{isClient ? t('are_you_sure_delete') : 'Are you absolutely sure?'}</AlertDialogTitle>
               <AlertDialogDescription>
-                {isClient ? t('delete_book_warning') : 'This will permanently delete the sale record.'}
+                {isClient ? t('delete_sale_warning_simple') : 'This will permanently delete the sale record.'}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

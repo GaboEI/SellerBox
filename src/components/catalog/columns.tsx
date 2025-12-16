@@ -158,12 +158,18 @@ function EditBookForm({ book, setOpen, onDataChange, isClient, t }: { book: Book
 
 const CellActions: React.FC<{ row: any, onDataChange: () => void, isClient: boolean, t: TFunction }> = ({ row, onDataChange, isClient, t }) => {
   const book = row.original as Book;
+  const { toast } = useToast();
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
 
   const handleDelete = async () => {
-    await deleteBook(book.id);
-    onDataChange();
+    try {
+      await deleteBook(book.id);
+      toast({ title: t('success'), description: t('delete_book_success', {bookName: book.name}) });
+      onDataChange();
+    } catch (e) {
+      toast({ title: t('error'), description: t('failed_to_delete_book'), variant: 'destructive' });
+    }
   }
 
   return (

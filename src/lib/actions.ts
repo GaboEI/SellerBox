@@ -194,13 +194,7 @@ export async function updateSale(id: string, prevState: any, formData: FormData)
   }
 }
 
-export async function deleteSale(id: string, masterKey: string) {
-    const MASTER_KEY = "G@bi98072216508";
-
-    if (masterKey !== MASTER_KEY) {
-        return { message: 'Clave maestra incorrecta.' };
-    }
-
+export async function deleteSale(id: string) {
     try {
         await dbDeleteSale(id);
         revalidatePath('/');
@@ -208,6 +202,6 @@ export async function deleteSale(id: string, masterKey: string) {
         return { message: 'delete_sale_success' };
     } catch (e) {
         console.error('Failed to delete sale', e);
-        return { message: 'No se pudo eliminar la venta.' };
+        return { message: 'failed_to_delete_sale' };
     }
 }
