@@ -191,11 +191,17 @@ export const columns = (isClient: boolean, t: TFunction): ColumnDef<SaleWithBook
   },
   {
     accessorKey: 'status',
-    header: isClient ? t('status') : 'Status',
+    header: () => <div className="text-center">{isClient ? t('status') : 'Status'}</div>,
     cell: ({ row }) => {
-      const status = row.getValue('status') as SaleStatus;
-      return <Badge variant={statusVariantMap[status]} className={cn('capitalize')}>{isClient ? t(status) : status}</Badge>;
-    },
+        const status = row.getValue('status') as SaleStatus;
+        return (
+          <div className="flex justify-center">
+            <Badge variant={statusVariantMap[status]} className={cn('w-28 justify-center capitalize')}>
+              {isClient ? t(status) : status}
+            </Badge>
+          </div>
+        );
+      },
   },
   {
     accessorKey: 'platform',
@@ -204,7 +210,7 @@ export const columns = (isClient: boolean, t: TFunction): ColumnDef<SaleWithBook
   },
   {
     accessorKey: 'saleAmount',
-    header: isClient ? t('sale_amount') : 'Sale Amount',
+    header: () => <div className="text-right">{isClient ? t('sale_amount') : 'Sale Amount'}</div>,
     cell: ({ row }) => {
         const amount = row.getValue('saleAmount') as number | undefined;
         if (amount === undefined || amount === null) {
