@@ -48,7 +48,7 @@ export function DataTable<TData, TValue>({
     },
     initialState: {
         pagination: {
-            pageSize: 50,
+            pageSize: 25,
         }
     }
   });
