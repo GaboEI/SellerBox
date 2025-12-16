@@ -65,7 +65,7 @@ function reducer(state: any, action: any) {
     return state;
   }
 
-function AddSaleForm({ books, setOpen, onDataChange }: { books: Book[], setOpen: (open: boolean) => void, onDataChange: () => void }) {
+function AddSaleForm({ books, setOpen }: { books: Book[], setOpen: (open: boolean) => void }) {
   const { t } = useTranslation();
   const [isClient, setIsClient] = useState(false);
   useEffect(() => { setIsClient(true); }, []);
@@ -80,7 +80,6 @@ function AddSaleForm({ books, setOpen, onDataChange }: { books: Book[], setOpen:
     const result = await addSale(null, formData);
     if (result.message.includes('success')) {
       dispatch({ type: 'SUCCESS', message: result.message });
-      onDataChange();
       setOpen(false);
     } else {
       dispatch({ type: 'ERROR', message: result.message, errors: result.errors });
@@ -173,7 +172,7 @@ function AddSaleForm({ books, setOpen, onDataChange }: { books: Book[], setOpen:
   );
 }
 
-export function SalesClient({ sales, books, onDataChange }: { sales: Sale[], books: Book[], onDataChange: () => void }) {
+export function SalesClient({ sales, books }: { sales: Sale[], books: Book[] }) {
   const { t } = useTranslation();
   const [isClient, setIsClient] = useState(false);
   useEffect(() => { setIsClient(true); }, []);
@@ -182,7 +181,7 @@ export function SalesClient({ sales, books, onDataChange }: { sales: Sale[], boo
   
   const bookMap = new Map(books.map(b => [b.id, b]));
   
-  const tableColumns = React.useMemo(() => columns(onDataChange, isClient, t), [isClient, t, onDataChange]);
+  const tableColumns = React.useMemo(() => columns(isClient, t), [isClient, t]);
 
 
   const filteredSales = sales.filter(
@@ -225,7 +224,7 @@ export function SalesClient({ sales, books, onDataChange }: { sales: Sale[], boo
                 {isClient ? t('record_sale_desc') : 'Fill in the details to log a new sale.'}
               </DialogDescription>
             </DialogHeader>
-            <AddSaleForm books={books} setOpen={setOpen} onDataChange={onDataChange} />
+            <AddSaleForm books={books} setOpen={setOpen} />
           </DialogContent>
         </Dialog>
       </PageHeader>

@@ -57,7 +57,7 @@ function reducer(state: any, action: any) {
   return state;
 }
 
-function AddBookForm({ setOpen, onDataChange }: { setOpen: (open: boolean) => void, onDataChange: () => void }) {
+function AddBookForm({ setOpen }: { setOpen: (open: boolean) => void }) {
   const { t } = useTranslation();
   const [isClient, setIsClient] = useState(false);
   useEffect(() => { setIsClient(true); }, []);
@@ -85,7 +85,6 @@ function AddBookForm({ setOpen, onDataChange }: { setOpen: (open: boolean) => vo
     const result = await addBook(null, formData);
     if (result.message.includes('success')) {
       dispatch({ type: 'SUCCESS', message: result.message });
-      onDataChange();
       setOpen(false);
     } else {
       dispatch({ type: 'ERROR', message: result.message, errors: result.errors });
@@ -149,7 +148,7 @@ function AddBookForm({ setOpen, onDataChange }: { setOpen: (open: boolean) => vo
   );
 }
 
-export function CatalogClient({ books, onDataChange }: { books: BookType[], onDataChange: () => void }) {
+export function CatalogClient({ books }: { books: BookType[] }) {
   const { t } = useTranslation();
   const [isClient, setIsClient] = useState(false);
   useEffect(() => { setIsClient(true); }, []);
@@ -162,7 +161,7 @@ export function CatalogClient({ books, onDataChange }: { books: BookType[], onDa
       book.code.toLowerCase().includes(filter.toLowerCase())
   );
   
-  const tableColumns = columns(onDataChange, isClient, t);
+  const tableColumns = columns(isClient, t);
 
   return (
     <div className="flex flex-col gap-8">
@@ -184,7 +183,7 @@ export function CatalogClient({ books, onDataChange }: { books: BookType[], onDa
                 {isClient ? t('add_book_desc') : 'Enter the details for the new book to add it to your catalog.'}
               </DialogDescription>
             </DialogHeader>
-            <AddBookForm setOpen={setOpen} onDataChange={onDataChange} />
+            <AddBookForm setOpen={setOpen} />
           </DialogContent>
         </Dialog>
       </PageHeader>

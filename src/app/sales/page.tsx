@@ -7,16 +7,17 @@ import type { Book, Sale } from '@/lib/types';
 import { AppSidebar } from '@/components/layout/sidebar';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { AppHeader } from '@/components/layout/header';
+import { useTranslation } from 'react-i18next';
 
 
 export default function SalesPage() {
+  const { t } = useTranslation();
   const [sales, setSales] = React.useState<Sale[]>([]);
   const [books, setBooks] = React.useState<Book[]>([]);
-  const [clientKey, setClientKey] = useState(Date.now().toString());
+  const [isClient, setIsClient] = useState(false);
 
-
-  const handleDataChange = React.useCallback(() => {
-    setClientKey(Date.now().toString());
+  useEffect(() => {
+    setIsClient(true);
   }, []);
 
   React.useEffect(() => {
@@ -27,7 +28,7 @@ export default function SalesPage() {
       setBooks(booksData);
     }
     fetchData();
-  }, [clientKey]);
+  }, []);
 
   return (
     <SidebarProvider>
@@ -35,7 +36,7 @@ export default function SalesPage() {
         <SidebarInset>
             <AppHeader />
             <main className="p-4 lg:p-6">
-                <SalesClient sales={sales} books={books} onDataChange={handleDataChange} />
+                <SalesClient sales={sales} books={books} />
             </main>
         </SidebarInset>
     </SidebarProvider>

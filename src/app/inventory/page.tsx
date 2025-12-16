@@ -14,7 +14,6 @@ import { useTranslation } from 'react-i18next';
 export default function InventoryPage() {
   const { t } = useTranslation();
   const [books, setBooks] = React.useState<Book[]>([]);
-  const [clientKey, setClientKey] = React.useState(Date.now().toString());
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -27,11 +26,9 @@ export default function InventoryPage() {
       setBooks(booksData);
     }
     fetchBooks();
-  }, [clientKey]);
+  }, []); // El array de dependencias ahora puede estar vacío
 
-  const handleDataChange = React.useCallback(() => {
-    setClientKey(Date.now().toString());
-  }, []);
+  // La función handleDataChange ya no es necesaria aquí.
   
   return (
     <SidebarProvider>
@@ -41,7 +38,8 @@ export default function InventoryPage() {
         <main className="p-4 lg:p-6">
           <div className="flex flex-col gap-8">
               <PageHeader title={isClient ? t('warehouse') : 'Warehouse'} description={isClient ? t('view_manage_stock') : 'View and manage your book stock.'} />
-              <CatalogClient books={books} onDataChange={handleDataChange} />
+              {/* onDataChange se elimina ya que revalidatePath se encarga */}
+              <CatalogClient books={books} />
           </div>
         </main>
       </SidebarInset>

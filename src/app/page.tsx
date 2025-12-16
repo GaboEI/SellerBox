@@ -16,7 +16,6 @@ export default function DashboardPage() {
   const { t } = useTranslation();
   const [sales, setSales] = React.useState<Sale[]>([]);
   const [books, setBooks] = React.useState<Book[]>([]);
-  const [clientKey, setClientKey] = useState(Date.now().toString());
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -31,10 +30,6 @@ export default function DashboardPage() {
       setBooks(booksData);
     }
     fetchData();
-  }, [clientKey]);
-
-  const handleDataChange = React.useCallback(() => {
-    setClientKey(Date.now().toString());
   }, []);
 
 

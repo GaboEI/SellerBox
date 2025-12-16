@@ -91,7 +91,7 @@ function reducer(state: any, action: any) {
   return state;
 }
 
-function EditSaleForm({ sale, setOpen, onDataChange, isClient, t }: { sale: SaleWithBookData; setOpen: (open: boolean) => void, onDataChange: () => void, isClient: boolean, t: TFunction }) {
+function EditSaleForm({ sale, setOpen, isClient, t }: { sale: SaleWithBookData; setOpen: (open: boolean) => void, isClient: boolean, t: TFunction }) {
   const [state, dispatch] = useReducer(reducer, initialState);
   const { toast } = useToast();
   const [currentStatus, setCurrentStatus] = React.useState<SaleStatus>(sale.status);
@@ -102,7 +102,6 @@ function EditSaleForm({ sale, setOpen, onDataChange, isClient, t }: { sale: Sale
     const result = await updateSale(sale.id, null, formData);
     if (result.message.includes('success')) {
         dispatch({ type: 'SUCCESS', message: result.message });
-        onDataChange();
         setOpen(false);
     } else {
         dispatch({ type: 'ERROR', message: result.message, errors: result.errors });
@@ -117,7 +116,7 @@ function EditSaleForm({ sale, setOpen, onDataChange, isClient, t }: { sale: Sale
             toast({ title: isClient ? t('success') : 'Success', description: isClient ? t('update_sale_success') : 'Sale updated successfully.' });
         }
     }
-  }, [state, toast, onDataChange, isClient, t]);
+  }, [state, toast, isClient, t]);
 
   const showSaleAmount = currentStatus === 'completed' || currentStatus === 'sold_in_person';
 
@@ -157,7 +156,7 @@ function EditSaleForm({ sale, setOpen, onDataChange, isClient, t }: { sale: Sale
 }
 
 
-function CellActions({ row, onDataChange, isClient, t }: { row: any, onDataChange: () => void, isClient: boolean, t: TFunction }) {
+function CellActions({ row, isClient, t }: { row: any, isClient: boolean, t: TFunction }) {
   const sale = row.original as SaleWithBookData;
   const { toast } = useToast();
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
@@ -170,7 +169,6 @@ function CellActions({ row, onDataChange, isClient, t }: { row: any, onDataChang
         const result = await deleteSale(sale.id);
         if (result.message.includes('success')) {
             toast({ title: t('success'), description: t('delete_sale_success') });
-            onDataChange();
         } else {
             toast({ title: t('error'), description: result.message, variant: 'destructive' });
         }
@@ -206,7 +204,7 @@ function CellActions({ row, onDataChange, isClient, t }: { row: any, onDataChang
               {isFinalState ? (isClient ? t('update_sale_final_desc') : 'This sale is in a final state and cannot be modified.') : (isClient ? t('update_sale_desc') : 'Change the status of the sale.')}
             </DialogDescription>
           </DialogHeader>
-          <EditSaleForm sale={sale} setOpen={setIsEditDialogOpen} onDataChange={onDataChange} isClient={isClient} t={t} />
+          <EditSaleForm sale={sale} setOpen={setIsEditDialogOpen} isClient={isClient} t={t} />
         </DialogContent>
       </Dialog>
       
@@ -235,7 +233,7 @@ const formatDate = (date: Date, t: TFunction, isClient: boolean) => {
     return format(date, 'dd.MM.yy');
 };
 
-export const columns = (onDataChange: () => void, isClient: boolean, t: TFunction): ColumnDef<SaleWithBookData>[] => [
+export const columns = (isClient: boolean, t: TFunction): ColumnDef<SaleWithBookData>[] => [
   {
     accessorKey: 'coverImageUrl',
     header: () => <div className="text-center">{isClient ? t('photo') : 'Photo'}</div>,
@@ -320,6 +318,6 @@ export const columns = (onDataChange: () => void, isClient: boolean, t: TFunctio
   },
   {
     id: 'actions',
-    cell: ({ row }) => <CellActions row={row} onDataChange={onDataChange} isClient={isClient} t={t} />,
+    cell: ({ row }) => <CellActions row={row} isClient={isClient} t={t} />,
   },
 ];
