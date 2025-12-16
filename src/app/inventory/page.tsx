@@ -14,6 +14,7 @@ export default function InventoryPage() {
   const { t } = useTranslation();
   const [books, setBooks] = React.useState<Book[]>([]);
   const [isClient, setIsClient] = useState(false);
+  const [clientKey, setClientKey] = useState(0);
 
   useEffect(() => {
     setIsClient(true);
@@ -26,15 +27,15 @@ export default function InventoryPage() {
 
   useEffect(() => {
     fetchBooks();
-  }, [fetchBooks]);
+  }, [fetchBooks, clientKey]);
 
   const handleBookDeleted = useCallback((deletedBookId: string) => {
     setBooks(prevBooks => prevBooks.filter(book => book.id !== deletedBookId));
   }, []);
 
   const handleDataChange = useCallback(() => {
-    fetchBooks();
-  }, [fetchBooks]);
+    setClientKey(prevKey => prevKey + 1);
+  }, []);
   
   return (
     <SidebarProvider>

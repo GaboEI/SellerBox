@@ -5,7 +5,6 @@ import { PlusCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { format } from 'date-fns';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -16,13 +15,24 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+
 import { PageHeader } from '@/components/shared/page-header';
 import { DataTable } from './data-table';
-import { columns } from './columns';
-import type { Book, Sale, SalePlatform } from '@/lib/types';
+import { getColumns, SaleWithBookData } from './columns';
+import type { Book, Sale, SalePlatform, SaleStatus } from '@/lib/types';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { addSale } from '@/lib/actions';
+import { addSale, updateSale, deleteSale } from '@/lib/actions';
 import { Label } from '../ui/label';
 import {
   Select,
@@ -33,14 +43,12 @@ import {
 } from '@/components/ui/select';
 import { Card } from '../ui/card';
 
-function SubmitButton() {
-  const { t } = useTranslation();
-  const [isClient, setIsClient] = useState(false);
-  useEffect(() => { setIsClient(true); }, []);
+function SubmitButton({ isClient, t, isEditing }: { isClient: boolean, t: any, isEditing?: boolean }) {
   const { pending } = useFormStatus();
+  const text = isEditing ? (pending ? t('saving') : t('save_changes')) : (pending ? t('recording') : t('record_sale'));
   return (
     <Button type="submit" disabled={pending}>
-      {isClient ? (pending ? t('recording') : t('record_sale')) : 'Record Sale'}
+      {isClient ? text : 'Submit'}
     </Button>
   );
 }
@@ -51,12 +59,7 @@ const initialState = {
 };
 
 
-function AddSaleForm({ books, setOpen }: { books: Book[], setOpen: (open: boolean) => void }) {
-  const { t } = useTranslation();
-  const [isClient, setIsClient] = useState(false);
-  useEffect(() => { setIsClient(true); }, []);
-  const router = useRouter();
-  
+function AddSaleForm({ books, setOpen, onDataChange, isClient, t }: { books: Book[], setOpen: (open: boolean) => void, onDataChange: () => void, isClient: boolean, t: any }) {
   const [state, formAction] = useFormState(addSale, initialState);
   const { toast } = useToast();
   const formRef = React.useRef<HTMLFormElement>(null);
@@ -78,10 +81,10 @@ function AddSaleForm({ books, setOpen }: { books: Book[], setOpen: (open: boolea
             });
             formRef.current?.reset();
             setOpen(false);
-            router.refresh();
+            onDataChange();
         }
     }
-  }, [state, toast, isClient, t, setOpen, router]);
+  }, [state, toast, isClient, t, setOpen, onDataChange]);
 
 
   return (
@@ -146,22 +149,111 @@ function AddSaleForm({ books, setOpen }: { books: Book[], setOpen: (open: boolea
         {state.errors?.platform && <p className="text-sm text-destructive">{state.errors.platform[0]}</p>}
       </div>
 
-      <SubmitButton />
+      <SubmitButton isClient={isClient} t={t} />
     </form>
   );
 }
 
-export function SalesClient({ sales, books }: { sales: Sale[], books: Book[] }) {
+function EditSaleForm({ sale, setOpen, onDataChange, isClient, t }: { sale: SaleWithBookData; setOpen: (open: boolean) => void; onDataChange: () => void; isClient: boolean; t: any; }) {
+  const { toast } = useToast();
+  const [currentStatus, setCurrentStatus] = React.useState<SaleStatus>(sale.status);
+
+  const updateSaleWithId = updateSale.bind(null, sale.id);
+  const [state, formAction] = React.useActionState(updateSaleWithId, initialState);
+
+  const isFinalState = sale.status === 'completed' || sale.status === 'sold_in_person' || sale.status === 'canceled';
+
+  useEffect(() => {
+    if (state?.message) {
+        if (Object.keys(state.errors).length > 0) {
+            toast({ title: isClient ? t('error') : 'Error', description: state.message, variant: 'destructive' });
+        } else {
+            toast({ title: isClient ? t('success') : 'Success', description: isClient ? t('update_sale_success') : 'Sale updated successfully.' });
+            setOpen(false);
+            onDataChange();
+        }
+    }
+  }, [state, toast, isClient, t, setOpen, onDataChange]);
+
+  const showSaleAmount = currentStatus === 'completed' || currentStatus === 'sold_in_person';
+
+  return (
+    <form action={formAction} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="status">{isClient ? t('status') : 'Status'}</Label>
+        <Select name="status" defaultValue={sale.status} onValueChange={(value) => setCurrentStatus(value as SaleStatus)} disabled={isFinalState}>
+          <SelectTrigger>
+            <SelectValue placeholder={isClient ? t('select_status') : 'Select a status'} />
+          </SelectTrigger>
+          <SelectContent>
+            {(['in_process', 'in_preparation', 'shipped', 'sold_in_person', 'completed', 'canceled'] as SaleStatus[]).map(
+              (status) => (
+                <SelectItem key={status} value={status} className="capitalize">
+                  {isClient ? t(status) : status}
+                </SelectItem>
+              )
+            )}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {showSaleAmount && (
+        <div className="space-y-2">
+          <Label htmlFor="saleAmount">{isClient ? t('sale_amount_header') : 'Sale Amount'}</Label>
+          <div className="relative">
+            <Input id="saleAmount" name="saleAmount" type="number" step="1" placeholder="2499" defaultValue={sale.saleAmount} required />
+            <span className="absolute inset-y-0 right-3 flex items-center text-muted-foreground">₽</span>
+          </div>
+        </div>
+      )}
+      
+      {!isFinalState && <SubmitButton isClient={isClient} t={t} isEditing />}
+    </form>
+  );
+}
+
+export function SalesClient({ sales, books, onDataChange, onSaleDeleted }: { sales: Sale[], books: Book[], onDataChange: () => void, onSaleDeleted: (id: string) => void }) {
   const { t } = useTranslation();
+  const { toast } = useToast();
   const [isClient, setIsClient] = useState(false);
   useEffect(() => { setIsClient(true); }, []);
-  const [open, setOpen] = React.useState(false);
+  const [openAddDialog, setOpenAddDialog] = React.useState(false);
+  const [openEditDialog, setOpenEditDialog] = React.useState(false);
+  const [openDeleteDialog, setOpenDeleteDialog] = React.useState(false);
+  const [selectedSale, setSelectedSale] = React.useState<SaleWithBookData | null>(null);
   const [filter, setFilter] = React.useState('');
   
   const bookMap = new Map(books.map(b => [b.id, b]));
   
-  const tableColumns = React.useMemo(() => columns(isClient, t), [isClient, t]);
+  const handleEditClick = (sale: SaleWithBookData) => {
+    setSelectedSale(sale);
+    setOpenEditDialog(true);
+  };
+  
+  const handleDeleteClick = (sale: SaleWithBookData) => {
+    setSelectedSale(sale);
+    setOpenDeleteDialog(true);
+  };
 
+  const handleDeleteConfirm = async () => {
+    if (!selectedSale) return;
+    
+    const result = await deleteSale(selectedSale.id);
+    setOpenDeleteDialog(false);
+    
+    if (result.message) {
+        if (result.message.includes('success')) {
+            toast({ title: t('success'), description: t('delete_sale_success') });
+            onSaleDeleted(selectedSale.id);
+        } else {
+            toast({ title: t('error'), description: result.message, variant: 'destructive' });
+        }
+    } else {
+        toast({ title: t('error'), description: t('failed_to_delete_sale'), variant: 'destructive' });
+    }
+  };
+
+  const tableColumns = React.useMemo(() => getColumns(isClient, t, handleEditClick, handleDeleteClick), [isClient, t]);
 
   const filteredSales = sales.filter(
     (sale) => {
@@ -189,7 +281,7 @@ export function SalesClient({ sales, books }: { sales: Sale[], books: Book[] }) 
         title={isClient ? t('sales_records') : 'Sales Records'}
         description={isClient ? t('view_manage_sales') : 'View and manage all your sales transactions.'}
       >
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={openAddDialog} onOpenChange={setOpenAddDialog}>
           <DialogTrigger asChild>
             <Button size="sm" className="gap-1">
               <PlusCircle className="h-4 w-4" />
@@ -203,7 +295,7 @@ export function SalesClient({ sales, books }: { sales: Sale[], books: Book[] }) 
                 {isClient ? t('record_sale_desc') : 'Fill in the details to log a new sale.'}
               </DialogDescription>
             </DialogHeader>
-            <AddSaleForm books={books} setOpen={setOpen} />
+            <AddSaleForm books={books} setOpen={setOpenAddDialog} onDataChange={onDataChange} isClient={isClient} t={t} />
           </DialogContent>
         </Dialog>
       </PageHeader>
@@ -218,6 +310,37 @@ export function SalesClient({ sales, books }: { sales: Sale[], books: Book[] }) 
         </div>
         <DataTable columns={tableColumns} data={salesWithBookData} isClient={isClient} />
       </Card>
+      
+      {/* Edit Dialog */}
+      <Dialog open={openEditDialog} onOpenChange={setOpenEditDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{isClient ? t('update_sale_status') : 'Update Sale Status'}</DialogTitle>
+            <DialogDescription>
+                {selectedSale && (selectedSale.status === 'completed' || selectedSale.status === 'sold_in_person' || selectedSale.status === 'canceled')
+                ? (isClient ? t('update_sale_final_desc') : 'This sale is in a final state and cannot be modified.')
+                : (isClient ? t('update_sale_desc') : 'Change the status of the sale.')}
+            </DialogDescription>
+          </DialogHeader>
+          {selectedSale && <EditSaleForm sale={selectedSale} setOpen={setOpenEditDialog} onDataChange={onDataChange} isClient={isClient} t={t} />}
+        </DialogContent>
+      </Dialog>
+      
+      {/* Delete Dialog */}
+      <AlertDialog open={openDeleteDialog} onOpenChange={setOpenDeleteDialog}>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{isClient ? t('are_you_sure_delete') : 'Are you absolutely sure?'}</AlertDialogTitle>
+              <AlertDialogDescription>
+                {isClient ? t('delete_sale_warning_simple') : 'This will permanently delete the sale record.'}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>{isClient ? t('cancel') : 'Cancel'}</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive hover:bg-destructive/90">{isClient ? t('delete') : 'Delete'}</AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
