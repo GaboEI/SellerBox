@@ -81,7 +81,7 @@ function EditBookForm({ book, setOpen, isClient, t }: { book: Book, setOpen: (op
   
     useEffect(() => {
         if (state?.message) {
-          if (state.errors && Object.keys(state.errors).length > 0) {
+          if (Object.keys(state.errors).length > 0) {
             toast({
               title: isClient ? t('error') : 'Error',
               description: state.message,
@@ -144,12 +144,12 @@ const CellActions: React.FC<{ row: any, isClient: boolean, t: TFunction }> = ({ 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
 
   const handleDelete = async () => {
-    try {
-      await deleteBook(book.id);
-      toast({ title: t('success'), description: t('delete_book_success', {bookName: book.name}) });
-      router.refresh();
-    } catch (e) {
-      toast({ title: t('error'), description: t('failed_to_delete_book'), variant: 'destructive' });
+    const result = await deleteBook(book.id);
+    if (result && result.message) {
+        toast({ title: t('error'), description: result.message, variant: 'destructive'});
+    } else {
+        toast({ title: t('success'), description: t('delete_book_success', {bookName: book.name}) });
+        router.refresh();
     }
   }
 

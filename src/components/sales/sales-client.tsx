@@ -65,7 +65,7 @@ function AddSaleForm({ books, setOpen }: { books: Book[], setOpen: (open: boolea
 
   useEffect(() => {
     if (state?.message) {
-        if (state.errors && Object.keys(state.errors).length > 0) {
+        if (Object.keys(state.errors).length > 0) {
             toast({
                 title: isClient ? t('error') : 'Error',
                 description: state.message,

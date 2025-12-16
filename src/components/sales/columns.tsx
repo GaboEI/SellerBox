@@ -90,7 +90,7 @@ function EditSaleForm({ sale, setOpen, isClient, t }: { sale: SaleWithBookData; 
 
   useEffect(() => {
     if (state?.message) {
-        if (state.errors && Object.keys(state.errors).length > 0) {
+        if (Object.keys(state.errors).length > 0) {
             toast({ title: isClient ? t('error') : 'Error', description: state.message, variant: 'destructive' });
         } else {
             toast({ title: isClient ? t('success') : 'Success', description: isClient ? t('update_sale_success') : 'Sale updated successfully.' });
@@ -148,15 +148,15 @@ function CellActions({ row, isClient, t }: { row: any, isClient: boolean, t: TFu
   const isFinalState = sale.status === 'completed' || sale.status === 'sold_in_person' || sale.status === 'canceled';
 
   const handleDelete = async () => {
-    try {
-        const result = await deleteSale(sale.id);
+    const result = await deleteSale(sale.id);
+    if (result.message) {
         if (result.message.includes('success')) {
             toast({ title: t('success'), description: t('delete_sale_success') });
             router.refresh();
         } else {
             toast({ title: t('error'), description: result.message, variant: 'destructive' });
         }
-    } catch(e) {
+    } else {
         toast({ title: t('error'), description: t('failed_to_delete_sale'), variant: 'destructive' });
     }
   }

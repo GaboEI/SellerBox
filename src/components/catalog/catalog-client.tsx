@@ -1,6 +1,6 @@
 'use client';
 import * as React from 'react';
-import { useFormStatus } from 'react-dom';
+import { useFormStatus, useFormState } from 'react-dom';
 import { PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -49,7 +49,7 @@ function AddBookForm({ setOpen }: { setOpen: (open: boolean) => void }) {
   const [isClient, setIsClient] = useState(false);
   useEffect(() => { setIsClient(true); }, []);
 
-  const [state, formAction] = React.useReducer((_: any, formData: FormData) => addBook(null, formData), initialState);
+  const [state, formAction] = useFormState(addBook, initialState);
   const { toast } = useToast();
   const formRef = React.useRef<HTMLFormElement>(null);
   const [imagePreview, setImagePreview] = React.useState<string | null>(null);
@@ -70,7 +70,7 @@ function AddBookForm({ setOpen }: { setOpen: (open: boolean) => void }) {
 
   useEffect(() => {
     if (state?.message) {
-      if (state.errors && Object.keys(state.errors).length > 0) {
+      if (Object.keys(state.errors).length > 0) {
         toast({
           title: isClient ? t('error') : 'Error',
           description: state.message,

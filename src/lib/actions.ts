@@ -96,8 +96,8 @@ export async function deleteBook(id: string) {
     revalidatePath('/inventory');
     revalidatePath('/');
   } catch (e) {
-    // Handle error
     console.error('Failed to delete book', e);
+    return { message: 'Failed to delete book' };
   }
 }
 
