@@ -140,5 +140,9 @@
   "failed_to_delete_sale": "Не удалось удалить продажу.",
   "page": "Страница",
   "of": "из",
-  "rows_per_page": "Строк на странице:"
+  "rows_per_page": "Строк на странице:",
+  "select_photo": "Выбрать фото",
+  "image_specs": "JPG, PNG, WEBP. Макс. 2МБ.",
+  "file_too_large": "Файл слишком большой. Максимальный размер {size}.",
+  "invalid_file_type": "Неверный тип файла. Пожалуйста, загрузите JPG, PNG или WEBP."
 }

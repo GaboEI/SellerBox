@@ -44,6 +44,9 @@ const initialState = {
   errors: {},
 };
 
+const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
+const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
 function SubmitButton({ isClient, t }: { isClient: boolean; t: any }) {
   const { pending } = useFormStatus();
   return (
@@ -130,6 +133,25 @@ export default function EditBookPage() {
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      if (file.size > MAX_FILE_SIZE) {
+        toast({
+          title: t('error'),
+          description: t('file_too_large', { size: '2MB' }),
+          variant: 'destructive',
+        });
+        event.target.value = '';
+        return;
+      }
+      if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+        toast({
+          title: t('error'),
+          description: t('invalid_file_type'),
+          variant: 'destructive',
+        });
+        event.target.value = '';
+        return;
+      }
+
       const reader = new FileReader();
       reader.onloadend = () => {
         const result = reader.result as string;
@@ -225,7 +247,26 @@ export default function EditBookPage() {
                                     <span className="text-4xl font-bold">?</span>
                                 )}
                             </div>
-                            <Input id="image-upload" name="image-upload" type="file" accept="image/*" onChange={handleImageUpload} className="max-w-xs" />
+                            <div className="flex flex-col gap-2">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                className="relative bg-accent text-accent-foreground hover:bg-accent/90"
+                              >
+                                {isClient ? t('select_photo') : 'Select photo'}
+                                <Input
+                                  id="image-upload"
+                                  name="image-upload"
+                                  type="file"
+                                  accept={ALLOWED_FILE_TYPES.join(',')}
+                                  onChange={handleImageUpload}
+                                  className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                                />
+                              </Button>
+                              <p className="text-xs text-muted-foreground">
+                                {isClient ? t('image_specs') : 'JPG, PNG, WEBP. Max 2MB.'}
+                              </p>
+                            </div>
                         </div>
                         <input type="hidden" name="coverImageUrl" value={coverImageUrl} />
                     </div>

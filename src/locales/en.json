@@ -140,5 +140,9 @@
   "failed_to_delete_sale": "Failed to delete sale.",
   "page": "Page",
   "of": "of",
-  "rows_per_page": "Rows per page:"
+  "rows_per_page": "Rows per page:",
+  "select_photo": "Select photo",
+  "image_specs": "JPG, PNG, WEBP. Max 2MB.",
+  "file_too_large": "File is too large. Max size is {size}.",
+  "invalid_file_type": "Invalid file type. Please upload a JPG, PNG, or WEBP."
 }
