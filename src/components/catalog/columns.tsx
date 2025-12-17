@@ -64,7 +64,7 @@ export const getColumns = (
   {
     accessorKey: 'coverImageUrl',
     header: () => (
-      <div className="text-center">{isClient ? t('cover_photo_header') : 'COVER PHOTO'}</div>
+      <div className="text-center">{isClient ? t('photo') : 'Photo'}</div>
     ),
     cell: ({ row }) => {
       const imageUrl = row.getValue('coverImageUrl') as string | undefined;
