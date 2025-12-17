@@ -10,7 +10,7 @@ import type { Book as BookType } from '@/lib/types';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '../ui/card';
 import { useTranslation } from 'react-i18next';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,6 +24,14 @@ import {
 import { deleteBook } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { usePathname } from 'next/navigation';
+import {
+  useReactTable,
+  getCoreRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  type SortingState,
+  type PaginationState,
+} from '@tanstack/react-table';
 
 export function CatalogClient({
   books,
@@ -51,7 +59,7 @@ export function CatalogClient({
     setSelectedBookToDelete(book);
     setIsDeleteDialogOpen(true);
   };
-  
+
   useEffect(() => {
     // Cleanup state when navigating away from the page
     return () => {
@@ -65,9 +73,9 @@ export function CatalogClient({
 
     // Close the dialog first
     setIsDeleteDialogOpen(false);
-    
+
     const result = await deleteBook(selectedBookToDelete.id);
-    
+
     if (result && result.message) {
       toast({
         title: t('error'),
@@ -97,14 +105,34 @@ export function CatalogClient({
 
   const tableColumns = React.useMemo(
     () => getColumns(t, openDeleteDialog, isClient),
-    [t, isClient]
+    [t, isClient, openDeleteDialog]
   );
+  
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [pagination, setPagination] = React.useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 30,
+  });
+
+  const table = useReactTable({
+    data: filteredBooks,
+    columns: tableColumns,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    onSortingChange: setSorting,
+    getSortedRowModel: getSortedRowModel(),
+    onPaginationChange: setPagination,
+    state: {
+      sorting,
+      pagination,
+    },
+  });
 
   return (
     <>
       <div className="flex flex-col gap-4">
         <PageHeader
-          title={isClient ? t('warehouse') + ' / ' + t('master_catalog') : 'Warehouse / Master Catalog'}
+          title={isClient ? t('master_catalog') : 'Master Catalog'}
           description={
             isClient
               ? t('manage_book_collection')
@@ -133,8 +161,8 @@ export function CatalogClient({
               />
             </div>
             <DataTable
+              table={table}
               columns={tableColumns}
-              data={filteredBooks}
               isClient={isClient}
             />
           </CardContent>

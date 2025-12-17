@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { getBooks } from '@/lib/data';
 import { CatalogClient } from '@/components/catalog/catalog-client';
-import { PageHeader } from '@/components/shared/page-header';
 import type { Book } from '@/lib/types';
 import { AppSidebar } from '@/components/layout/sidebar';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';

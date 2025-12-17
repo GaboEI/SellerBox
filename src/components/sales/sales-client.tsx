@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import { Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -10,6 +10,14 @@ import type { Book, Sale } from '@/lib/types';
 import { Input } from '@/components/ui/input';
 import { Card } from '../ui/card';
 import { Button } from '../ui/button';
+import {
+  useReactTable,
+  getCoreRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  type SortingState,
+  type PaginationState,
+} from '@tanstack/react-table';
 
 export function SalesClient({ sales, books }: { sales: Sale[], books: Book[] }) {
   const { t } = useTranslation();
@@ -19,8 +27,6 @@ export function SalesClient({ sales, books }: { sales: Sale[], books: Book[] }) 
   
   const bookMap = React.useMemo(() => new Map(books.map(b => [b.id, b])), [books]);
   
-  const tableColumns = React.useMemo(() => getColumns(isClient, t), [isClient, t]);
-
   const salesWithBookData = React.useMemo(() => {
     return sales.map(sale => {
         const book = bookMap.get(sale.bookId);
@@ -37,6 +43,28 @@ export function SalesClient({ sales, books }: { sales: Sale[], books: Book[] }) 
         }
       );
   }, [sales, bookMap, filter]);
+
+  const tableColumns = React.useMemo(() => getColumns(isClient, t, () => {}, () => {}), [isClient, t]);
+  
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [pagination, setPagination] = React.useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 30,
+  });
+
+  const table = useReactTable({
+    data: salesWithBookData,
+    columns: tableColumns,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    onSortingChange: setSorting,
+    getSortedRowModel: getSortedRowModel(),
+    onPaginationChange: setPagination,
+    state: {
+      sorting,
+      pagination,
+    },
+  });
 
   return (
     <div className="flex flex-col gap-4">
@@ -60,7 +88,7 @@ export function SalesClient({ sales, books }: { sales: Sale[], books: Book[] }) 
             className="max-w-sm"
           />
         </div>
-        <DataTable columns={tableColumns} data={salesWithBookData} isClient={isClient} />
+        <DataTable columns={tableColumns} table={table} isClient={isClient} />
       </Card>
     </div>
   );

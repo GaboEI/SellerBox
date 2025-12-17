@@ -3,13 +3,8 @@
 import * as React from 'react';
 import {
   ColumnDef,
-  SortingState,
-  PaginationState,
   flexRender,
-  getCoreRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
+  Table as TableType,
 } from '@tanstack/react-table';
 import { useTranslation } from 'react-i18next';
 
@@ -32,37 +27,18 @@ import {
 } from '@/components/ui/select';
 
 interface DataTableProps<TData, TValue> {
+  table: TableType<TData>;
   columns: ColumnDef<TData, TValue>[];
-  data: TData[];
   isClient: boolean;
 }
 
 export function DataTable<TData, TValue>({
+  table,
   columns,
-  data,
   isClient,
 }: DataTableProps<TData, TValue>) {
   const { t } = useTranslation();
-  const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [pagination, setPagination] = React.useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: 30,
-  });
-
-  const table = useReactTable({
-    data,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    onSortingChange: setSorting,
-    getSortedRowModel: getSortedRowModel(),
-    onPaginationChange: setPagination,
-    state: {
-        sorting,
-        pagination,
-    }
-  });
-
+  
   return (
     <div>
         <div className="rounded-md border">
