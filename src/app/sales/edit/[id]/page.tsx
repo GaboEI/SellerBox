@@ -222,6 +222,7 @@ export default function EditSalePage() {
                             step="1"
                             placeholder="2499"
                             defaultValue={sale.saleAmount}
+                            className="pr-8"
                             required
                           />
                           <span className="absolute inset-y-0 right-3 flex items-center text-muted-foreground">

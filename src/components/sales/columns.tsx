@@ -170,22 +170,19 @@ export const getColumns = (
   {
     accessorKey: 'saleAmount',
     header: () => (
-      <div className="w-full text-center">
+      <div className="w-full text-right">
         {isClient ? t('sale_amount_header') : '₽'}
       </div>
     ),
     cell: ({ row }) => {
       const amount = row.getValue('saleAmount') as number | undefined;
       if (amount === undefined || amount === null) {
-        return <div className="text-center">-</div>;
+        return <div className="text-right">-</div>;
       }
       const formattedAmount = new Intl.NumberFormat('ru-RU', {
-        style: 'currency',
-        currency: 'RUB',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
+        style: 'decimal',
       }).format(amount);
-      return <div className="text-right font-medium">{formattedAmount}</div>;
+      return <div className="text-right font-medium">{formattedAmount} ₽</div>;
     },
   },
   {

@@ -18,8 +18,9 @@
     "id": "s7",
     "bookId": "2",
     "date": "2024-05-11T00:00:00.000Z",
-    "status": "in_process",
-    "platform": "Avito"
+    "status": "completed",
+    "platform": "Avito",
+    "saleAmount": 2555
   },
   {
     "bookId": "1765823939304",
@@ -40,7 +41,7 @@
     "date": "2025-12-16T00:00:00.000Z",
     "platform": "Ozon",
     "id": "s1765878040900",
-    "status": "in_process"
+    "status": "in_preparation"
   },
   {
     "bookId": "1765823939304",
