@@ -22,7 +22,7 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { useUser, useFirestore, doc, setDoc, useDoc } from '@/firebase';
+import { useFirestore, doc, setDoc, useDoc, useUser, serverTimestamp } from '@/firebase';
 import { useTranslation } from 'react-i18next';
 import type { UserProfile } from '@/lib/types';
 
@@ -30,8 +30,8 @@ import type { UserProfile } from '@/lib/types';
 export default function SettingsPage() {
   const { t } = useTranslation();
   const { toast } = useToast();
-  const { user, isUserLoading } = useUser();
   const firestore = useFirestore();
+  const { user } = useUser();
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -44,17 +44,17 @@ export default function SettingsPage() {
   const [isSaving, setIsSaving] = useState(false);
 
   const userDocRef = useMemo(() => {
-    if (!user || !firestore) return null;
+    if (!firestore || !user) return null;
     return doc(firestore, 'users', user.uid);
-  }, [user, firestore]);
+  }, [firestore, user]);
 
   const { data: profile, isLoading: isProfileLoading } = useDoc<UserProfile>(userDocRef);
 
   useEffect(() => {
     if (profile) {
-      setUsername(profile.username || user?.displayName || '');
+      setUsername(profile.username || '');
     }
-  }, [profile, user]);
+  }, [profile]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -71,8 +71,18 @@ export default function SettingsPage() {
 
   const handleSave = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!user || !firestore) {
-      toast({ title: t('error'), description: t('must_be_logged_in'), variant: 'destructive' });
+
+    console.log("Attempting to save profile...");
+    console.log("Firestore instance:", firestore);
+    console.log("User object:", user);
+
+    if (firestore) {
+      console.log("Project ID:", firestore.app.options.projectId);
+    }
+
+    if (!firestore || !user) {
+      console.error("DB connection check failed: Firestore or user object is missing.");
+      toast({ title: t('error'), description: t('could_not_connect_to_database'), variant: 'destructive' });
       return;
     }
     if (!username) {
@@ -83,7 +93,11 @@ export default function SettingsPage() {
     setIsSaving(true);
     
     try {
-      const updates: Partial<UserProfile> = { username };
+      const updates: Partial<UserProfile> = { 
+        username,
+        updatedAt: serverTimestamp(),
+      };
+
       if (photoUrlDataUri) {
         updates.photoUrl = photoUrlDataUri;
       }
@@ -99,6 +113,7 @@ export default function SettingsPage() {
       setPhotoUrlDataUri('');
 
     } catch (e: any) {
+        console.error("DB ERROR:", e);
         toast({
             title: t('error'),
             description: e.message || t('could_not_update_profile'),
@@ -112,9 +127,9 @@ export default function SettingsPage() {
   const defaultProfilePic =
     PlaceHolderImages.find((p) => p.id === 'default_user_profile')?.imageUrl || '';
 
-  const isLoading = isUserLoading || isProfileLoading;
-  const currentPhoto = imagePreview || profile?.photoUrl || user?.photoURL || defaultProfilePic;
-  const currentUsername = profile?.username || user?.displayName || '';
+  const isLoading = isProfileLoading;
+  const currentPhoto = imagePreview || profile?.photoUrl || defaultProfilePic;
+  const currentUsername = profile?.username || '';
   const fallbackInitial = currentUsername?.[0]?.toUpperCase() || 'S';
 
   return (

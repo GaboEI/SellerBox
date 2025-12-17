@@ -30,4 +30,5 @@ export type Sale = {
 export type UserProfile = {
     username?: string;
     photoUrl?: string;
+    updatedAt?: any;
 };

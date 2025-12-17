@@ -26,6 +26,7 @@ export function initializeFirebase() {
 export * from './provider';
 export * from './firestore/use-collection';
 export * from './firestore/use-doc';
+export * from './firestore/use-user-profile';
 export * from './errors';
 export * from './error-emitter';
 
