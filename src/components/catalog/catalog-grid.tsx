@@ -61,7 +61,7 @@ const BookCard: React.FC<{
             font-semibold
             leading-tight
             truncate
-            text-yellow-500
+            text-foreground
           "
           title={book.name}
         >
