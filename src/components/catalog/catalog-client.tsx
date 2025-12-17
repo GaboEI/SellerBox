@@ -4,11 +4,8 @@ import Link from 'next/link';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/shared/page-header';
-import { DataTable } from './data-table';
-import { getColumns } from './columns';
 import type { Book as BookType } from '@/lib/types';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '../ui/card';
 import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useMemo } from 'react';
 import {
@@ -23,15 +20,8 @@ import {
 } from '@/components/ui/alert-dialog';
 import { deleteBook } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
-import { usePathname } from 'next/navigation';
-import {
-  useReactTable,
-  getCoreRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  type SortingState,
-  type PaginationState,
-} from '@tanstack/react-table';
+import { useRouter } from 'next/navigation';
+import { CatalogGrid } from './catalog-grid';
 
 export function CatalogClient({
   books,
@@ -48,7 +38,7 @@ export function CatalogClient({
   const [filter, setFilter] = React.useState('');
 
   const { toast } = useToast();
-  const pathname = usePathname();
+  const router = useRouter();
 
   // State for delete dialog
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -59,22 +49,21 @@ export function CatalogClient({
     setSelectedBookToDelete(book);
     setIsDeleteDialogOpen(true);
   };
-
-  useEffect(() => {
-    // Cleanup state when navigating away from the page
-    return () => {
-      setIsDeleteDialogOpen(false);
-      setSelectedBookToDelete(null);
-    };
-  }, [pathname]);
+  
+  const handleEdit = (book: BookType) => {
+    router.push(`/inventory/edit/${book.id}`);
+  };
 
   const handleDeleteConfirm = async () => {
     if (!selectedBookToDelete) return;
 
+    const bookIdToDelete = selectedBookToDelete.id;
+    const bookNameToDelete = selectedBookToDelete.name;
+
     // Close the dialog first
     setIsDeleteDialogOpen(false);
 
-    const result = await deleteBook(selectedBookToDelete.id);
+    const result = await deleteBook(bookIdToDelete);
 
     if (result && result.message) {
       toast({
@@ -86,11 +75,11 @@ export function CatalogClient({
       toast({
         title: t('success'),
         description: t('delete_book_success', {
-          bookName: selectedBookToDelete.name,
+          bookName: bookNameToDelete,
         }),
       });
       // Update local state instead of global refresh
-      onBookDeleted(selectedBookToDelete.id);
+      onBookDeleted(bookIdToDelete);
     }
     // Reset selected book after action
     setSelectedBookToDelete(null);
@@ -106,31 +95,6 @@ export function CatalogClient({
     [books, filter]
   );
 
-  const tableColumns = React.useMemo(
-    () => getColumns(t, openDeleteDialog, isClient),
-    [t, isClient]
-  );
-
-  const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [pagination, setPagination] = React.useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: 30,
-  });
-
-  const table = useReactTable({
-    data: filteredBooks,
-    columns: tableColumns,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    onSortingChange: setSorting,
-    getSortedRowModel: getSortedRowModel(),
-    onPaginationChange: setPagination,
-    state: {
-      sorting,
-      pagination,
-    },
-  });
-
   return (
     <>
       <div className="flex flex-col gap-4">
@@ -142,36 +106,27 @@ export function CatalogClient({
               : 'Manage your complete book collection.'
           }
         >
-          <Button size="icon" className="h-8 w-8 rounded-full" asChild>
+          <Button variant="outline" size="sm" asChild>
             <Link href="/inventory/add">
-              <Plus className="h-4 w-4" />
-              <span className="sr-only">
-                {isClient ? t('add_book') : 'Add Book'}
-              </span>
+              <Plus className="mr-2 h-4 w-4" />
+              {isClient ? t('add_book') : 'Add Book'}
             </Link>
           </Button>
         </PageHeader>
-        <Card>
-          <CardContent className="p-2 sm:p-4">
-            <div className="mb-2">
-              <Input
-                placeholder={
-                  isClient
-                    ? t('filter_by_name_or_code')
-                    : 'Filter by name or code...'
-                }
-                value={filter}
-                onChange={(e) => setFilter(e.target.value)}
-                className="max-w-sm"
-              />
-            </div>
-            <DataTable
-              table={table}
-              columns={tableColumns}
-              isClient={isClient}
-            />
-          </CardContent>
-        </Card>
+        <div className="mb-2">
+          <Input
+            placeholder={
+              isClient
+                ? t('filter_by_name_or_code')
+                : 'Filter by name or code...'
+            }
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            className="max-w-sm"
+          />
+        </div>
+        <CatalogGrid books={filteredBooks} onEdit={handleEdit} onDelete={openDeleteDialog} />
+
       </div>
       <AlertDialog
         open={isDeleteDialogOpen}
