@@ -13,35 +13,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { Label } from '../ui/label';
-import { Input } from '../ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { useFormState, useFormStatus } from 'react-dom';
-import { updateSale } from '@/lib/actions';
-import { useToast } from '@/hooks/use-toast';
-import { useRouter } from 'next/navigation';
-import { useTranslation } from 'react-i18next';
-
-import { cn } from '@/lib/utils';
 import { TFunction } from 'i18next';
 import { format, isToday, isYesterday } from 'date-fns';
 import Image from 'next/image';
+import { cn } from '@/lib/utils';
+import { CellStatusEditable } from './cell-status-editable';
 
 export type SaleWithBookData = Sale & { bookName: string; coverImageUrl?: string };
 
@@ -57,23 +33,14 @@ const statusVariantMap: Record<
   canceled: 'destructive',
 };
 
-const initialState = {
-  message: '',
-  errors: {},
-};
-
 function CellActions({
   row,
   isClient,
   t,
-  onEdit,
-  onDelete,
 }: {
   row: any;
   isClient: boolean;
   t: TFunction;
-  onEdit: (sale: SaleWithBookData) => void;
-  onDelete: (sale: SaleWithBookData) => void;
 }) {
   const sale = row.original as SaleWithBookData;
 
@@ -93,11 +60,6 @@ function CellActions({
                 {isClient ? t('edit_sale') : 'Edit Sale'}
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onDelete(sale)}>
-              <span className="text-destructive">
-                {isClient ? t('delete_sale') : 'Delete Sale'}
-              </span>
-            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -115,8 +77,7 @@ const formatDate = (date: Date, t: TFunction, isClient: boolean) => {
 export const getColumns = (
   isClient: boolean,
   t: TFunction,
-  onEdit: (sale: SaleWithBookData) => void,
-  onDelete: (sale: SaleWithBookData) => void
+  onSaleUpdate: (saleId: string, updatedData: Partial<Sale>) => void
 ): ColumnDef<SaleWithBookData>[] => [
   {
     accessorKey: 'coverImageUrl',
@@ -185,18 +146,17 @@ export const getColumns = (
       <div className="text-center">{isClient ? t('status') : 'Status'}</div>
     ),
     cell: ({ row }) => {
-      const status = row.getValue('status') as SaleStatus;
-      return (
-        <div className="flex justify-center">
-          <Badge
-            variant={statusVariantMap[status]}
-            className={cn('flex w-28 justify-center capitalize')}
-          >
-            {isClient ? t(status) : status}
-          </Badge>
-        </div>
-      );
-    },
+        const sale = row.original;
+        return (
+          <CellStatusEditable
+            sale={sale}
+            isClient={isClient}
+            t={t}
+            onSaleUpdate={onSaleUpdate}
+            statusVariantMap={statusVariantMap}
+          />
+        );
+      },
   },
   {
     accessorKey: 'platform',
@@ -238,8 +198,6 @@ export const getColumns = (
         row={row}
         isClient={isClient}
         t={t}
-        onEdit={onEdit}
-        onDelete={onDelete}
       />
     ),
   },

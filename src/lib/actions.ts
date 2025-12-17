@@ -224,3 +224,29 @@ export async function deleteSale(id: string) {
     revalidatePath('/');
     revalidatePath('/sales');
 }
+
+const updateSaleStatusSchema = z.object({
+    status: z.enum(['in_process', 'in_preparation', 'shipped', 'sold_in_person', 'completed', 'canceled']),
+});
+
+export async function updateSaleStatus(id: string, newStatus: SaleStatus) {
+    const validatedFields = updateSaleStatusSchema.safeParse({ status: newStatus });
+    
+    if (!validatedFields.success) {
+        return { error: 'Invalid status value.' };
+    }
+
+    try {
+        const result = await dbUpdateSale(id, { status: newStatus });
+        if (!result) {
+            return { error: 'Sale not found or update failed.' };
+        }
+    } catch (e: any) {
+        console.error('Failed to update sale status', e);
+        return { error: e.message || 'Failed to update sale status.' };
+    }
+
+    revalidatePath('/sales');
+    revalidatePath('/');
+    return { success: true };
+}

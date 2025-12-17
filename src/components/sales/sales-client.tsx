@@ -17,10 +17,11 @@ import {
   getSortedRowModel,
   type SortingState,
   type PaginationState,
+  type ColumnDef,
 } from '@tanstack/react-table';
 
 export function SalesClient({
-  sales,
+  sales: initialSales,
   books,
 }: {
   sales: Sale[];
@@ -31,20 +32,35 @@ export function SalesClient({
   useEffect(() => {
     setIsClient(true);
   }, []);
+  
   const [filter, setFilter] = React.useState('');
+  const [sales, setSales] = useState<Sale[]>(initialSales);
+
+  useEffect(() => {
+    setSales(initialSales);
+  }, [initialSales]);
+
+  const handleSaleUpdate = (saleId: string, updatedData: Partial<Sale>) => {
+    setSales(currentSales => 
+        currentSales.map(sale => 
+            sale.id === saleId ? { ...sale, ...updatedData } : sale
+        )
+    );
+  };
+
 
   const bookMap = React.useMemo(
     () => new Map(books.map((b) => [b.id, b])),
     [books]
   );
 
-  const salesWithBookData: SaleWithBookData[] = React.useMemo(() => {
+  const salesWithBookData = useMemo(() => {
     return sales
       .map((sale) => {
         const book = bookMap.get(sale.bookId);
         return {
           ...sale,
-          bookName: book?.name || 'Unknown Book',
+          bookName: book?.name || t('unknown_book'),
           coverImageUrl: book?.coverImageUrl,
         };
       })
@@ -52,13 +68,13 @@ export function SalesClient({
         return (
           sale.bookName.toLowerCase().includes(filter.toLowerCase()) ||
           sale.status.toLowerCase().includes(filter.toLowerCase()) ||
-          sale.platform.toLowerCase().includes(filter.toLowerCase())
+          (sale.platform && sale.platform.toLowerCase().includes(filter.toLowerCase()))
         );
       });
-  }, [sales, bookMap, filter]);
+  }, [sales, bookMap, filter, t]);
 
   const tableColumns = React.useMemo(
-    () => getColumns(isClient, t, () => {}, () => {}),
+    () => getColumns(isClient, t, handleSaleUpdate),
     [isClient, t]
   );
 
@@ -70,7 +86,7 @@ export function SalesClient({
 
   const table = useReactTable({
     data: salesWithBookData,
-    columns: tableColumns,
+    columns: tableColumns as ColumnDef<SaleWithBookData, any>[],
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     onSortingChange: setSorting,
@@ -79,6 +95,21 @@ export function SalesClient({
     state: {
       sorting,
       pagination,
+    },
+    meta: {
+        updateData: (rowIndex: number, columnId: string, value: unknown) => {
+            setSales(old =>
+                old.map((row, index) => {
+                    if (index === rowIndex) {
+                        return {
+                            ...old[rowIndex],
+                            [columnId]: value,
+                        };
+                    }
+                    return row;
+                })
+            );
+        },
     },
   });
 
