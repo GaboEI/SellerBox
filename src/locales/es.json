@@ -137,5 +137,8 @@
   "master_key": "Clave Maestra",
   "delete_sale_success": "Venta eliminada correctamente.",
   "incorrect_master_key": "Clave maestra incorrecta.",
-  "failed_to_delete_sale": "No se pudo eliminar la venta."
+  "failed_to_delete_sale": "No se pudo eliminar la venta.",
+  "page": "Página",
+  "of": "de",
+  "rows_per_page": "Filas por página:"
 }

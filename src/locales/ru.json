@@ -137,5 +137,8 @@
   "master_key": "Мастер-ключ",
   "delete_sale_success": "Продажа успешно удалена.",
   "incorrect_master_key": "Неверный мастер-ключ.",
-  "failed_to_delete_sale": "Не удалось удалить продажу."
+  "failed_to_delete_sale": "Не удалось удалить продажу.",
+  "page": "Страница",
+  "of": "из",
+  "rows_per_page": "Строк на странице:"
 }
