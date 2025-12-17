@@ -25,26 +25,26 @@ const BookCard: React.FC<{ book: Book; onEdit: () => void; onDelete: () => void 
   const { t } = useTranslation();
 
   return (
-    <Card className="flex flex-col overflow-hidden">
-      <CardHeader className="relative h-48 w-full p-0">
-        <Image
-          src={book.coverImageUrl || 'https://placehold.co/600x400/EEE/31343C?text=?'}
+    <Card className="flex flex-col overflow-hidden transition-all hover:shadow-lg hover:-translate-y-1">
+       <CardHeader className="relative h-48 w-full p-0">
+         <Image
+          src={book.coverImageUrl || 'https://placehold.co/600x800/EEE/31343C?text=?'}
           alt={book.name}
           fill
           className="object-cover"
         />
       </CardHeader>
-      <CardContent className="flex-1 p-4">
-        <h3 className="font-semibold">{book.name}</h3>
-        <p className="text-sm text-muted-foreground">{book.code}</p>
+      <CardContent className="flex-1 p-3">
+        <h3 className="font-semibold text-sm truncate text-accent">{book.name}</h3>
+        <p className="text-xs text-muted-foreground">{book.code}</p>
       </CardContent>
       <CardFooter className="p-2 border-t">
-        <div className="flex w-full justify-end gap-2">
-            <Button variant="ghost" size="icon" onClick={onEdit}>
+        <div className="flex w-full justify-end gap-1">
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onEdit}>
                 <Edit className="h-4 w-4" />
                 <span className="sr-only">{isClient ? t('edit_book') : 'Edit'}</span>
             </Button>
-            <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={onDelete}>
+            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={onDelete}>
                 <Trash2 className="h-4 w-4" />
                 <span className="sr-only">{isClient ? t('delete_book') : 'Delete'}</span>
             </Button>
@@ -68,7 +68,7 @@ export const CatalogGrid: React.FC<CatalogGridProps> = ({ books, onEdit, onDelet
   }
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-4">
       {books.map((book) => (
         <BookCard
           key={book.id}
