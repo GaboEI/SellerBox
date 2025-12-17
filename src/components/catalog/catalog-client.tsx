@@ -96,18 +96,21 @@ export function CatalogClient({
     setSelectedBookToDelete(null);
   };
 
-  const filteredBooks = React.useMemo(() =>
-    books.filter(
-      (book) =>
-        book.name.toLowerCase().includes(filter.toLowerCase()) ||
-        book.code.toLowerCase().includes(filter.toLowerCase())
-    ), [books, filter]);
+  const filteredBooks = React.useMemo(
+    () =>
+      books.filter(
+        (book) =>
+          book.name.toLowerCase().includes(filter.toLowerCase()) ||
+          book.code.toLowerCase().includes(filter.toLowerCase())
+      ),
+    [books, filter]
+  );
 
   const tableColumns = React.useMemo(
     () => getColumns(t, openDeleteDialog, isClient),
-    [t, isClient, openDeleteDialog]
+    [t, isClient]
   );
-  
+
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
@@ -142,13 +145,15 @@ export function CatalogClient({
           <Button size="icon" className="h-8 w-8 rounded-full" asChild>
             <Link href="/inventory/add">
               <Plus className="h-4 w-4" />
-              <span className="sr-only">{isClient ? t('add_book') : 'Add Book'}</span>
+              <span className="sr-only">
+                {isClient ? t('add_book') : 'Add Book'}
+              </span>
             </Link>
           </Button>
         </PageHeader>
         <Card>
-          <CardContent className="p-4 sm:p-6">
-            <div className="mb-4">
+          <CardContent className="p-2 sm:p-4">
+            <div className="mb-2">
               <Input
                 placeholder={
                   isClient
@@ -171,10 +176,10 @@ export function CatalogClient({
       <AlertDialog
         open={isDeleteDialogOpen}
         onOpenChange={(open) => {
-            if (!open) {
-                setSelectedBookToDelete(null);
-            }
-            setIsDeleteDialogOpen(open);
+          if (!open) {
+            setSelectedBookToDelete(null);
+          }
+          setIsDeleteDialogOpen(open);
         }}
       >
         <AlertDialogContent>

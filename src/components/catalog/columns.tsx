@@ -18,7 +18,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 import type { Book } from '@/lib/types';
-import { useTranslation } from 'react-i18next';
 
 const CellActions: React.FC<{
   row: any;
@@ -59,7 +58,7 @@ const CellActions: React.FC<{
 export const getColumns = (
   t: TFunction,
   onDelete: (book: Book) => void,
-  isClient: boolean,
+  isClient: boolean
 ): ColumnDef<Book>[] => [
   {
     accessorKey: 'coverImageUrl',
@@ -118,7 +117,9 @@ export const getColumns = (
   },
   {
     id: 'actions',
-    header: () => <div className="text-right">{isClient ? t('actions') : 'Actions'}</div>,
+    header: () => (
+      <div className="text-right">{isClient ? t('actions') : 'Actions'}</div>
+    ),
     cell: ({ row }) => (
       <div className="flex justify-end">
         <CellActions row={row} t={t} onDelete={onDelete} />
