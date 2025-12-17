@@ -17,29 +17,26 @@ export function SalesClient({ sales, books }: { sales: Sale[], books: Book[] }) 
   useEffect(() => { setIsClient(true); }, []);
   const [filter, setFilter] = React.useState('');
   
-  const bookMap = new Map(books.map(b => [b.id, b]));
+  const bookMap = React.useMemo(() => new Map(books.map(b => [b.id, b])), [books]);
   
   const tableColumns = React.useMemo(() => getColumns(isClient, t), [isClient, t]);
 
-  const filteredSales = sales.filter(
-    (sale) => {
-        const book = bookMap.get(sale.bookId);
-        return book?.name.toLowerCase().includes(filter.toLowerCase()) ||
-               sale.status.toLowerCase().includes(filter.toLowerCase()) ||
-                sale.platform.toLowerCase().includes(filter.toLowerCase())
-    }
-  );
-
   const salesWithBookData = React.useMemo(() => {
-    return filteredSales.map(sale => {
+    return sales.map(sale => {
         const book = bookMap.get(sale.bookId);
         return {
             ...sale,
             bookName: book?.name || 'Unknown Book',
             coverImageUrl: book?.coverImageUrl
         }
-    });
-  }, [filteredSales, bookMap]);
+    }).filter(
+        (sale) => {
+            return sale.bookName.toLowerCase().includes(filter.toLowerCase()) ||
+                   sale.status.toLowerCase().includes(filter.toLowerCase()) ||
+                    sale.platform.toLowerCase().includes(filter.toLowerCase())
+        }
+      );
+  }, [sales, bookMap, filter]);
 
   return (
     <div className="flex flex-col gap-4">

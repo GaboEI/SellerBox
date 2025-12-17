@@ -88,11 +88,12 @@ export function CatalogClient({
     setSelectedBookToDelete(null);
   };
 
-  const filteredBooks = books.filter(
-    (book) =>
-      book.name.toLowerCase().includes(filter.toLowerCase()) ||
-      book.code.toLowerCase().includes(filter.toLowerCase())
-  );
+  const filteredBooks = React.useMemo(() =>
+    books.filter(
+      (book) =>
+        book.name.toLowerCase().includes(filter.toLowerCase()) ||
+        book.code.toLowerCase().includes(filter.toLowerCase())
+    ), [books, filter]);
 
   const tableColumns = React.useMemo(
     () => getColumns(t, openDeleteDialog, isClient),
