@@ -54,7 +54,7 @@ const BookCard: React.FC<{
       </div>
 
       {/* 📝 INFO */}
-      <CardContent className="p-3 space-y-1">
+      <CardContent className="p-2 space-y-1">
         <h3
           className="
             text-sm
@@ -74,12 +74,12 @@ const BookCard: React.FC<{
       </CardContent>
 
       {/* ⚙️ ACCIONES */}
-      <CardFooter className="p-2 pt-0">
+      <CardFooter className="p-1 pt-0">
         <div className="flex w-full justify-end gap-1">
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 hover:bg-primary/10"
+            className="h-7 w-7 hover:bg-primary/10"
             onClick={onEdit}
           >
             <Edit className="h-4 w-4" />
@@ -91,7 +91,7 @@ const BookCard: React.FC<{
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 text-destructive hover:bg-destructive/10"
+            className="h-7 w-7 text-destructive hover:bg-destructive/10"
             onClick={onDelete}
           >
             <Trash2 className="h-4 w-4" />
@@ -127,9 +127,9 @@ export const CatalogGrid: React.FC<CatalogGridProps> = ({
       className="
         grid
         gap-4
-        grid-cols-2
-        sm:grid-cols-3
-        md:grid-cols-4
+        grid-cols-3
+        sm:grid-cols-4
+        md:grid-cols-5
         lg:grid-cols-6
         xl:grid-cols-8
       "
