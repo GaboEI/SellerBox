@@ -4,6 +4,7 @@ import * as React from 'react';
 import {
   ColumnDef,
   SortingState,
+  PaginationState,
   flexRender,
   getCoreRowModel,
   getPaginationRowModel,
@@ -42,6 +43,11 @@ export function DataTable<TData, TValue>({
 }: DataTableProps<TData, TValue>) {
   const { t } = useTranslation();
   const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [pagination, setPagination] = React.useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 30,
+  });
+
   const table = useReactTable({
     data,
     columns,
@@ -49,13 +55,10 @@ export function DataTable<TData, TValue>({
     getPaginationRowModel: getPaginationRowModel(),
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
+    onPaginationChange: setPagination,
     state: {
       sorting,
-    },
-    initialState: {
-      pagination: {
-        pageSize: 30,
-      },
+      pagination,
     },
   });
 
@@ -97,7 +100,7 @@ export function DataTable<TData, TValue>({
                   data-state={row.getIsSelected() && 'selected'}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell key={cell.id} className="p-2">
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()
