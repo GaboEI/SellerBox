@@ -35,7 +35,7 @@ const BookCard: React.FC<{ book: Book; onEdit: () => void; onDelete: () => void 
         />
       </CardHeader>
       <CardContent className="flex-1 p-3">
-        <h3 className="font-semibold text-sm truncate text-accent">{book.name}</h3>
+        <h3 className="font-semibold text-sm truncate">{book.name}</h3>
         <p className="text-xs text-muted-foreground">{book.code}</p>
       </CardContent>
       <CardFooter className="p-2 border-t">
