@@ -26,14 +26,14 @@
     "date": "2025-12-15T00:00:00.000Z",
     "platform": "Ozon",
     "id": "s1765834354648",
-    "status": "in_process"
+    "status": "completed"
   },
   {
     "bookId": "1765823939304",
     "date": "2025-12-15T00:00:00.000Z",
     "platform": "Avito",
     "id": "s1765846697346",
-    "status": "in_process"
+    "status": "canceled"
   },
   {
     "bookId": "1765825862177",

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { TFunction } from 'i18next';
 import { cn } from '@/lib/utils';
 import type { SaleWithBookData, Sale, SaleStatus } from '@/lib/types';
@@ -34,6 +35,7 @@ export function CellStatusEditable({
   statusVariantMap,
 }: CellStatusEditableProps) {
   const { toast } = useToast();
+  const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [currentStatus, setCurrentStatus] = useState<SaleStatus>(sale.status);
 
@@ -42,19 +44,25 @@ export function CellStatusEditable({
   }, [sale.status]);
 
   const isFinalState =
-    currentStatus === 'completed' || currentStatus === 'canceled';
+    currentStatus === 'completed' || currentStatus === 'canceled' || currentStatus === 'sold_in_person';
 
   const handleDoubleClick = () => {
-    if (!isFinalState) {
+    if (sale.status !== 'completed' && sale.status !== 'canceled' && sale.status !== 'sold_in_person') {
       setIsEditing(true);
     }
   };
-
+  
   const handleStatusChange = async (newStatus: SaleStatus) => {
     setIsEditing(false);
     if (newStatus === currentStatus) return;
 
-    // Optimistic update
+    // If the new status requires an amount, redirect to edit page
+    if (newStatus === 'completed' || newStatus === 'sold_in_person') {
+        router.push(`/sales/edit/${sale.id}`);
+        return;
+    }
+
+    // Optimistic update for non-final states
     setCurrentStatus(newStatus);
     onSaleUpdate(sale.id, { status: newStatus });
     
