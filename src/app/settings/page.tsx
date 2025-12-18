@@ -1,5 +1,6 @@
 'use client';
 
+import { useSession, signOut } from 'next-auth/react';
 import React, { useEffect, useState, useMemo } from 'react';
 import { PageHeader } from '@/components/shared/page-header';
 import {
@@ -22,16 +23,15 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { useFirestore, doc, setDoc, useDoc, useUser, serverTimestamp } from '@/firebase';
+import { useFirestore, doc, useDoc } from '@/firebase';
 import { useTranslation } from 'react-i18next';
 import type { UserProfile } from '@/lib/types';
-
 
 export default function SettingsPage() {
   const { t } = useTranslation();
   const { toast } = useToast();
   const firestore = useFirestore();
-  const { user } = useUser();
+  const { data: session, status } = useSession({ required: true });
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -44,11 +44,14 @@ export default function SettingsPage() {
   const [isSaving, setIsSaving] = useState(false);
 
   const userDocRef = useMemo(() => {
-    if (!firestore || !user) return null;
-    return doc(firestore, 'users', user.uid);
-  }, [firestore, user]);
+    if (!firestore || !session?.user?.email) return null;
+    return doc(firestore, 'users', session.user.email);
+  }, [firestore, session]);
 
-  const { data: profile, isLoading: isProfileLoading } = useDoc<UserProfile>(userDocRef);
+  const { data: profile, isLoading: isProfileLoading } = useDoc<UserProfile>(
+    userDocRef,
+    { disabled: !userDocRef }
+  );
 
   useEffect(() => {
     if (profile) {
@@ -72,65 +75,55 @@ export default function SettingsPage() {
   const handleSave = async (event: React.FormEvent) => {
     event.preventDefault();
 
-    console.log("Attempting to save profile...");
-    console.log("Firestore instance:", firestore);
-    console.log("User object:", user);
-
-    if (firestore) {
-      console.log("Project ID:", firestore.app.options.projectId);
-    }
-
-    if (!firestore || !user) {
-      console.error("DB connection check failed: Firestore or user object is missing.");
-      toast({ title: t('error'), description: t('could_not_connect_to_database'), variant: 'destructive' });
+    if (status !== 'authenticated') {
+      toast({ title: t('error'), description: t('must_be_logged_in'), variant: 'destructive' });
       return;
-    }
-    if (!username) {
-        toast({ title: t('error'), description: t('username_is_required'), variant: 'destructive' });
-        return;
     }
 
     setIsSaving(true);
-    
+
     try {
-      const updates: Partial<UserProfile> = { 
-        username,
-        updatedAt: serverTimestamp(),
-      };
-
-      if (photoUrlDataUri) {
-        updates.photoUrl = photoUrlDataUri;
-      }
-      
-      const userDocRef = doc(firestore, 'users', user.uid);
-      await setDoc(userDocRef, updates, { merge: true });
-
-      toast({
-        title: t('success'),
-        description: t('profile_updated'),
+      const response = await fetch('/api/profile/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username,
+          photoUrl: photoUrlDataUri || null,
+        }),
       });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to update profile');
+      }
+
+      toast({ title: t('success'), description: t('profile_updated') });
       setImagePreview(null);
       setPhotoUrlDataUri('');
 
     } catch (e: any) {
-        console.error("DB ERROR:", e);
-        toast({
-            title: t('error'),
-            description: e.message || t('could_not_update_profile'),
-            variant: 'destructive',
-        });
+      console.error("SAVE_PROFILE_ERROR:", e);
+      toast({
+        title: t('error'),
+        description: e.message || t('could_not_update_profile'),
+        variant: 'destructive',
+      });
     } finally {
       setIsSaving(false);
     }
   };
 
+  const handleSignOut = () => signOut({ callbackUrl: '/login' });
+
   const defaultProfilePic =
     PlaceHolderImages.find((p) => p.id === 'default_user_profile')?.imageUrl || '';
 
-  const isLoading = isProfileLoading;
+  const isLoading = status === 'loading' || isProfileLoading;
   const currentPhoto = imagePreview || profile?.photoUrl || defaultProfilePic;
   const currentUsername = profile?.username || '';
   const fallbackInitial = currentUsername?.[0]?.toUpperCase() || 'S';
+  const canSave = status === 'authenticated' && !isSaving;
 
   return (
     <SidebarProvider>
@@ -167,7 +160,11 @@ export default function SettingsPage() {
                   <Card>
                     <CardHeader>
                       <CardTitle>{isClient ? t('account') : 'Account'}</CardTitle>
-                      <CardDescription>{isClient ? t('manage_profile_info') : 'Manage your profile information and account settings.'}</CardDescription>
+                      <CardDescription>
+                        {isLoading
+                          ? "Cargando perfil..."
+                          : (isClient ? t('manage_profile_info') : 'Manage your profile information and account settings.')}
+                      </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
                       {isLoading ? (
@@ -222,9 +219,14 @@ export default function SettingsPage() {
                       </div>
                     </CardContent>
                     <CardFooter className="border-t px-6 py-4">
-                       <Button type="submit" disabled={isSaving} className="w-full sm:w-auto">
-                         {isClient ? (isSaving ? t('saving') : t('save_changes')) : 'Save Changes'}
-                       </Button>
+                       <div className="flex w-full justify-between">
+                         <Button type="submit" disabled={!canSave} className="w-full sm:w-auto">
+                           {isSaving ? t('saving') : (isClient ? t('save_changes') : 'Save Changes')}
+                         </Button>
+                        <Button variant="outline" onClick={handleSignOut} disabled={status !== 'authenticated'}>
+                          {isClient ? t('sign_out') : 'Sign Out'}
+                        </Button>
+                       </div>
                     </CardFooter>
                   </Card>
                 </form>

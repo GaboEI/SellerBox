@@ -3,25 +3,14 @@
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from '@/components/settings/theme-provider';
-import { FirebaseProvider, initializeFirebase } from '@/firebase';
 import { I18nProvider } from '@/components/i18n/i18n-provider';
-import { useEffect } from 'react';
-
-// Metadata ya no puede exportarse desde un layout de cliente,
-// pero el título se puede establecer en la plantilla HTML si es necesario.
-// export const metadata: Metadata = {
-//   title: "SellerBox",
-//   description: 'Your all-in-one sales management toolkit.',
-// };
+import { Providers } from '@/components/providers'; // Import the new Providers component
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Inicializa Firebase directamente en el layout del cliente.
-  const { firebaseApp, auth, firestore, storage } = initializeFirebase();
-
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -34,19 +23,14 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased">
-        <I18nProvider>
-          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-            <FirebaseProvider
-              firebaseApp={firebaseApp}
-              auth={auth}
-              firestore={firestore}
-              storage={storage}
-            >
+        <Providers> { /* This now wraps everything */ }
+          <I18nProvider>
+            <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
               {children}
-            </FirebaseProvider>
-            <Toaster />
-          </ThemeProvider>
-        </I18nProvider>
+              <Toaster />
+            </ThemeProvider>
+          </I18nProvider>
+        </Providers>
       </body>
     </html>
   );

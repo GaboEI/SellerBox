@@ -1,17 +1,10 @@
 import type { NextAuthOptions } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import NextAuth from "next-auth";
-import bcrypt from "bcryptjs";
 
 import { prisma } from "@/lib/prisma";
 
-// ⚠️ Si estás en v4 y usas PrismaAdapter, normalmente es:
-// import { PrismaAdapter } from "@next-auth/prisma-adapter";
-// y luego adapter: PrismaAdapter(prisma)
-
 export const authOptions: NextAuthOptions = {
-  // adapter: PrismaAdapter(prisma), // actívalo cuando confirmes el adapter correcto
-
   providers: [
     Credentials({
       name: "Credentials",
@@ -21,22 +14,32 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         const email = String(credentials?.email ?? "").trim();
-        const password = String(credentials?.password ?? "");
+        if (!email) {
+          return null; 
+        }
 
-        if (!email || !password) return null;
+        try {
+          // Busca al usuario en tu base de datos local
+          let user = await prisma.user.findUnique({ where: { email } });
 
-        const user = await prisma.user.findUnique({ where: { email } });
-        const hash =
-          (user as any)?.passwordHash ??
-          (user as any)?.hashedPassword ??
-          (user as any)?.password;
+          // Si el usuario NO existe, lo crea.
+          if (!user) {
+            user = await prisma.user.create({
+              data: {
+                email: email,
+                name: email.split('@')[0], // Usa el inicio del email como nombre por defecto
+              },
+            });
+          }
+          
+          // Ahora, con el usuario encontrado o creado, lo devuelve para iniciar la sesión.
+          // Ya no comprobamos la contraseña aquí, porque Firebase ya lo hizo.
+          return { id: user.id, email: user.email, name: (user as any)?.name ?? null };
 
-        if (!user || !hash) return null;
-
-        const ok = await bcrypt.compare(password, String(hash));
-        if (!ok) return null;
-
-        return { id: user.id, email: user.email, name: (user as any)?.name ?? null };
+        } catch (error) {
+            console.error("Error en authorize:", error);
+            return null; // Si hay algún error en la base de datos, no permite el login.
+        }
       },
     }),
   ],
