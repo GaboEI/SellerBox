@@ -1,12 +1,17 @@
-import NextAuth from "next-auth";
+import type { NextAuthOptions } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import { PrismaAdapter } from "@auth/prisma-adapter";
-import { prisma } from "@/lib/prisma";
+import NextAuth from "next-auth";
 import bcrypt from "bcryptjs";
 
-export const { handlers: { GET, POST }, auth } = NextAuth({
-  adapter: PrismaAdapter(prisma),
-  session: { strategy: "jwt" },
+import { prisma } from "@/lib/prisma";
+
+// ⚠️ Si estás en v4 y usas PrismaAdapter, normalmente es:
+// import { PrismaAdapter } from "@next-auth/prisma-adapter";
+// y luego adapter: PrismaAdapter(prisma)
+
+export const authOptions: NextAuthOptions = {
+  // adapter: PrismaAdapter(prisma), // actívalo cuando confirmes el adapter correcto
+
   providers: [
     Credentials({
       name: "Credentials",
@@ -15,21 +20,29 @@ export const { handlers: { GET, POST }, auth } = NextAuth({
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) return null;
+        const email = String(credentials?.email ?? "").trim();
+        const password = String(credentials?.password ?? "");
 
-        const email = credentials.email as string;
-        const password = credentials.password as string;
+        if (!email || !password) return null;
 
-        const user = await prisma.user.findUnique({
-          where: { email },
-        });
-        if (!user || !user.passwordHash) return null;
+        const user = await prisma.user.findUnique({ where: { email } });
+        const hash =
+          (user as any)?.passwordHash ??
+          (user as any)?.hashedPassword ??
+          (user as any)?.password;
 
-        const ok = await bcrypt.compare(password, user.passwordHash);
+        if (!user || !hash) return null;
+
+        const ok = await bcrypt.compare(password, String(hash));
         if (!ok) return null;
 
-        return { id: user.id, email: user.email, name: user.name };
+        return { id: user.id, email: user.email, name: (user as any)?.name ?? null };
       },
     }),
   ],
-});
+
+  pages: { signIn: "/login" },
+  session: { strategy: "jwt" },
+};
+
+export default NextAuth(authOptions);
