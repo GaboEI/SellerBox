@@ -1,26 +1,61 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import { getPrisma } from "@/lib/db";
+import { prisma } from "@/lib/prisma";
 
 export async function POST(req: Request) {
-  const prisma = getPrisma(); // ✅ aquí adentro
-
   try {
-    const { email, password, name } = await req.json();
+    const { email, password, confirmPassword, name, username } = await req.json();
 
-    if (!email || !password || !name) {
-      return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+    const normalizedEmail = String(email || "").trim().toLowerCase();
+    const normalizedUsername = String(username || "").trim().toLowerCase();
+    const displayName = String(name || "").trim();
+    const rawPassword = String(password || "");
+    const rawConfirm = String(confirmPassword || "");
+
+    const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail);
+    if (!emailValid) {
+      return NextResponse.json({ error: "Email inválido" }, { status: 400 });
+    }
+    if (rawPassword.length < 8) {
+      return NextResponse.json({ error: "Password mínimo 8 caracteres" }, { status: 400 });
+    }
+    if (rawPassword !== rawConfirm) {
+      return NextResponse.json({ error: "Las contraseñas no coinciden" }, { status: 400 });
     }
 
-    const existingUser = await prisma.user.findUnique({ where: { email } });
+    const existingUser = await prisma.user.findUnique({
+      where: { email: normalizedEmail },
+    });
     if (existingUser) {
       return NextResponse.json({ error: "User already exists" }, { status: 409 });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    if (normalizedUsername) {
+      const existingUsername = await prisma.user.findUnique({
+        where: { username: normalizedUsername },
+      });
+      if (existingUsername) {
+        return NextResponse.json({ error: "Username already exists" }, { status: 409 });
+      }
+    }
+
+    const hashedPassword = await bcrypt.hash(rawPassword, 10);
+    const fallbackName =
+      displayName || normalizedUsername || normalizedEmail.split("@")[0];
 
     const user = await prisma.user.create({
-      data: { email, password: hashedPassword, name },
+      data: {
+        email: normalizedEmail,
+        password: hashedPassword,
+        name: fallbackName,
+        username: normalizedUsername || null,
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        username: true,
+      },
     });
 
     return NextResponse.json(user, { status: 201 });

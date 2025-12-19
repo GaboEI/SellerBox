@@ -81,7 +81,7 @@ export function AppHeader() {
                   </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => signOut()}>
+              <DropdownMenuItem onClick={() => signOut({ callbackUrl: "/login" })}>
                  <span>Sign Out</span>
               </DropdownMenuItem>
             </>

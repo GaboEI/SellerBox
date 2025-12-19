@@ -45,9 +45,13 @@ model User {
   emailVerified DateTime?
   image         String?
   password      String?
+  username      String?   @unique
+  updatedAt     DateTime  @updatedAt
   accounts      Account[]
   sessions      Session[]
   avatarUrl     String?
+  books         Book[]
+  sales         Sale[]
 }
 
 model VerificationToken {
@@ -56,4 +60,36 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+model Book {
+  id            String   @id @default(cuid())
+  code          String
+  name          String
+  coverImageUrl String?
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sales         Sale[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([userId, code])
+  @@index([userId])
+}
+
+model Sale {
+  id         String   @id @default(cuid())
+  bookId     String
+  userId     String
+  date       DateTime
+  status     String
+  platform   String
+  saleAmount Float?
+  book       Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId])
+  @@index([bookId])
 }

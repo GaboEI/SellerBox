@@ -2,6 +2,8 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/auth';
 import { z } from 'zod';
 import {
   addBook as dbAddBook,
@@ -14,20 +16,37 @@ import {
   deleteSale as dbDeleteSale,
   getSaleById as dbGetSaleById,
   getBooks as dbGetBooks,
+  getSales as dbGetSales,
 } from './data';
-import type { Book, SalePlatform, SaleStatus } from './types';
+import type { SalePlatform, SaleStatus } from './types';
 import { parse } from 'date-fns';
 
+async function requireUserId() {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    redirect('/login');
+  }
+  return session.user.id;
+}
+
 export async function getBooks() {
-  return await dbGetBooks();
+  const userId = await requireUserId();
+  return await dbGetBooks(userId);
 }
 
 export async function getBookById(id: string) {
-    return await dbGetBookById(id);
+  const userId = await requireUserId();
+  return await dbGetBookById(userId, id);
 }
 
 export async function getSaleById(id: string) {
-    return await dbGetSaleById(id);
+  const userId = await requireUserId();
+  return await dbGetSaleById(userId, id);
+}
+
+export async function getSales() {
+  const userId = await requireUserId();
+  return await dbGetSales(userId);
 }
 
 
@@ -51,7 +70,8 @@ export async function addBook(prevState: any, formData: FormData) {
     };
   }
 
-  const existingBook = await getBookByCode(validatedFields.data.code);
+  const userId = await requireUserId();
+  const existingBook = await getBookByCode(userId, validatedFields.data.code);
   if (existingBook) {
     return {
       errors: { code: ['This code is already in use.'] },
@@ -60,7 +80,7 @@ export async function addBook(prevState: any, formData: FormData) {
   }
 
   try {
-    await dbAddBook({
+    await dbAddBook(userId, {
       ...validatedFields.data,
       coverImageUrl: validatedFields.data.coverImageUrl || '',
     });
@@ -87,7 +107,8 @@ export async function updateBook(id: string, prevState: any, formData: FormData)
     };
   }
 
-  const existingBook = await getBookByCode(validatedFields.data.code);
+  const userId = await requireUserId();
+  const existingBook = await getBookByCode(userId, validatedFields.data.code);
   if (existingBook && existingBook.id !== id) {
     return {
       errors: { code: ['This code is already in use.'] },
@@ -96,7 +117,7 @@ export async function updateBook(id: string, prevState: any, formData: FormData)
   }
 
   try {
-    await dbUpdateBook(id, {
+    await dbUpdateBook(userId, id, {
       ...validatedFields.data,
     });
   } catch (e) {
@@ -109,8 +130,9 @@ export async function updateBook(id: string, prevState: any, formData: FormData)
 }
 
 export async function deleteBook(id: string) {
+  const userId = await requireUserId();
   try {
-    await dbDeleteBook(id);
+    await dbDeleteBook(userId, id);
   } catch (e) {
     console.error('Failed to delete book', e);
     return { message: 'Failed to delete book' };
@@ -165,8 +187,9 @@ export async function addSale(prevState: any, formData: FormData) {
     };
   }
 
+  const userId = await requireUserId();
   try {
-    await dbAddSale({
+    await dbAddSale(userId, {
       bookId: validatedFields.data.bookId,
       date: dateObj.toISOString(),
       platform: validatedFields.data.platform as SalePlatform,
@@ -176,7 +199,7 @@ export async function addSale(prevState: any, formData: FormData) {
     return { message: 'Failed to record sale.', errors: {} };
   }
 
-  revalidatePath('/');
+  revalidatePath('/dashboard');
   revalidatePath('/sales');
   redirect('/sales');
 }
@@ -199,8 +222,9 @@ export async function updateSale(id: string, prevState: any, formData: FormData)
     };
   }
 
+  const userId = await requireUserId();
   try {
-    await dbUpdateSale(id, {
+    await dbUpdateSale(userId, id, {
       ...validatedFields.data,
       status: validatedFields.data.status as SaleStatus,
     });
@@ -208,20 +232,21 @@ export async function updateSale(id: string, prevState: any, formData: FormData)
     return { message: 'Failed to update sale.', errors: {} };
   }
   
-  revalidatePath('/');
+  revalidatePath('/dashboard');
   revalidatePath('/sales');
   revalidatePath(`/sales/edit/${id}`);
   redirect('/sales');
 }
 
 export async function deleteSale(id: string) {
+    const userId = await requireUserId();
     try {
-        await dbDeleteSale(id);
+        await dbDeleteSale(userId, id);
     } catch (e) {
         console.error('Failed to delete sale', e);
         return { message: 'failed_to_delete_sale' };
     }
-    revalidatePath('/');
+    revalidatePath('/dashboard');
     revalidatePath('/sales');
 }
 
@@ -237,7 +262,8 @@ export async function updateSaleStatus(id: string, newStatus: SaleStatus) {
     }
 
     try {
-        const result = await dbUpdateSale(id, { status: newStatus });
+        const userId = await requireUserId();
+        const result = await dbUpdateSale(userId, id, { status: newStatus });
         if (!result) {
             return { error: 'Sale not found or update failed.' };
         }
@@ -247,6 +273,6 @@ export async function updateSaleStatus(id: string, newStatus: SaleStatus) {
     }
 
     revalidatePath('/sales');
-    revalidatePath('/');
+    revalidatePath('/dashboard');
     return { success: true };
 }

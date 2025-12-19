@@ -3,6 +3,7 @@ export type Book = {
   code: string;
   name: string;
   coverImageUrl?: string;
+  userId?: string;
 };
 
 export type SalePlatform = 'Avito' | 'Ozon';
@@ -21,6 +22,7 @@ export type SaleStatus = (typeof SALE_STATUSES)[number];
 export type Sale = {
   id: string;
   bookId: string;
+  userId?: string;
   date: Date;
   status: SaleStatus;
   platform: SalePlatform;

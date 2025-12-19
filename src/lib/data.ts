@@ -1,9 +1,8 @@
 'use server';
 
-import fs from 'fs/promises';
-import path from 'path';
 import type { Book, Sale, UserProfile as UserProfileType } from './types';
 import { PlaceHolderImages } from './placeholder-images';
+import { prisma } from '@/lib/prisma';
 import {
   getFirestore,
   doc,
@@ -15,7 +14,7 @@ import { initializeApp, getApps, getApp } from 'firebase/app';
 import { firebaseConfig } from '@/firebase/config';
 import type { User } from 'firebase/auth';
 
-// This is a workaround to initialize Firebase on the server-side for Server Actions.
+// Server-side Firebase init for profile storage.
 let app;
 if (!getApps().length) {
   app = initializeApp(firebaseConfig);
@@ -24,151 +23,134 @@ if (!getApps().length) {
 }
 const firestore = getFirestore(app);
 
-// Use path.join to create a platform-independent file path.
-const booksFilePath = path.join(process.cwd(), 'src/lib/books.json');
-const salesFilePath = path.join(process.cwd(), 'src/lib/sales.json');
-
-async function readData<T>(filePath: string): Promise<T[]> {
-  try {
-    await fs.mkdir(path.dirname(filePath), { recursive: true });
-    const fileContent = await fs.readFile(filePath, 'utf-8');
-    return JSON.parse(fileContent) as T[];
-  } catch (error: any) {
-    if (error.code === 'ENOENT') {
-      await fs.writeFile(filePath, JSON.stringify([], null, 2), 'utf-8');
-      return [];
-    }
-    console.error(`Error reading data from ${filePath}:`, error);
-    throw error;
-  }
-}
-
-async function writeData<T>(filePath: string, data: T[]): Promise<void> {
-  try {
-    await fs.writeFile(filePath, JSON.stringify(data, null, 2), 'utf-8');
-  } catch (error) {
-    console.error(`Error writing data to ${filePath}:`, error);
-    throw error;
-  }
-}
-
 // --- Books ---
-export async function getBooks(): Promise<Book[]> {
-  return await readData<Book>(booksFilePath);
+export async function getBooks(userId: string): Promise<Book[]> {
+  return prisma.book.findMany({
+    where: { userId },
+    orderBy: { updatedAt: 'desc' },
+  });
 }
-export async function getBookById(id: string): Promise<Book | undefined> {
-  const books = await getBooks();
-  return books.find((book) => book.id === id);
-}
-export async function getBookByCode(code: string): Promise<Book | undefined> {
-  const books = await getBooks();
-  return books.find((book) => book.code === code);
-}
-export async function addBook(book: Omit<Book, 'id'>): Promise<Book> {
-  const books = await getBooks();
-  const newBook: Book = {
-    ...book,
-    id: String(Date.now()),
-    coverImageUrl:
-      book.coverImageUrl ||
-      PlaceHolderImages.find((p) => p.id === 'default_book_cover')?.imageUrl,
-  };
-  const updatedBooks = [...books, newBook];
-  await writeData(booksFilePath, updatedBooks);
-  return newBook;
-}
-export async function updateBook(
-  id: string,
-  updates: Partial<Omit<Book, 'id'>>
-): Promise<Book | null> {
-  let books = await getBooks();
-  const bookIndex = books.findIndex((b) => b.id === id);
-  if (bookIndex === -1) return null;
 
-  const updatedBook = { ...books[bookIndex], ...updates };
-  books[bookIndex] = updatedBook;
-  await writeData(booksFilePath, books);
-  return updatedBook;
+export async function getBookById(
+  userId: string,
+  id: string
+): Promise<Book | undefined> {
+  return prisma.book.findFirst({
+    where: { id, userId },
+  }) as Promise<Book | undefined>;
 }
-export async function deleteBook(id: string): Promise<void> {
-  let books = await getBooks();
-  const updatedBooks = books.filter((book) => book.id !== id);
-  await writeData(booksFilePath, updatedBooks);
+
+export async function getBookByCode(
+  userId: string,
+  code: string
+): Promise<Book | undefined> {
+  return prisma.book.findFirst({
+    where: { code, userId },
+  }) as Promise<Book | undefined>;
+}
+
+export async function addBook(
+  userId: string,
+  book: Omit<Book, 'id' | 'userId'>
+): Promise<Book> {
+  const coverImageUrl =
+    book.coverImageUrl ||
+    PlaceHolderImages.find((p) => p.id === 'default_book_cover')?.imageUrl ||
+    null;
+
+  return prisma.book.create({
+    data: {
+      userId,
+      code: book.code,
+      name: book.name,
+      coverImageUrl,
+    },
+  });
+}
+
+export async function updateBook(
+  userId: string,
+  id: string,
+  updates: Partial<Omit<Book, 'id' | 'userId'>>
+): Promise<Book | null> {
+  const existing = await prisma.book.findFirst({ where: { id, userId } });
+  if (!existing) return null;
+
+  return prisma.book.update({
+    where: { id },
+    data: {
+      code: updates.code ?? existing.code,
+      name: updates.name ?? existing.name,
+      coverImageUrl: updates.coverImageUrl ?? existing.coverImageUrl,
+    },
+  });
+}
+
+export async function deleteBook(userId: string, id: string): Promise<void> {
+  await prisma.book.deleteMany({ where: { id, userId } });
 }
 
 // --- Sales ---
-export async function getSales(): Promise<Sale[]> {
-  const sales = await readData<any>(salesFilePath);
-  return sales.map((sale) => ({
-    ...sale,
-    date: new Date(sale.date),
-  }));
+export async function getSales(userId: string): Promise<Sale[]> {
+  return prisma.sale.findMany({
+    where: { userId },
+    orderBy: { date: 'desc' },
+  });
 }
-export async function getSaleById(id: string): Promise<Sale | undefined> {
-    const sales = await getSales();
-    return sales.find((sale) => sale.id === id);
+
+export async function getSaleById(
+  userId: string,
+  id: string
+): Promise<Sale | undefined> {
+  return prisma.sale.findFirst({
+    where: { id, userId },
+  }) as Promise<Sale | undefined>;
 }
 export async function addSale(
-  sale: Omit<Sale, 'id' | 'status' | 'date'> & { date: string }
+  userId: string,
+  sale: Omit<Sale, 'id' | 'status' | 'date' | 'userId'> & { date: string }
 ): Promise<Sale> {
-  const sales = await getSales();
-  const newSale: Sale = {
-    ...sale,
-    id: `s${Date.now()}`,
-    date: new Date(sale.date),
-    status: 'in_process',
-  };
-
-  const book = await getBookById(sale.bookId);
-  if (
-    book &&
-    (newSale.status === 'completed' || newSale.status === 'sold_in_person')
-  ) {
-    // await updateBook(book.id, { quantity: book.quantity - 1 });
-  }
-
-  const updatedSales = [...sales, newSale];
-  await writeData(salesFilePath, updatedSales as any);
-  return newSale;
+  return prisma.sale.create({
+    data: {
+      userId,
+      bookId: sale.bookId,
+      date: new Date(sale.date),
+      status: 'in_process',
+      platform: sale.platform,
+      saleAmount: sale.saleAmount ?? null,
+    },
+  });
 }
 export async function updateSale(
+  userId: string,
   id: string,
   updates: Partial<Sale>
 ): Promise<Sale | null> {
-  let sales = await getSales();
-  const saleIndex = sales.findIndex((s) => s.id === id);
-  if (saleIndex === -1) return null;
+  const existing = await prisma.sale.findFirst({ where: { id, userId } });
+  if (!existing) return null;
 
-  const originalStatus = sales[saleIndex].status;
-  const newStatus = updates.status;
-
-  const updatedSale = { ...sales[saleIndex], ...updates };
-
-  const isNowSold =
-    newStatus === 'completed' || newStatus === 'sold_in_person';
-  const wasNotSold =
-    originalStatus !== 'completed' && originalStatus !== 'sold_in_person';
-
-  if (isNowSold && wasNotSold) {
-    const book = await getBookById(updatedSale.bookId);
-    if (book) {
-      // await updateBook(book.id, { quantity: Math.max(0, book.quantity - 1) });
-    }
-  }
-
-  sales[saleIndex] = updatedSale;
-  await writeData(salesFilePath, sales);
-
-  return { ...updatedSale, date: new Date(updatedSale.date) };
+  return prisma.sale.update({
+    where: { id },
+    data: {
+      status: updates.status ?? existing.status,
+      saleAmount:
+        typeof updates.saleAmount === 'number'
+          ? updates.saleAmount
+          : existing.saleAmount,
+    },
+  });
 }
-export async function getSalesByBookId(bookId: string): Promise<Sale[]> {
-  const sales = await getSales();
-  return sales.filter((sale) => sale.bookId === bookId);
+export async function getSalesByBookId(
+  userId: string,
+  bookId: string
+): Promise<Sale[]> {
+  return prisma.sale.findMany({
+    where: { bookId, userId },
+    orderBy: { date: 'desc' },
+  });
 }
-export async function deleteSale(id: string): Promise<void> {
-    let sales = await getSales();
-    const updatedSales = sales.filter((sale) => sale.id !== id);
-    await writeData(salesFilePath, updatedSales);
+export async function deleteSale(userId: string, id: string): Promise<void> {
+  await prisma.sale.deleteMany({ where: { id, userId } });
 }
 
 

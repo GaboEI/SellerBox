@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { redirect } from 'next/navigation';
-import { getSales, getBooks } from '@/lib/data';
+import { getSales, getBooks } from '@/lib/actions';
 import { SalesClient } from '@/components/sales/sales-client';
 import type { Book, Sale } from '@/lib/types';
 import { AppSidebar } from '@/components/layout/sidebar';

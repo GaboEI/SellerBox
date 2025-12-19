@@ -4,7 +4,7 @@ import { useSession } from 'next-auth/react';
 import { redirect } from 'next/navigation';
 import { ListingGenerator } from "@/components/listings/listing-generator";
 import { PageHeader } from "@/components/shared/page-header";
-import { getBooks } from "@/lib/data";
+import { getBooks } from "@/lib/actions";
 import type { Book } from '@/lib/types';
 import { AppSidebar } from '@/components/layout/sidebar';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';

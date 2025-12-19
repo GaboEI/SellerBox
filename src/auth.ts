@@ -1,27 +1,46 @@
 import type { NextAuthOptions } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
+import GoogleProvider from "next-auth/providers/google";
+import AppleProvider from "next-auth/providers/apple";
+import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
+import bcrypt from "bcryptjs";
 
 export const authOptions: NextAuthOptions = {
+  adapter: PrismaAdapter(prisma),
   providers: [
     Credentials({
       name: "Credentials",
       credentials: {
-        email: { label: "Email", type: "text" },
+        identifier: { label: "Email o usuario", type: "text" },
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        const email = String(credentials?.email ?? "").trim();
-        if (!email) {
+        const identifier = String(credentials?.identifier ?? "").trim();
+        const password = String(credentials?.password ?? "");
+        if (!identifier || !password) {
           return null;
         }
 
         try {
-          const user = await prisma.user.findUnique({ where: { email } });
+          const normalized = identifier.toLowerCase();
+          const isEmail = normalized.includes("@");
+          const user = await prisma.user.findFirst({
+            where: isEmail ? { email: normalized } : { username: normalized },
+          });
 
           if (!user) {
             // Si no hay usuario, NextAuth no lo creará aquí.
             // El flujo de creación se maneja en otro lugar o se deniega el acceso.
+            return null;
+          }
+
+          if (!user.password) {
+            return null;
+          }
+
+          const passwordValid = await bcrypt.compare(password, user.password);
+          if (!passwordValid) {
             return null;
           }
           
@@ -41,9 +60,17 @@ export const authOptions: NextAuthOptions = {
         }
       },
     }),
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID ?? "",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
+    }),
+    AppleProvider({
+      clientId: process.env.APPLE_CLIENT_ID ?? "",
+      clientSecret: process.env.APPLE_CLIENT_SECRET ?? "",
+    }),
   ],
   
-  pages: { signIn: "/login" },
+  pages: { signIn: "/login", error: "/login" },
   session: { strategy: "jwt" },
   
   callbacks: {
