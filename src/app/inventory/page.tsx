@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { useSession } from 'next-auth/react';
+import { redirect } from 'next/navigation';
 import { getBooks } from '@/lib/data';
 import { CatalogClient } from '@/components/catalog/catalog-client';
 import type { Book } from '@/lib/types';
@@ -13,20 +15,34 @@ export default function InventoryPage() {
   const { t } = useTranslation();
   const [books, setBooks] = React.useState<Book[]>([]);
   const [isClient, setIsClient] = useState(false);
+  const { data: session, status } = useSession();
 
   useEffect(() => {
     setIsClient(true);
   }, []);
 
   const fetchBooks = useCallback(async () => {
-    const booksData = await getBooks();
-    setBooks(booksData);
-  }, []);
+    if (session) { // Solo busca libros si hay una sesión
+      const booksData = await getBooks();
+      setBooks(booksData);
+    }
+  }, [session]);
 
   useEffect(() => {
-    fetchBooks();
-  }, [fetchBooks]);
-  
+    if (status === 'authenticated') {
+      fetchBooks();
+    }
+  }, [status, fetchBooks]);
+
+  if (status === 'loading') {
+    return <div>{t('loading')}</div>; // O un componente de carga más elaborado
+  }
+
+  if (status === 'unauthenticated') {
+    redirect('/login');
+    return null; // Asegura que no se renderice nada más mientras redirige
+  }
+
   const handleBookDeleted = (bookId: string) => {
     setBooks(prevBooks => prevBooks.filter(book => book.id !== bookId));
   };

@@ -1,6 +1,7 @@
 'use client';
 
 import { useSession, signOut } from 'next-auth/react';
+import { redirect } from 'next/navigation';
 import React, { useEffect, useState, useMemo } from 'react';
 import { PageHeader } from '@/components/shared/page-header';
 import {
@@ -31,7 +32,7 @@ export default function SettingsPage() {
   const { t } = useTranslation();
   const { toast } = useToast();
   const firestore = useFirestore();
-  const { data: session, status } = useSession({ required: true });
+  const { data: session, status, update } = useSession();
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -49,8 +50,7 @@ export default function SettingsPage() {
   }, [firestore, session]);
 
   const { data: profile, isLoading: isProfileLoading } = useDoc<UserProfile>(
-    userDocRef,
-    { disabled: !userDocRef }
+    userDocRef
   );
 
   useEffect(() => {
@@ -58,6 +58,15 @@ export default function SettingsPage() {
       setUsername(profile.username || '');
     }
   }, [profile]);
+
+  if (status === 'loading') {
+    return <div>{t('loading')}</div>;
+  }
+
+  if (status === 'unauthenticated') {
+    redirect('/login');
+    return null;
+  }
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -97,6 +106,8 @@ export default function SettingsPage() {
       if (!response.ok) {
         throw new Error(result.error || 'Failed to update profile');
       }
+      
+      await update();
 
       toast({ title: t('success'), description: t('profile_updated') });
       setImagePreview(null);
@@ -119,7 +130,7 @@ export default function SettingsPage() {
   const defaultProfilePic =
     PlaceHolderImages.find((p) => p.id === 'default_user_profile')?.imageUrl || '';
 
-  const isLoading = status === 'loading' || isProfileLoading;
+  const isLoading = isProfileLoading;
   const currentPhoto = imagePreview || profile?.photoUrl || defaultProfilePic;
   const currentUsername = profile?.username || '';
   const fallbackInitial = currentUsername?.[0]?.toUpperCase() || 'S';
@@ -162,7 +173,7 @@ export default function SettingsPage() {
                       <CardTitle>{isClient ? t('account') : 'Account'}</CardTitle>
                       <CardDescription>
                         {isLoading
-                          ? "Cargando perfil..."
+                          ? t('loading_profile')
                           : (isClient ? t('manage_profile_info') : 'Manage your profile information and account settings.')}
                       </CardDescription>
                     </CardHeader>

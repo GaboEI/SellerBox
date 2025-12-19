@@ -50,5 +50,12 @@
     "platform": "Ozon",
     "id": "s1765931023938",
     "status": "in_process"
+  },
+  {
+    "bookId": "1766073279687",
+    "date": "2025-12-18T00:00:00.000Z",
+    "platform": "Avito",
+    "id": "s1766073301868",
+    "status": "in_process"
   }
 ]

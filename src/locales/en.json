@@ -144,5 +144,8 @@
   "select_photo": "Select photo",
   "image_specs": "JPG, PNG, WEBP. Max 2MB.",
   "file_too_large": "File is too large. Max size is {size}.",
-  "invalid_file_type": "Invalid file type. Please upload a JPG, PNG, or WEBP."
+  "invalid_file_type": "Invalid file type. Please upload a JPG, PNG, or WEBP.",
+  "loading": "Loading...",
+  "loading_profile": "Loading profile...",
+  "sign_out": "Sign Out"
 }

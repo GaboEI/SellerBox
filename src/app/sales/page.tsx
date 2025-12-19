@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { useSession } from 'next-auth/react';
+import { redirect } from 'next/navigation';
 import { getSales, getBooks } from '@/lib/data';
 import { SalesClient } from '@/components/sales/sales-client';
 import type { Book, Sale } from '@/lib/types';
@@ -9,27 +11,40 @@ import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { AppHeader } from '@/components/layout/header';
 import { useTranslation } from 'react-i18next';
 
-
 export default function SalesPage() {
   const { t } = useTranslation();
   const [sales, setSales] = React.useState<Sale[]>([]);
   const [books, setBooks] = React.useState<Book[]>([]);
   const [isClient, setIsClient] = useState(false);
+  const { data: session, status } = useSession();
 
   useEffect(() => {
     setIsClient(true);
   }, []);
 
   const fetchData = useCallback(async () => {
-    const salesData = await getSales();
-    const booksData = await getBooks();
-    setSales(salesData);
-    setBooks(booksData);
-  }, []);
+    if (session) { // Solo busca datos si hay una sesión
+      const salesData = await getSales();
+      const booksData = await getBooks();
+      setSales(salesData);
+      setBooks(booksData);
+    }
+  }, [session]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    if (status === 'authenticated') {
+      fetchData();
+    }
+  }, [status, fetchData]);
+
+  if (status === 'loading') {
+    return <div>{t('loading')}</div>;
+  }
+
+  if (status === 'unauthenticated') {
+    redirect('/login');
+    return null;
+  }
 
   return (
     <SidebarProvider>

@@ -1,5 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import { redirect } from 'next/navigation';
 import { ListingGenerator } from "@/components/listings/listing-generator";
 import { PageHeader } from "@/components/shared/page-header";
 import { getBooks } from "@/lib/data";
@@ -13,6 +15,7 @@ export default function ListingsPage() {
     const { t } = useTranslation();
     const [books, setBooks] = React.useState<Book[]>([]);
     const [isClient, setIsClient] = useState(false);
+    const { data: session, status } = useSession();
 
     useEffect(() => {
       setIsClient(true);
@@ -20,11 +23,24 @@ export default function ListingsPage() {
 
     React.useEffect(() => {
         async function fetchBooks() {
-            const booksData = await getBooks();
-            setBooks(booksData);
+            if (session) { // Only fetch if session exists
+                const booksData = await getBooks();
+                setBooks(booksData);
+            }
         }
-        fetchBooks();
-    }, []);
+        if (status === 'authenticated') {
+            fetchBooks();
+        }
+    }, [status, session]);
+
+    if (status === 'loading') {
+        return <div>{t('loading')}</div>;
+    }
+
+    if (status === 'unauthenticated') {
+        redirect('/login');
+        return null;
+    }
 
     return (
         <SidebarProvider>
