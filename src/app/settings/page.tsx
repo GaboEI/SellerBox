@@ -43,6 +43,13 @@ export default function SettingsPage() {
   const [photoUrlDataUri, setPhotoUrlDataUri] = useState<string>('');
   const [username, setUsername] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [newEmail, setNewEmail] = useState('');
+  const [emailPassword, setEmailPassword] = useState('');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isUpdatingEmail, setIsUpdatingEmail] = useState(false);
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
 
   const userDocRef = useMemo(() => {
     if (!firestore || !session?.user?.email) return null;
@@ -58,6 +65,12 @@ export default function SettingsPage() {
       setUsername(profile.username || '');
     }
   }, [profile]);
+
+  useEffect(() => {
+    if (session?.user?.email) {
+      setNewEmail(session.user.email);
+    }
+  }, [session?.user?.email]);
 
   if (status === 'loading') {
     return <div>{t('loading')}</div>;
@@ -126,6 +139,80 @@ export default function SettingsPage() {
   };
 
   const handleSignOut = () => signOut({ callbackUrl: '/login' });
+
+  const handleEmailChange = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (status !== 'authenticated') {
+      toast({ title: t('error'), description: t('must_be_logged_in'), variant: 'destructive' });
+      return;
+    }
+
+    setIsUpdatingEmail(true);
+    try {
+      const response = await fetch('/api/auth/change-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          newEmail,
+          currentPassword: emailPassword,
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to update email');
+      }
+      toast({ title: t('success'), description: result.message || 'Email updated' });
+      if (result.logout) {
+        await signOut({ callbackUrl: '/login' });
+      }
+    } catch (e: any) {
+      toast({
+        title: t('error'),
+        description: e.message || t('could_not_update_profile'),
+        variant: 'destructive',
+      });
+    } finally {
+      setIsUpdatingEmail(false);
+      setEmailPassword('');
+    }
+  };
+
+  const handlePasswordChange = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (status !== 'authenticated') {
+      toast({ title: t('error'), description: t('must_be_logged_in'), variant: 'destructive' });
+      return;
+    }
+
+    setIsUpdatingPassword(true);
+    try {
+      const response = await fetch('/api/auth/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          currentPassword,
+          newPassword,
+          confirmPassword,
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to update password');
+      }
+      toast({ title: t('success'), description: result.message || 'Password updated' });
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (e: any) {
+      toast({
+        title: t('error'),
+        description: e.message || t('could_not_update_profile'),
+        variant: 'destructive',
+      });
+    } finally {
+      setIsUpdatingPassword(false);
+    }
+  };
 
   const defaultProfilePic =
     PlaceHolderImages.find((p) => p.id === 'default_user_profile')?.imageUrl || '';
@@ -241,6 +328,93 @@ export default function SettingsPage() {
                     </CardFooter>
                   </Card>
                 </form>
+                <div className="mt-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>{isClient ? t('security') : 'Security'}</CardTitle>
+                      <CardDescription>
+                        {isClient ? t('update_credentials') : 'Update your email and password.'}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-8">
+                      <form onSubmit={handleEmailChange} className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="newEmail">{isClient ? t('email') : 'Email'}</Label>
+                          <Input
+                            id="newEmail"
+                            type="email"
+                            value={newEmail}
+                            onChange={(e) => setNewEmail(e.target.value)}
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="emailPassword">
+                            {isClient ? t('current_password') : 'Current password'}
+                          </Label>
+                          <Input
+                            id="emailPassword"
+                            type="password"
+                            value={emailPassword}
+                            onChange={(e) => setEmailPassword(e.target.value)}
+                            required
+                          />
+                        </div>
+                        <Button type="submit" disabled={isUpdatingEmail}>
+                          {isUpdatingEmail
+                            ? (isClient ? t('saving') : 'Saving')
+                            : (isClient ? t('update_email') : 'Update Email')}
+                        </Button>
+                      </form>
+
+                      <div className="h-px bg-border" />
+
+                      <form onSubmit={handlePasswordChange} className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="currentPassword">
+                            {isClient ? t('current_password') : 'Current password'}
+                          </Label>
+                          <Input
+                            id="currentPassword"
+                            type="password"
+                            value={currentPassword}
+                            onChange={(e) => setCurrentPassword(e.target.value)}
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="newPassword">
+                            {isClient ? t('new_password') : 'New password'}
+                          </Label>
+                          <Input
+                            id="newPassword"
+                            type="password"
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="confirmPassword">
+                            {isClient ? t('confirm_password') : 'Confirm password'}
+                          </Label>
+                          <Input
+                            id="confirmPassword"
+                            type="password"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            required
+                          />
+                        </div>
+                        <Button type="submit" disabled={isUpdatingPassword}>
+                          {isUpdatingPassword
+                            ? (isClient ? t('saving') : 'Saving')
+                            : (isClient ? t('update_password') : 'Update Password')}
+                        </Button>
+                      </form>
+                    </CardContent>
+                  </Card>
+                </div>
               </div>
             </div>
           </div>

@@ -52,6 +52,7 @@ model User {
   avatarUrl     String?
   books         Book[]
   sales         Sale[]
+  passwordResetTokens PasswordResetToken[]
 }
 
 model VerificationToken {
@@ -92,4 +93,17 @@ model Sale {
 
   @@index([userId])
   @@index([bookId])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
 }

@@ -147,5 +147,13 @@
   "invalid_file_type": "Tipo de archivo no válido. Por favor, sube un JPG, PNG, o WEBP.",
   "loading": "Cargando...",
   "loading_profile": "Cargando perfil...",
-  "sign_out": "Cerrar Sesión"
+  "sign_out": "Cerrar Sesión",
+  "security": "Seguridad",
+  "update_credentials": "Actualiza tu email y contraseña.",
+  "email": "Email",
+  "current_password": "Contraseña actual",
+  "update_email": "Actualizar Email",
+  "new_password": "Nueva contraseña",
+  "confirm_password": "Confirmar contraseña",
+  "update_password": "Actualizar contraseña"
 }

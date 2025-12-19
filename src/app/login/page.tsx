@@ -90,6 +90,11 @@ export default function LoginPage() {
                 className="h-11 rounded-md border border-input bg-background px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring"
               />
             </label>
+            <div className="text-right text-xs">
+              <Link className="text-muted-foreground underline-offset-4 hover:underline" href="/forgot-password">
+                ¿Olvidaste tu contraseña?
+              </Link>
+            </div>
 
             <button
               disabled={loading}
@@ -122,7 +127,27 @@ export default function LoginPage() {
               className="h-11 rounded-md border border-input bg-background text-sm transition hover:bg-accent"
               disabled={providerLoading !== null}
             >
-              {providerLoading === "google" ? "Conectando..." : "Continuar con Google"}
+              <span className="inline-flex items-center gap-2">
+                <svg aria-hidden="true" viewBox="0 0 48 48" className="h-4 w-4">
+                  <path
+                    fill="#FFC107"
+                    d="M43.611 20.083H42V20H24v8h11.303C33.94 32.659 29.364 36 24 36c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.047 6.053 29.273 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917Z"
+                  />
+                  <path
+                    fill="#FF3D00"
+                    d="M6.306 14.691l6.571 4.819C14.655 16.202 19.01 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.047 6.053 29.273 4 24 4 16.318 4 9.656 8.402 6.306 14.691Z"
+                  />
+                  <path
+                    fill="#4CAF50"
+                    d="M24 44c5.259 0 10.028-2.016 13.56-5.303l-6.264-5.303C29.243 34.918 26.71 36 24 36c-5.346 0-9.909-3.319-11.287-7.946l-6.506 5.017C9.523 39.556 16.227 44 24 44Z"
+                  />
+                  <path
+                    fill="#1976D2"
+                    d="M43.611 20.083H42V20H24v8h11.303c-1.096 3.045-3.389 5.569-6.007 7.394l.003-.002 6.264 5.303C34.364 38.5 40 34 40 24c0-1.341-.138-2.65-.389-3.917Z"
+                  />
+                </svg>
+                {providerLoading === "google" ? "Conectando..." : "Continuar con Google"}
+              </span>
             </button>
             <button
               type="button"
@@ -133,7 +158,15 @@ export default function LoginPage() {
               className="h-11 rounded-md border border-input bg-background text-sm transition hover:bg-accent"
               disabled={providerLoading !== null}
             >
-              {providerLoading === "apple" ? "Conectando..." : "Continuar con Apple"}
+              <span className="inline-flex items-center gap-2">
+                <svg aria-hidden="true" viewBox="0 0 16 16" className="h-4 w-4">
+                  <path
+                    fill="currentColor"
+                    d="M12.6 8.7c0-1.5.8-2.7 2-3.3-.7-1-1.8-1.6-3-1.7-1.3-.1-2.5.8-3.1.8s-1.6-.8-2.7-.8c-1.4 0-2.7.8-3.4 2.1-1.5 2.6-.4 6.4 1 8.5.7 1 1.5 2.1 2.6 2.1 1 0 1.4-.6 2.7-.6s1.6.6 2.7.6c1.1 0 1.8-1 2.5-2 1-1.4 1.4-2.7 1.4-2.8-.1 0-2.7-1-2.7-3.9Zm-2-6.6c.6-.7 1-1.7.9-2.7-.9.1-2 .6-2.6 1.3-.6.7-1 1.6-.9 2.6 1 .1 2-.5 2.6-1.2Z"
+                  />
+                </svg>
+                {providerLoading === "apple" ? "Conectando..." : "Continuar con Apple"}
+              </span>
             </button>
           </div>
 
