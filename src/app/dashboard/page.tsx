@@ -68,7 +68,7 @@ export default function DashboardPage() {
         <AppHeader />
         <main className="p-4 lg:p-6">
           <div className="flex flex-col gap-6">
-            <PageHeader title={t('dashboard')} description={t('overview')} />
+            <PageHeader title={t('dashboard')} description={t('overview_sales_inventory')} />
             {isDataLoading ? (
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <Skeleton className="h-24" />

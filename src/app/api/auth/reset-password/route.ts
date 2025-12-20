@@ -14,21 +14,21 @@ export async function POST(req: Request) {
 
     if (!normalizedEmail || !rawToken) {
       return NextResponse.json(
-        { error: "Solicitud inválida." },
+        { error: "reset_password_error_invalid_request" },
         { status: 400 }
       );
     }
 
     if (rawPassword.length < 8) {
       return NextResponse.json(
-        { error: "Password mínimo 8 caracteres." },
+        { error: "reset_password_error_password_min" },
         { status: 400 }
       );
     }
 
     if (rawPassword !== rawConfirm) {
       return NextResponse.json(
-        { error: "Las contraseñas no coinciden." },
+        { error: "reset_password_error_password_match" },
         { status: 400 }
       );
     }
@@ -39,7 +39,7 @@ export async function POST(req: Request) {
 
     if (!user) {
       return NextResponse.json(
-        { error: "No se pudo restablecer la contraseña." },
+        { error: "reset_password_error" },
         { status: 400 }
       );
     }
@@ -59,7 +59,7 @@ export async function POST(req: Request) {
 
     if (!tokenRecord) {
       return NextResponse.json(
-        { error: "El enlace es inválido o expiró." },
+        { error: "reset_password_error_invalid_link" },
         { status: 400 }
       );
     }
@@ -75,11 +75,11 @@ export async function POST(req: Request) {
       where: { userId: user.id },
     });
 
-    return NextResponse.json({ message: "Password actualizado." });
+    return NextResponse.json({ message: "reset_password_success" });
   } catch (error) {
     console.error("RESET_PASSWORD_ERROR:", error);
     return NextResponse.json(
-      { error: "No fue posible restablecer la contraseña." },
+      { error: "reset_password_error_generic" },
       { status: 500 }
     );
   }

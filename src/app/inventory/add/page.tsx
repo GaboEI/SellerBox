@@ -38,7 +38,7 @@ function SubmitButton({ isClient, t }: { isClient: boolean; t: any }) {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" disabled={pending}>
-      {isClient ? (pending ? t('adding') : t('add_book')) : 'Add Book'}
+      {pending ? t('adding') : t('add_book')}
     </Button>
   );
 }
@@ -61,7 +61,7 @@ export default function AddBookPage() {
       if (Object.keys(state.errors).length > 0) {
         toast({
           title: t('error'),
-          description: state.message,
+          description: t(state.message),
           variant: 'destructive',
         });
       } else {
@@ -113,17 +113,13 @@ export default function AddBookPage() {
         <AppHeader />
         <main className="p-4 lg:p-6">
           <PageHeader
-            title={isClient ? t('add_new_book') : 'Add a New Book'}
-            description={
-              isClient
-                ? t('add_book_desc')
-                : 'Enter the details for the new book to add it to your catalog.'
-            }
+            title={t('add_new_book')}
+            description={t('add_book_desc')}
           >
             <Button variant="outline" size="sm" asChild>
               <Link href="/inventory">
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                {isClient ? t('cancel') : 'Cancel'}
+                {t('cancel')}
               </Link>
             </Button>
           </PageHeader>
@@ -133,36 +129,36 @@ export default function AddBookPage() {
                 <CardContent className="p-6 space-y-6">
                   <div className="space-y-2">
                     <Label htmlFor="code">
-                      {isClient ? t('code_unique') : 'Code (Unique)'}
+                      {t('code_unique')}
                     </Label>
                     <Input id="code" name="code" required />
                     {state.errors?.code && (
                       <p className="text-sm text-destructive">
-                        {state.errors.code[0]}
+                        {t(state.errors.code[0])}
                       </p>
                     )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="name">
-                      {isClient ? t('name') : 'Name'}
+                      {t('name')}
                     </Label>
                     <Input id="name" name="name" required />
                     {state.errors?.name && (
                       <p className="text-sm text-destructive">
-                        {state.errors.name[0]}
+                        {t(state.errors.name[0])}
                       </p>
                     )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="image-upload">
-                      {isClient ? t('cover_photo') : 'Cover Photo'}
+                      {t('cover_photo')}
                     </Label>
                     <div className="flex items-center gap-4">
                       <div className="flex h-24 w-24 items-center justify-center rounded-lg border bg-muted text-muted-foreground">
                         {imagePreview ? (
                           <Image
                             src={imagePreview}
-                            alt="Cover preview"
+                            alt={t('cover_preview')}
                             width={96}
                             height={96}
                             className="h-full w-full rounded-lg object-cover"
@@ -177,7 +173,7 @@ export default function AddBookPage() {
                           variant="outline"
                           className="relative bg-accent text-accent-foreground hover:bg-accent/90"
                         >
-                          {isClient ? t('select_photo') : 'Select photo'}
+                          {t('select_photo')}
                            <Input
                             id="image-upload"
                             name="image-upload"
@@ -188,7 +184,7 @@ export default function AddBookPage() {
                           />
                         </Button>
                          <p className="text-xs text-muted-foreground">
-                          {isClient ? t('image_specs') : 'JPG, PNG, WEBP. Max 2MB.'}
+                          {t('image_specs')}
                         </p>
                       </div>
                     </div>

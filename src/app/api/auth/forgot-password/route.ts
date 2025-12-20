@@ -2,17 +2,28 @@ import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { prisma } from "@/lib/prisma";
 import { generateResetToken, getResetExpiry } from "@/lib/auth-tokens";
+import enTranslations from "@/locales/en.json";
+import esTranslations from "@/locales/es.json";
+import ruTranslations from "@/locales/ru.json";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function POST(req: Request) {
   try {
-    const { email } = await req.json();
+    const { email, lang } = await req.json();
     const normalizedEmail = String(email || "").trim().toLowerCase();
+    const locale = ["en", "es", "ru"].includes(lang) ? lang : "en";
+    const translations: Record<string, Record<string, string>> = {
+      en: enTranslations,
+      es: esTranslations,
+      ru: ruTranslations,
+    };
+    const t = (key: string) =>
+      translations[locale]?.[key] || translations.en?.[key] || key;
 
     if (!emailRegex.test(normalizedEmail)) {
       return NextResponse.json(
-        { error: "Email inválido." },
+        { error: "forgot_password_error_invalid_email" },
         { status: 400 }
       );
     }
@@ -28,7 +39,7 @@ export async function POST(req: Request) {
 
       if (!apiKey || !fromEmail || !appUrl) {
         return NextResponse.json(
-          { error: "Email no configurado en el servidor." },
+          { error: "forgot_password_error_not_configured" },
           { status: 500 }
         );
       }
@@ -56,26 +67,25 @@ export async function POST(req: Request) {
       await resend.emails.send({
         from: fromEmail,
         to: normalizedEmail,
-        subject: "Restablecer contraseña",
+        subject: t("reset_email_subject"),
         html: `
           <div style="font-family:Arial,sans-serif;line-height:1.5">
-            <h2>Restablecer contraseña</h2>
-            <p>Haz clic en el siguiente enlace para crear una nueva contraseña:</p>
+            <h2>${t("reset_email_heading")}</h2>
+            <p>${t("reset_email_instruction")}</p>
             <p><a href="${resetUrl.toString()}">${resetUrl.toString()}</a></p>
-            <p>Este enlace expira en 2 horas.</p>
+            <p>${t("reset_email_expiry")}</p>
           </div>
         `,
       });
     }
 
     return NextResponse.json({
-      message:
-        "Si el correo existe, enviaremos un enlace de restablecimiento.",
+      message: "forgot_password_success",
     });
   } catch (error) {
     console.error("FORGOT_PASSWORD_ERROR:", error);
     return NextResponse.json(
-      { error: "No fue posible procesar la solicitud." },
+      { error: "forgot_password_error_generic" },
       { status: 500 }
     );
   }

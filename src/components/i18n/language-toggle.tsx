@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button"
 
 export function LanguageToggle() {
-  const { i18n } = useTranslation()
+  const { i18n, t } = useTranslation()
 
   const changeLanguage = (lng: string) => {
     i18n.changeLanguage(lng);
@@ -22,7 +22,7 @@ export function LanguageToggle() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon">
           <Languages className="h-[1.2rem] w-[1.2rem]" />
-          <span className="sr-only">Toggle language</span>
+          <span className="sr-only">{t("toggle_language")}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">

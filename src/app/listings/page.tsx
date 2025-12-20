@@ -49,7 +49,7 @@ export default function ListingsPage() {
                 <AppHeader />
                 <main className="p-4 lg:p-6">
                     <div className="flex flex-col gap-8">
-                        <PageHeader title={isClient ? t('listing_generator') : 'Listing Generator'} description={isClient ? t('create_compelling_listings') : 'Create compelling product listings for your books.'} />
+                        <PageHeader title={t('listing_generator')} description={t('create_compelling_listings')} />
                         <ListingGenerator books={books} />
                     </div>
                 </main>

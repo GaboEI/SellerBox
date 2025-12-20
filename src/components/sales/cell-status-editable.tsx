@@ -75,7 +75,7 @@ export function CellStatusEditable({
       onSaleUpdate(sale.id, { status: sale.status });
       toast({
         title: t('error'),
-        description: result.error,
+        description: t(result.error),
         variant: 'destructive',
       });
     } else {
@@ -109,7 +109,7 @@ export function CellStatusEditable({
               ] as SaleStatus[]
             ).map((status) => (
               <SelectItem key={status} value={status} className="capitalize">
-                {isClient ? t(status) : status}
+                {t(status)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -125,9 +125,9 @@ export function CellStatusEditable({
         className={cn('flex w-28 justify-center capitalize', {
           'cursor-pointer hover:opacity-80': !isFinalState,
         })}
-        title={!isFinalState && isClient ? 'Double-click to edit' : ''}
+        title={!isFinalState ? t('double_click_to_edit') : ''}
       >
-        {isClient ? t(currentStatus) : currentStatus}
+        {t(currentStatus)}
       </Badge>
     </div>
   );

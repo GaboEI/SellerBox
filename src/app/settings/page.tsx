@@ -117,7 +117,7 @@ export default function SettingsPage() {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to update profile');
+        throw new Error(t(result.error || 'settings_error_update_profile'));
       }
       
       await update();
@@ -159,9 +159,9 @@ export default function SettingsPage() {
       });
       const result = await response.json();
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to update email');
+        throw new Error(t(result.error || 'settings_error_update_email'));
       }
-      toast({ title: t('success'), description: result.message || 'Email updated' });
+      toast({ title: t('success'), description: t('settings_email_updated') });
       if (result.logout) {
         await signOut({ callbackUrl: '/login' });
       }
@@ -197,9 +197,9 @@ export default function SettingsPage() {
       });
       const result = await response.json();
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to update password');
+        throw new Error(t(result.error || 'settings_error_update_password'));
       }
-      toast({ title: t('success'), description: result.message || 'Password updated' });
+      toast({ title: t('success'), description: t('settings_password_updated') });
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
@@ -231,23 +231,23 @@ export default function SettingsPage() {
         <main className="p-4 lg:p-6">
           <div className="flex flex-col gap-8">
             <PageHeader
-              title={isClient ? t('settings') : 'Settings'}
-              description={isClient ? t('customize_your_experience') : 'Customize your experience.'}
+              title={t('settings')}
+              description={t('customize_your_experience')}
             />
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
               <div className="lg:col-span-1">
                 <Card>
                   <CardHeader>
-                    <CardTitle>{isClient ? t('appearance') : 'Appearance'}</CardTitle>
-                    <CardDescription>{isClient ? t('adjust_look_and_feel') : 'Adjust the look and feel of the application.'}</CardDescription>
+                    <CardTitle>{t('appearance')}</CardTitle>
+                    <CardDescription>{t('adjust_look_and_feel')}</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <Label htmlFor="theme">{isClient ? t('theme') : 'Theme'}</Label>
+                      <Label htmlFor="theme">{t('theme')}</Label>
                       <ThemeToggle />
                     </div>
                      <div className="flex items-center justify-between">
-                      <Label htmlFor="language">{isClient ? t('language') : 'Language'}</Label>
+                      <Label htmlFor="language">{t('language')}</Label>
                       <LanguageToggle />
                     </div>
                   </CardContent>
@@ -257,11 +257,11 @@ export default function SettingsPage() {
                 <form onSubmit={handleSave}>
                   <Card>
                     <CardHeader>
-                      <CardTitle>{isClient ? t('account') : 'Account'}</CardTitle>
+                      <CardTitle>{t('account')}</CardTitle>
                       <CardDescription>
                         {isLoading
                           ? t('loading_profile')
-                          : (isClient ? t('manage_profile_info') : 'Manage your profile information and account settings.')}
+                          : t('manage_profile_info')}
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
@@ -284,11 +284,11 @@ export default function SettingsPage() {
                           </Avatar>
                           <div className="space-y-1">
                             <Label htmlFor="photoUrl">
-                              {isClient ? t('profile_picture') : 'Profile picture'}
+                              {t('profile_picture')}
                             </Label>
                              <div className="relative">
                                 <Button type="button" variant="outline" className="relative">
-                                {isClient ? t('change') : 'Change'}
+                                {t('change')}
                                 <Input
                                     id="photoUrl"
                                     type="file"
@@ -302,7 +302,7 @@ export default function SettingsPage() {
                         </div>
                       )}
                       <div className="space-y-2">
-                        <Label htmlFor="username">{isClient ? t('username') : 'Username'}</Label>
+                        <Label htmlFor="username">{t('username')}</Label>
                         {isLoading ? (
                           <Skeleton className="h-10 w-full" />
                         ) : (
@@ -319,10 +319,10 @@ export default function SettingsPage() {
                     <CardFooter className="border-t px-6 py-4">
                        <div className="flex w-full justify-between">
                          <Button type="submit" disabled={!canSave} className="w-full sm:w-auto">
-                           {isSaving ? t('saving') : (isClient ? t('save_changes') : 'Save Changes')}
+                           {isSaving ? t('saving') : t('save_changes')}
                          </Button>
                         <Button variant="outline" onClick={handleSignOut} disabled={status !== 'authenticated'}>
-                          {isClient ? t('sign_out') : 'Sign Out'}
+                          {t('sign_out')}
                         </Button>
                        </div>
                     </CardFooter>
@@ -331,15 +331,15 @@ export default function SettingsPage() {
                 <div className="mt-6">
                   <Card>
                     <CardHeader>
-                      <CardTitle>{isClient ? t('security') : 'Security'}</CardTitle>
+                      <CardTitle>{t('security')}</CardTitle>
                       <CardDescription>
-                        {isClient ? t('update_credentials') : 'Update your email and password.'}
+                        {t('update_credentials')}
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-8">
                       <form onSubmit={handleEmailChange} className="space-y-4">
                         <div className="space-y-2">
-                          <Label htmlFor="newEmail">{isClient ? t('email') : 'Email'}</Label>
+                          <Label htmlFor="newEmail">{t('email')}</Label>
                           <Input
                             id="newEmail"
                             type="email"
@@ -350,7 +350,7 @@ export default function SettingsPage() {
                         </div>
                         <div className="space-y-2">
                           <Label htmlFor="emailPassword">
-                            {isClient ? t('current_password') : 'Current password'}
+                            {t('current_password')}
                           </Label>
                           <Input
                             id="emailPassword"
@@ -362,8 +362,8 @@ export default function SettingsPage() {
                         </div>
                         <Button type="submit" disabled={isUpdatingEmail}>
                           {isUpdatingEmail
-                            ? (isClient ? t('saving') : 'Saving')
-                            : (isClient ? t('update_email') : 'Update Email')}
+                            ? t('saving')
+                            : t('update_email')}
                         </Button>
                       </form>
 
@@ -372,7 +372,7 @@ export default function SettingsPage() {
                       <form onSubmit={handlePasswordChange} className="space-y-4">
                         <div className="space-y-2">
                           <Label htmlFor="currentPassword">
-                            {isClient ? t('current_password') : 'Current password'}
+                            {t('current_password')}
                           </Label>
                           <Input
                             id="currentPassword"
@@ -384,7 +384,7 @@ export default function SettingsPage() {
                         </div>
                         <div className="space-y-2">
                           <Label htmlFor="newPassword">
-                            {isClient ? t('new_password') : 'New password'}
+                            {t('new_password')}
                           </Label>
                           <Input
                             id="newPassword"
@@ -396,7 +396,7 @@ export default function SettingsPage() {
                         </div>
                         <div className="space-y-2">
                           <Label htmlFor="confirmPassword">
-                            {isClient ? t('confirm_password') : 'Confirm password'}
+                            {t('confirm_password')}
                           </Label>
                           <Input
                             id="confirmPassword"
@@ -408,8 +408,8 @@ export default function SettingsPage() {
                         </div>
                         <Button type="submit" disabled={isUpdatingPassword}>
                           {isUpdatingPassword
-                            ? (isClient ? t('saving') : 'Saving')
-                            : (isClient ? t('update_password') : 'Update Password')}
+                            ? t('saving')
+                            : t('update_password')}
                         </Button>
                       </form>
                     </CardContent>

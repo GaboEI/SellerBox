@@ -99,7 +99,7 @@ export function CatalogClient({
     <>
       <div className="flex flex-col gap-4">
         <PageHeader
-          title={isClient ? t('master_catalog') : 'Master Catalog'}
+          title={t('master_catalog')}
           description={
             isClient
               ? t('manage_book_collection')
@@ -109,16 +109,14 @@ export function CatalogClient({
           <Button variant="outline" size="sm" asChild>
             <Link href="/inventory/add">
               <Plus className="mr-2 h-4 w-4" />
-              {isClient ? t('add_book') : 'Add Book'}
+              {t('add_book')}
             </Link>
           </Button>
         </PageHeader>
         <div className="mb-2">
           <Input
             placeholder={
-              isClient
-                ? t('filter_by_name_or_code')
-                : 'Filter by name or code...'
+              t('filter_by_name_or_code')
             }
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
@@ -140,23 +138,21 @@ export function CatalogClient({
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {isClient ? t('are_you_sure') : 'Are you sure?'}
+              {t('are_you_sure')}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {isClient
-                ? t('delete_book_warning')
-                : 'This action cannot be undone. This will permanently delete the book.'}
+              {t('delete_book_warning')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>
-              {isClient ? t('cancel') : 'Cancel'}
+              {t('cancel')}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
               className="bg-destructive hover:bg-destructive/90"
             >
-              {isClient ? t('delete') : 'Delete'}
+              {t('delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

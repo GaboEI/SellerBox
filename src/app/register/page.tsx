@@ -4,9 +4,11 @@ import { useState } from "react";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "react-i18next";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -37,7 +39,7 @@ export default function RegisterPage() {
 
     if (!response.ok) {
       setLoading(false);
-      setError(result.error || "No fue posible crear la cuenta.");
+      setError(t(result.error || "register_error_create"));
       return;
     }
 
@@ -50,7 +52,7 @@ export default function RegisterPage() {
     setLoading(false);
 
     if (signInResult?.error) {
-      setError("Cuenta creada, pero no pudimos iniciar sesión.");
+      setError(t("register_error_signin"));
       return;
     }
 
@@ -62,64 +64,64 @@ export default function RegisterPage() {
       <div className="w-full max-w-md">
         <div className="mb-6 text-center">
           <div className="text-3xl font-semibold tracking-tight">SellerBox</div>
-          <p className="mt-1 text-sm text-muted-foreground">Crea tu cuenta</p>
+          <p className="mt-1 text-sm text-muted-foreground">{t("register_subtitle")}</p>
         </div>
         <div className="rounded-2xl border bg-background/95 p-6 shadow-sm">
           <form onSubmit={onSubmit} className="grid gap-4">
             <label className="grid gap-2 text-sm">
-              <span>Nombre</span>
+              <span>{t("register_name")}</span>
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 type="text"
-                placeholder="Tu nombre"
+                placeholder={t("register_name_placeholder")}
                 className="h-11 rounded-md border border-input bg-background px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring"
               />
             </label>
 
             <label className="grid gap-2 text-sm">
-              <span>Usuario</span>
+              <span>{t("register_username")}</span>
               <input
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 type="text"
-                placeholder="tuusuario"
+                placeholder={t("register_username_placeholder")}
                 className="h-11 rounded-md border border-input bg-background px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring"
               />
             </label>
 
             <label className="grid gap-2 text-sm">
-              <span>Email</span>
+              <span>{t("register_email")}</span>
               <input
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 type="email"
                 required
-                placeholder="correo@ejemplo.com"
+                placeholder={t("register_email_placeholder")}
                 className="h-11 rounded-md border border-input bg-background px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring"
               />
             </label>
 
             <label className="grid gap-2 text-sm">
-              <span>Password</span>
+              <span>{t("register_password")}</span>
               <input
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 type="password"
                 required
-                placeholder="Mínimo 8 caracteres"
+                placeholder={t("register_password_placeholder")}
                 className="h-11 rounded-md border border-input bg-background px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring"
               />
             </label>
 
             <label className="grid gap-2 text-sm">
-              <span>Confirmar password</span>
+              <span>{t("register_confirm_password")}</span>
               <input
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 type="password"
                 required
-                placeholder="Repite tu password"
+                placeholder={t("register_confirm_password_placeholder")}
                 className="h-11 rounded-md border border-input bg-background px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring"
               />
             </label>
@@ -129,7 +131,7 @@ export default function RegisterPage() {
               type="submit"
               className="h-11 rounded-md bg-foreground text-background transition disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {loading ? "Creando..." : "Crear cuenta"}
+              {loading ? t("register_loading") : t("register_submit")}
             </button>
 
             {error && (
@@ -141,7 +143,7 @@ export default function RegisterPage() {
 
           <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
             <span className="h-px flex-1 bg-border" />
-            o
+            {t("login_or")}
             <span className="h-px flex-1 bg-border" />
           </div>
 
@@ -155,7 +157,7 @@ export default function RegisterPage() {
               className="h-11 rounded-md border border-input bg-background text-sm transition hover:bg-accent"
               disabled={providerLoading !== null}
             >
-              {providerLoading === "google" ? "Conectando..." : "Continuar con Google"}
+              {providerLoading === "google" ? t("login_connecting") : t("login_google")}
             </button>
             <button
               type="button"
@@ -166,14 +168,14 @@ export default function RegisterPage() {
               className="h-11 rounded-md border border-input bg-background text-sm transition hover:bg-accent"
               disabled={providerLoading !== null}
             >
-              {providerLoading === "apple" ? "Conectando..." : "Continuar con Apple"}
+              {providerLoading === "apple" ? t("login_connecting") : t("login_apple")}
             </button>
           </div>
 
           <div className="mt-6 text-center text-sm text-muted-foreground">
-            ¿Ya tienes cuenta?{" "}
+            {t("register_have_account")}{" "}
             <Link className="font-medium text-foreground underline-offset-4 hover:underline" href="/login">
-              Iniciar sesión
+              {t("register_sign_in")}
             </Link>
           </div>
         </div>

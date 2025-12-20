@@ -50,14 +50,14 @@ function CellActions({
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
+              <span className="sr-only">{t('open_menu')}</span>
               <Edit className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem asChild>
               <Link href={`/sales/edit/${sale.id}`}>
-                {isClient ? t('edit_sale') : 'Edit Sale'}
+                {t('edit_sale')}
               </Link>
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -82,7 +82,7 @@ export const getColumns = (
   {
     accessorKey: 'coverImageUrl',
     header: () => (
-      <div className="text-center">{isClient ? t('photo') : 'Photo'}</div>
+      <div className="text-center">{t('photo')}</div>
     ),
     cell: ({ row }) => {
       const { bookName, coverImageUrl } = row.original;
@@ -111,7 +111,7 @@ export const getColumns = (
         variant="ghost"
         onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
       >
-        {isClient ? t('book_name') : 'Book Name'}
+        {t('book_name')}
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
@@ -127,7 +127,7 @@ export const getColumns = (
         onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
         className="w-full justify-center"
       >
-        {isClient ? t('date') : 'Date'}
+        {t('date')}
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
@@ -143,7 +143,7 @@ export const getColumns = (
   {
     accessorKey: 'status',
     header: () => (
-      <div className="text-center">{isClient ? t('status') : 'Status'}</div>
+      <div className="text-center">{t('status')}</div>
     ),
     cell: ({ row }) => {
         const sale = row.original;
@@ -161,7 +161,7 @@ export const getColumns = (
   {
     accessorKey: 'platform',
     header: () => (
-      <div className="text-center">{isClient ? t('platform') : 'Platform'}</div>
+      <div className="text-center">{t('platform')}</div>
     ),
     cell: ({ row }) => (
       <div className="text-center">{row.getValue('platform') as string}</div>
@@ -171,7 +171,7 @@ export const getColumns = (
     accessorKey: 'saleAmount',
     header: () => (
       <div className="w-full text-right">
-        {isClient ? t('sale_amount_header') : '₽'}
+        {t('sale_amount_header')}
       </div>
     ),
     cell: ({ row }) => {
@@ -188,7 +188,7 @@ export const getColumns = (
   {
     id: 'actions',
     header: () => (
-      <div className="text-right">{isClient ? t('actions') : 'Actions'}</div>
+      <div className="text-right">{t('actions')}</div>
     ),
     cell: ({ row }) => (
       <CellActions

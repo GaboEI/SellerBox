@@ -84,7 +84,7 @@ const BookCard: React.FC<{
           >
             <Edit className="h-4 w-4" />
             <span className="sr-only">
-              {isClient ? t('edit_book') : 'Edit'}
+              {t('edit_book')}
             </span>
           </Button>
 
@@ -96,7 +96,7 @@ const BookCard: React.FC<{
           >
             <Trash2 className="h-4 w-4" />
             <span className="sr-only">
-              {isClient ? t('delete_book') : 'Delete'}
+              {t('delete_book')}
             </span>
           </Button>
         </div>
@@ -117,7 +117,7 @@ export const CatalogGrid: React.FC<CatalogGridProps> = ({
   if (books.length === 0) {
     return (
       <div className="text-center text-muted-foreground py-12">
-        <p>{isClient ? t('no_results') : 'No books found.'}</p>
+        <p>{t('no_results')}</p>
       </div>
     );
   }

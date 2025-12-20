@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 
 export default function ForgotPasswordPage() {
+  const { t, i18n } = useTranslation();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -18,18 +20,18 @@ export default function ForgotPasswordPage() {
     const response = await fetch("/api/auth/forgot-password", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email }),
+      body: JSON.stringify({ email, lang: i18n.language }),
     });
 
     const result = await response.json();
     setLoading(false);
 
     if (!response.ok) {
-      setError(result.error || "No fue posible enviar el email.");
+      setError(t(result.error || "forgot_password_error"));
       return;
     }
 
-    setMessage(result.message || "Revisa tu correo.");
+    setMessage(t(result.message || "forgot_password_success"));
   }
 
   return (
@@ -38,19 +40,19 @@ export default function ForgotPasswordPage() {
         <div className="mb-6 text-center">
           <div className="text-3xl font-semibold tracking-tight">SellerBox</div>
           <p className="mt-1 text-sm text-muted-foreground">
-            Recuperar contraseña
+            {t("forgot_password_title")}
           </p>
         </div>
         <div className="rounded-2xl border bg-background/95 p-6 shadow-sm">
           <form onSubmit={onSubmit} className="grid gap-4">
             <label className="grid gap-2 text-sm">
-              <span>Email</span>
+              <span>{t("forgot_password_email")}</span>
               <input
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 type="email"
                 required
-                placeholder="correo@ejemplo.com"
+                placeholder={t("forgot_password_email_placeholder")}
                 className="h-11 rounded-md border border-input bg-background px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring"
               />
             </label>
@@ -60,7 +62,7 @@ export default function ForgotPasswordPage() {
               type="submit"
               className="h-11 rounded-md bg-foreground text-background transition disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {loading ? "Enviando..." : "Enviar enlace"}
+              {loading ? t("forgot_password_loading") : t("forgot_password_submit")}
             </button>
 
             {error && (
@@ -78,7 +80,7 @@ export default function ForgotPasswordPage() {
 
           <div className="mt-6 text-center text-sm text-muted-foreground">
             <Link className="font-medium text-foreground underline-offset-4 hover:underline" href="/login">
-              Volver a iniciar sesión
+              {t("forgot_password_back")}
             </Link>
           </div>
         </div>

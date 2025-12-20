@@ -3,8 +3,10 @@
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 
 export default function ResetPasswordPage() {
+  const { t } = useTranslation();
   const searchParams = useSearchParams();
   const token = searchParams.get("token") || "";
   const email = searchParams.get("email") || "";
@@ -36,11 +38,11 @@ export default function ResetPasswordPage() {
     setLoading(false);
 
     if (!response.ok) {
-      setError(result.error || "No fue posible restablecer la contraseña.");
+      setError(t(result.error || "reset_password_error"));
       return;
     }
 
-    setMessage("Contraseña actualizada. Ya puedes iniciar sesión.");
+    setMessage(t(result.message || "reset_password_success"));
   }
 
   const invalidLink = !token || !email;
@@ -51,36 +53,36 @@ export default function ResetPasswordPage() {
         <div className="mb-6 text-center">
           <div className="text-3xl font-semibold tracking-tight">SellerBox</div>
           <p className="mt-1 text-sm text-muted-foreground">
-            Restablecer contraseña
+            {t("reset_password_title")}
           </p>
         </div>
         <div className="rounded-2xl border bg-background/95 p-6 shadow-sm">
           {invalidLink ? (
             <div className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
-              Enlace inválido. Solicita un nuevo reset.
+              {t("reset_password_invalid_link")}
             </div>
           ) : (
             <form onSubmit={onSubmit} className="grid gap-4">
               <label className="grid gap-2 text-sm">
-                <span>Nueva contraseña</span>
+                <span>{t("reset_password_new")}</span>
                 <input
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   type="password"
                   required
-                  placeholder="Mínimo 8 caracteres"
+                  placeholder={t("reset_password_new_placeholder")}
                   className="h-11 rounded-md border border-input bg-background px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring"
                 />
               </label>
 
               <label className="grid gap-2 text-sm">
-                <span>Confirmar contraseña</span>
+                <span>{t("reset_password_confirm")}</span>
                 <input
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   type="password"
                   required
-                  placeholder="Repite tu contraseña"
+                  placeholder={t("reset_password_confirm_placeholder")}
                   className="h-11 rounded-md border border-input bg-background px-3 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring"
                 />
               </label>
@@ -90,7 +92,7 @@ export default function ResetPasswordPage() {
                 type="submit"
                 className="h-11 rounded-md bg-foreground text-background transition disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {loading ? "Actualizando..." : "Actualizar contraseña"}
+                {loading ? t("reset_password_loading") : t("reset_password_submit")}
               </button>
 
               {error && (
@@ -109,7 +111,7 @@ export default function ResetPasswordPage() {
 
           <div className="mt-6 text-center text-sm text-muted-foreground">
             <Link className="font-medium text-foreground underline-offset-4 hover:underline" href="/login">
-              Volver a iniciar sesión
+              {t("reset_password_back")}
             </Link>
           </div>
         </div>

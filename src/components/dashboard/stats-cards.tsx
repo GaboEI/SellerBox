@@ -9,7 +9,7 @@ import {
 import { Book, Package, ShoppingBag } from 'lucide-react';
 import type { Book as BookType, Sale } from '@/lib/types';
 import { useTranslation } from 'react-i18next';
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 
 
 interface StatsCardsProps {
@@ -19,11 +19,6 @@ interface StatsCardsProps {
 
 export function StatsCards({ sales, books }: StatsCardsProps) {
   const { t } = useTranslation();
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
 
   const soldSales = sales.filter((s) => s.status === 'completed' || s.status === 'sold_in_person');
   const totalSales = soldSales.length;
@@ -76,13 +71,13 @@ export function StatsCards({ sales, books }: StatsCardsProps) {
       {stats.map((stat) => (
         <Card key={stat.title}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{isClient ? t(stat.title): stat.title.replace(/_/g, ' ')}</CardTitle>
+            <CardTitle className="text-sm font-medium">{t(stat.title)}</CardTitle>
             {stat.icon}
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stat.value}</div>
             <p className="text-xs text-muted-foreground">
-              {isClient ? t(stat.description) : stat.description.replace(/_/g, ' ')}
+              {t(stat.description)}
             </p>
           </CardContent>
         </Card>

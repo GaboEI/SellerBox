@@ -51,7 +51,7 @@ function SubmitButton({ isClient, t }: { isClient: boolean; t: any }) {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" disabled={pending}>
-      {isClient ? (pending ? t('saving') : t('save_changes')) : 'Save Changes'}
+      {pending ? t('saving') : t('save_changes')}
     </Button>
   );
 }
@@ -100,7 +100,7 @@ export default function EditBookPage() {
       if (Object.keys(state.errors).length > 0) {
         toast({
           title: t('error'),
-          description: state.message,
+          description: t(state.message),
           variant: 'destructive',
         });
       } else {
@@ -118,7 +118,7 @@ export default function EditBookPage() {
     if (result && result.message) {
       toast({
         title: t('error'),
-        description: result.message,
+        description: t(result.message),
         variant: 'destructive',
       });
     } else {
@@ -169,17 +169,13 @@ export default function EditBookPage() {
         <AppHeader />
         <main className="p-4 lg:p-6">
           <PageHeader
-            title={isClient ? t('edit_book') : 'Edit Book'}
-            description={
-              isClient
-                ? t('edit_book_desc')
-                : 'Make changes to the book details. The code must remain unique.'
-            }
+            title={t('edit_book')}
+            description={t('edit_book_desc')}
           >
             <Button variant="outline" size="sm" asChild>
               <Link href="/inventory">
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                {isClient ? t('cancel') : 'Cancel'}
+                {t('cancel')}
               </Link>
             </Button>
           </PageHeader>
@@ -201,7 +197,7 @@ export default function EditBookPage() {
                   <CardContent className="p-6 space-y-6">
                     <div className="space-y-2">
                       <Label htmlFor="code">
-                        {isClient ? t('code_unique') : 'Code (Unique)'}
+                        {t('code_unique')}
                       </Label>
                       <Input
                         id="code"
@@ -211,13 +207,13 @@ export default function EditBookPage() {
                       />
                       {state.errors?.code && (
                         <p className="text-sm text-destructive">
-                          {state.errors.code[0]}
+                          {t(state.errors.code[0])}
                         </p>
                       )}
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="name">
-                        {isClient ? t('name') : 'Name'}
+                        {t('name')}
                       </Label>
                       <Input
                         id="name"
@@ -227,18 +223,18 @@ export default function EditBookPage() {
                       />
                       {state.errors?.name && (
                         <p className="text-sm text-destructive">
-                          {state.errors.name[0]}
+                          {t(state.errors.name[0])}
                         </p>
                       )}
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="image-upload">{isClient ? t('cover_photo') : 'Cover Photo'}</Label>
+                        <Label htmlFor="image-upload">{t('cover_photo')}</Label>
                         <div className="flex items-center gap-4">
                             <div className="flex h-24 w-24 items-center justify-center rounded-lg border bg-muted text-muted-foreground">
                                 {imagePreview ? (
                                     <Image
                                         src={imagePreview}
-                                        alt="Cover preview"
+                                        alt={t('cover_preview')}
                                         width={96}
                                         height={96}
                                         className="h-full w-full rounded-lg object-cover"
@@ -253,7 +249,7 @@ export default function EditBookPage() {
                                 variant="outline"
                                 className="relative bg-accent text-accent-foreground hover:bg-accent/90"
                               >
-                                {isClient ? t('select_photo') : 'Select photo'}
+                                {t('select_photo')}
                                 <Input
                                   id="image-upload"
                                   name="image-upload"
@@ -264,7 +260,7 @@ export default function EditBookPage() {
                                 />
                               </Button>
                               <p className="text-xs text-muted-foreground">
-                                {isClient ? t('image_specs') : 'JPG, PNG, WEBP. Max 2MB.'}
+                                {t('image_specs')}
                               </p>
                             </div>
                         </div>
@@ -277,29 +273,27 @@ export default function EditBookPage() {
                       <AlertDialogTrigger asChild>
                         <Button variant="destructive" type="button">
                           <Trash2 className="mr-2 h-4 w-4" />
-                          {isClient ? t('delete_book') : 'Delete Book'}
+                          {t('delete_book')}
                         </Button>
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>
                           <AlertDialogTitle>
-                            {isClient ? t('are_you_sure') : 'Are you sure?'}
+                            {t('are_you_sure')}
                           </AlertDialogTitle>
                           <AlertDialogDescription>
-                            {isClient
-                              ? t('delete_book_warning')
-                              : 'This action cannot be undone. This will permanently delete the book.'}
+                            {t('delete_book_warning')}
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel>
-                            {isClient ? t('cancel') : 'Cancel'}
+                            {t('cancel')}
                           </AlertDialogCancel>
                           <AlertDialogAction
                             onClick={handleDeleteConfirm}
                             className="bg-destructive hover:bg-destructive/90"
                           >
-                            {isClient ? t('delete') : 'Delete'}
+                            {t('delete')}
                           </AlertDialogAction>
                         </AlertDialogFooter>
                       </AlertDialogContent>
@@ -308,7 +302,7 @@ export default function EditBookPage() {
                 </Card>
               </form>
             ) : (
-              <p>Book not found.</p>
+              <p>{t('book_not_found')}</p>
             )}
           </div>
         </main>

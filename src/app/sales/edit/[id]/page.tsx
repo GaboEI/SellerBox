@@ -54,7 +54,7 @@ function SubmitButton({ isClient, t }: { isClient: boolean; t: any }) {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" disabled={pending}>
-      {isClient ? (pending ? t('saving') : t('save_changes')) : 'Save Changes'}
+      {pending ? t('saving') : t('save_changes')}
     </Button>
   );
 }
@@ -100,7 +100,7 @@ export default function EditSalePage() {
       if (Object.keys(state.errors).length > 0) {
         toast({
           title: t('error'),
-          description: state.message,
+          description: t(state.message),
           variant: 'destructive',
         });
       } else {
@@ -116,7 +116,7 @@ export default function EditSalePage() {
   const handleDeleteConfirm = async () => {
     const result = await deleteSale(id);
     if (result && result.message) {
-        toast({ title: t('error'), description: result.message, variant: 'destructive'});
+        toast({ title: t('error'), description: t(result.message), variant: 'destructive'});
     } else {
         toast({ title: t('success'), description: t('delete_sale_success')});
         router.push('/sales');
@@ -138,21 +138,15 @@ export default function EditSalePage() {
         <AppHeader />
         <main className="p-4 lg:p-6">
           <PageHeader
-            title={isClient ? t('edit_sale') : 'Edit Sale'}
+            title={t('edit_sale')}
             description={
-              isFinalState
-                ? isClient
-                  ? t('update_sale_final_desc')
-                  : 'This sale is in a final state and cannot be modified.'
-                : isClient
-                ? t('update_sale_desc')
-                : 'Change the status of the sale.'
+              isFinalState ? t('update_sale_final_desc') : t('update_sale_desc')
             }
           >
             <Button variant="outline" size="sm" asChild>
               <Link href="/sales">
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                {isClient ? t('cancel') : 'Cancel'}
+                {t('cancel')}
               </Link>
             </Button>
           </PageHeader>
@@ -165,7 +159,7 @@ export default function EditSalePage() {
                   <CardContent className="p-6 space-y-6">
                     <div className="space-y-2">
                       <Label htmlFor="status">
-                        {isClient ? t('status') : 'Status'}
+                        {t('status')}
                       </Label>
                       <Select
                         name="status"
@@ -177,11 +171,7 @@ export default function EditSalePage() {
                       >
                         <SelectTrigger>
                           <SelectValue
-                            placeholder={
-                              isClient
-                                ? t('select_status')
-                                : 'Select a status'
-                            }
+                            placeholder={t('select_status')}
                           />
                         </SelectTrigger>
                         <SelectContent>
@@ -200,7 +190,7 @@ export default function EditSalePage() {
                               value={status}
                               className="capitalize"
                             >
-                              {isClient ? t(status) : status}
+                              {t(status)}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -210,9 +200,7 @@ export default function EditSalePage() {
                     {showSaleAmount && (
                       <div className="space-y-2">
                         <Label htmlFor="saleAmount">
-                          {isClient
-                            ? t('sale_amount_header')
-                            : 'Sale Amount'}
+                          {t('sale_amount_header')}
                         </Label>
                         <div className="relative">
                           <Input
@@ -239,19 +227,19 @@ export default function EditSalePage() {
                           <AlertDialogTrigger asChild>
                             <Button variant="destructive" type="button">
                               <Trash2 className="mr-2 h-4 w-4" />
-                              {isClient ? t('delete_sale') : 'Delete Sale'}
+                              {t('delete_sale')}
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent>
                             <AlertDialogHeader>
-                              <AlertDialogTitle>{isClient ? t('are_you_sure_delete') : 'Are you absolutely sure?'}</AlertDialogTitle>
+                              <AlertDialogTitle>{t('are_you_sure_delete')}</AlertDialogTitle>
                               <AlertDialogDescription>
-                                {isClient ? t('delete_sale_warning_simple') : 'This will permanently delete the sale record.'}
+                                {t('delete_sale_warning_simple')}
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                              <AlertDialogCancel>{isClient ? t('cancel') : 'Cancel'}</AlertDialogCancel>
-                              <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive hover:bg-destructive/90">{isClient ? t('delete') : 'Delete'}</AlertDialogAction>
+                              <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+                              <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive hover:bg-destructive/90">{t('delete')}</AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
                         </AlertDialog>
@@ -260,7 +248,7 @@ export default function EditSalePage() {
                 </Card>
               </form>
             ) : (
-              <p>Sale not found.</p>
+              <p>{t('sale_not_found')}</p>
             )}
           </div>
         </main>

@@ -51,8 +51,8 @@ export async function getSales() {
 
 
 const bookSchema = z.object({
-  code: z.string().min(1, 'Code is required.'),
-  name: z.string().min(1, 'Name is required.'),
+  code: z.string().min(1, 'code_required'),
+  name: z.string().min(1, 'name_required'),
   coverImageUrl: z.string().optional(),
 });
 
@@ -66,7 +66,7 @@ export async function addBook(prevState: any, formData: FormData) {
   if (!validatedFields.success) {
     return {
       errors: validatedFields.error.flatten().fieldErrors,
-      message: 'Error: Please check the fields.',
+      message: 'check_fields_error',
     };
   }
 
@@ -74,8 +74,8 @@ export async function addBook(prevState: any, formData: FormData) {
   const existingBook = await getBookByCode(userId, validatedFields.data.code);
   if (existingBook) {
     return {
-      errors: { code: ['This code is already in use.'] },
-      message: 'Error: Please use a unique code.',
+      errors: { code: ['code_in_use_error'] },
+      message: 'code_in_use_error',
     };
   }
 
@@ -86,7 +86,7 @@ export async function addBook(prevState: any, formData: FormData) {
     });
   } catch (e) {
     console.error(e);
-    return { message: 'Failed to add book.', errors: {} };
+    return { message: 'failed_to_add_book', errors: {} };
   }
 
   revalidatePath('/inventory');
@@ -103,7 +103,7 @@ export async function updateBook(id: string, prevState: any, formData: FormData)
   if (!validatedFields.success) {
     return {
       errors: validatedFields.error.flatten().fieldErrors,
-      message: 'Error: Please check the fields.',
+      message: 'check_fields_error',
     };
   }
 
@@ -111,8 +111,8 @@ export async function updateBook(id: string, prevState: any, formData: FormData)
   const existingBook = await getBookByCode(userId, validatedFields.data.code);
   if (existingBook && existingBook.id !== id) {
     return {
-      errors: { code: ['This code is already in use.'] },
-      message: 'Error: Please use a unique code.',
+      errors: { code: ['code_in_use_error'] },
+      message: 'code_in_use_error',
     };
   }
 
@@ -121,7 +121,7 @@ export async function updateBook(id: string, prevState: any, formData: FormData)
       ...validatedFields.data,
     });
   } catch (e) {
-    return { message: 'Failed to update book.', errors: {} };
+    return { message: 'failed_to_update_book', errors: {} };
   }
 
   revalidatePath('/inventory');
@@ -135,15 +135,17 @@ export async function deleteBook(id: string) {
     await dbDeleteBook(userId, id);
   } catch (e) {
     console.error('Failed to delete book', e);
-    return { message: 'Failed to delete book' };
+    return { message: 'failed_to_delete_book' };
   }
   revalidatePath('/inventory');
 }
 
 const saleSchema = z.object({
-  bookId: z.string().min(1, 'Please select a book.'),
-  date: z.string().min(1, 'Please select a date.'),
-  platform: z.enum(['Avito', 'Ozon']),
+  bookId: z.string().min(1, 'please_select_a_book'),
+  date: z.string().min(1, 'please_select_date'),
+  platform: z.enum(['Avito', 'Ozon'], {
+    errorMap: () => ({ message: 'please_select_platform' }),
+  }),
 });
 
 export async function addSale(prevState: any, formData: FormData) {
@@ -156,7 +158,7 @@ export async function addSale(prevState: any, formData: FormData) {
   if (!validatedFields.success) {
     return {
       errors: validatedFields.error.flatten().fieldErrors,
-      message: 'Error: Please check the fields.',
+      message: 'check_fields_error',
     };
   }
 
@@ -165,15 +167,15 @@ export async function addSale(prevState: any, formData: FormData) {
     dateObj = parse(validatedFields.data.date, 'dd.MM.yy', new Date());
   } catch (error) {
     return {
-      errors: { date: ['The date is invalid. Please use dd.mm.yy format.'] },
-      message: 'Error: Please check the fields.',
+      errors: { date: ['date_format_error'] },
+      message: 'check_fields_error',
     };
   }
   
   if (isNaN(dateObj.getTime())) {
     return {
-      errors: { date: ['The date is invalid. Please use dd.mm.yy format.'] },
-      message: 'Error: Please check the fields.',
+      errors: { date: ['invalid_date_error'] },
+      message: 'check_fields_error',
     };
   }
 
@@ -182,8 +184,8 @@ export async function addSale(prevState: any, formData: FormData) {
   
   if (dateObj > today) {
     return {
-      errors: { date: ['Date cannot be in the future.'] },
-      message: 'Error: Please check the fields.',
+      errors: { date: ['date_range_error'] },
+      message: 'check_fields_error',
     };
   }
 
@@ -196,7 +198,7 @@ export async function addSale(prevState: any, formData: FormData) {
     });
   } catch (e) {
     console.error(e);
-    return { message: 'Failed to record sale.', errors: {} };
+    return { message: 'failed_to_record_sale', errors: {} };
   }
 
   revalidatePath('/dashboard');
@@ -218,7 +220,7 @@ export async function updateSale(id: string, prevState: any, formData: FormData)
   if (!validatedFields.success) {
     return {
       errors: validatedFields.error.flatten().fieldErrors,
-      message: 'Error: Please check the fields.',
+      message: 'check_fields_error',
     };
   }
 
@@ -229,7 +231,7 @@ export async function updateSale(id: string, prevState: any, formData: FormData)
       status: validatedFields.data.status as SaleStatus,
     });
   } catch (e) {
-    return { message: 'Failed to update sale.', errors: {} };
+    return { message: 'failed_to_update_sale', errors: {} };
   }
   
   revalidatePath('/dashboard');
@@ -258,18 +260,18 @@ export async function updateSaleStatus(id: string, newStatus: SaleStatus) {
     const validatedFields = updateSaleStatusSchema.safeParse({ status: newStatus });
     
     if (!validatedFields.success) {
-        return { error: 'Invalid status value.' };
+        return { error: 'invalid_status_value' };
     }
 
     try {
         const userId = await requireUserId();
         const result = await dbUpdateSale(userId, id, { status: newStatus });
         if (!result) {
-            return { error: 'Sale not found or update failed.' };
+            return { error: 'sale_not_found' };
         }
     } catch (e: any) {
         console.error('Failed to update sale status', e);
-        return { error: e.message || 'Failed to update sale status.' };
+        return { error: 'failed_to_update_sale_status' };
     }
 
     revalidatePath('/sales');

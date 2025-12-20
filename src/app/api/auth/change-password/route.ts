@@ -7,7 +7,7 @@ import { prisma } from "@/lib/prisma";
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    return NextResponse.json({ error: "settings_error_not_authenticated" }, { status: 401 });
   }
 
   try {
@@ -18,19 +18,19 @@ export async function POST(req: Request) {
 
     if (!rawCurrent) {
       return NextResponse.json(
-        { error: "Password actual requerido." },
+        { error: "settings_error_current_password_required" },
         { status: 400 }
       );
     }
     if (rawNew.length < 8) {
       return NextResponse.json(
-        { error: "Password mínimo 8 caracteres." },
+        { error: "settings_error_password_min" },
         { status: 400 }
       );
     }
     if (rawNew !== rawConfirm) {
       return NextResponse.json(
-        { error: "Las contraseñas no coinciden." },
+        { error: "settings_error_password_match" },
         { status: 400 }
       );
     }
@@ -40,7 +40,7 @@ export async function POST(req: Request) {
     });
     if (!user || !user.password) {
       return NextResponse.json(
-        { error: "No se pudo validar el usuario." },
+        { error: "settings_error_user_invalid" },
         { status: 400 }
       );
     }
@@ -48,7 +48,7 @@ export async function POST(req: Request) {
     const passwordValid = await bcrypt.compare(rawCurrent, user.password);
     if (!passwordValid) {
       return NextResponse.json(
-        { error: "Password actual incorrecto." },
+        { error: "settings_error_password_incorrect" },
         { status: 400 }
       );
     }
@@ -59,11 +59,11 @@ export async function POST(req: Request) {
       data: { password: hashedPassword },
     });
 
-    return NextResponse.json({ message: "Password actualizado." });
+    return NextResponse.json({ message: "settings_password_updated" });
   } catch (error) {
     console.error("CHANGE_PASSWORD_ERROR:", error);
     return NextResponse.json(
-      { error: "No fue posible actualizar la contraseña." },
+      { error: "settings_error_update_password" },
       { status: 500 }
     );
   }

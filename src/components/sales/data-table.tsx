@@ -78,7 +78,7 @@ export function DataTable<TData, TValue>({
             ) : (
                 <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                    {isClient ? t('no_results') : 'No results.'}
+                    {t('no_results')}
                 </TableCell>
                 </TableRow>
             )}
@@ -91,7 +91,7 @@ export function DataTable<TData, TValue>({
             </div>
             <div className="flex items-center space-x-6 lg:space-x-8">
                 <div className="flex items-center space-x-2">
-                    <p className="text-sm font-medium">{isClient ? t('rows_per_page') : ''}</p>
+                    <p className="text-sm font-medium">{t('rows_per_page')}</p>
                     <Select
                         value={`${table.getState().pagination.pageSize}`}
                         onValueChange={(value) => {
@@ -117,7 +117,7 @@ export function DataTable<TData, TValue>({
                         onClick={() => table.previousPage()}
                         disabled={!table.getCanPreviousPage()}
                     >
-                        {isClient ? t('previous') : 'Previous'}
+                        {t('previous')}
                     </Button>
                     <Button
                         variant="outline"
@@ -125,7 +125,7 @@ export function DataTable<TData, TValue>({
                         onClick={() => table.nextPage()}
                         disabled={!table.getCanNextPage()}
                     >
-                        {isClient ? t('next') : 'Next'}
+                        {t('next')}
                     </Button>
                 </div>
             </div>

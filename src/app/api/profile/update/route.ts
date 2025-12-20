@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
 
   if (!session || !session.user?.email) {
-    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    return NextResponse.json({ error: "settings_error_not_authenticated" }, { status: 401 });
   }
 
   try {
@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
     const { username, photoUrl } = body;
 
     if (!username) {
-      return NextResponse.json({ error: "Username is required" }, { status: 400 });
+      return NextResponse.json({ error: "settings_error_username_required" }, { status: 400 });
     }
 
     const userEmail = session.user.email;
@@ -55,9 +55,9 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return NextResponse.json({ message: "Profile updated successfully" });
+    return NextResponse.json({ message: "profile_updated" });
   } catch (error: any) {
     console.error("API_PROFILE_UPDATE_ERROR:", error);
-    return NextResponse.json({ error: "Failed to update profile", details: error.message }, { status: 500 });
+    return NextResponse.json({ error: "settings_error_update_profile", details: error.message }, { status: 500 });
   }
 }

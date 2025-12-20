@@ -116,7 +116,7 @@ export function SalesClient({
   return (
     <div className="flex flex-col gap-4">
       <PageHeader
-        title={isClient ? t('sales_records') : 'Sales Records'}
+        title={t('sales_records')}
         description={
           isClient
             ? t('view_manage_sales')
@@ -127,7 +127,7 @@ export function SalesClient({
           <Link href="/sales/add">
             <Plus className="h-4 w-4" />
             <span className="sr-only">
-              {isClient ? t('record_sale') : 'Record Sale'}
+              {t('record_sale')}
             </span>
           </Link>
         </Button>

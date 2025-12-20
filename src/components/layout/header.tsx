@@ -29,8 +29,8 @@ export function AppHeader() {
 
   const isUserLoading = status === 'loading';
 
-  const username = session?.user?.name || "Seller";
-  const userEmail = session?.user?.email || "seller@example.com";
+  const username = session?.user?.name || t("user_fallback_name");
+  const userEmail = session?.user?.email || t("user_fallback_email");
   const usernameInitial = username?.[0]?.toUpperCase() || 'S';
 
   // Cache-busting for the profile picture.
@@ -80,17 +80,17 @@ export function AppHeader() {
               <DropdownMenuItem asChild>
                   <Link href="/settings">
                     <Settings className="mr-2 h-4 w-4" />
-                    <span>{isClient ? t('settings') : 'Settings'}</span>
+                    <span>{t('settings')}</span>
                   </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => signOut({ callbackUrl: "/login" })}>
-                 <span>Sign Out</span>
+                 <span>{t("sign_out")}</span>
               </DropdownMenuItem>
             </>
           ) : (
             <DropdownMenuItem onClick={() => signIn()}>
-               <span>Log In</span>
+               <span>{t("log_in")}</span>
             </DropdownMenuItem>
           )}
         </DropdownMenuContent>

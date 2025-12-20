@@ -44,7 +44,7 @@ export function RecentSales({ sales, books }: RecentSalesProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{isClient ? t('recent_sales') : 'Recent Sales'}</CardTitle>
+        <CardTitle>{t('recent_sales')}</CardTitle>
       </CardHeader>
       <CardContent className="grid gap-8">
         {recentSales.map((sale) => {
@@ -66,7 +66,13 @@ export function RecentSales({ sales, books }: RecentSalesProps) {
             <div className="flex items-center gap-4" key={sale.id}>
               <Avatar className="hidden h-9 w-9 sm:flex">
                 {book.coverImageUrl ? (
-                  <Image src={book.coverImageUrl} alt="Book cover" className="aspect-square h-full w-full" width={36} height={36} />
+                  <Image
+                    src={book.coverImageUrl}
+                    alt={t('book_cover')}
+                    className="aspect-square h-full w-full"
+                    width={36}
+                    height={36}
+                  />
                 ) : (
                   <AvatarFallback>?</AvatarFallback>
                 )}

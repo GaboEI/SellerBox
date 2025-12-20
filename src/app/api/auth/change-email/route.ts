@@ -9,7 +9,7 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
-    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    return NextResponse.json({ error: "settings_error_not_authenticated" }, { status: 401 });
   }
 
   try {
@@ -18,11 +18,11 @@ export async function POST(req: Request) {
     const rawPassword = String(currentPassword || "");
 
     if (!emailRegex.test(normalizedEmail)) {
-      return NextResponse.json({ error: "Email inválido." }, { status: 400 });
+      return NextResponse.json({ error: "settings_error_invalid_email" }, { status: 400 });
     }
     if (!rawPassword) {
       return NextResponse.json(
-        { error: "Password requerido." },
+        { error: "settings_error_password_required" },
         { status: 400 }
       );
     }
@@ -33,7 +33,7 @@ export async function POST(req: Request) {
 
     if (!user || !user.password) {
       return NextResponse.json(
-        { error: "No se pudo validar el usuario." },
+        { error: "settings_error_user_invalid" },
         { status: 400 }
       );
     }
@@ -41,7 +41,7 @@ export async function POST(req: Request) {
     const passwordValid = await bcrypt.compare(rawPassword, user.password);
     if (!passwordValid) {
       return NextResponse.json(
-        { error: "Password incorrecto." },
+        { error: "settings_error_password_incorrect" },
         { status: 400 }
       );
     }
@@ -51,7 +51,7 @@ export async function POST(req: Request) {
     });
     if (emailInUse) {
       return NextResponse.json(
-        { error: "El email ya está en uso." },
+        { error: "settings_error_email_in_use" },
         { status: 409 }
       );
     }
@@ -62,13 +62,13 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({
-      message: "Email actualizado. Debes iniciar sesión nuevamente.",
+      message: "settings_email_updated",
       logout: true,
     });
   } catch (error) {
     console.error("CHANGE_EMAIL_ERROR:", error);
     return NextResponse.json(
-      { error: "No fue posible actualizar el email." },
+      { error: "settings_error_update_email" },
       { status: 500 }
     );
   }

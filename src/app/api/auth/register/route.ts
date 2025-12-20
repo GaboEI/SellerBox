@@ -14,20 +14,20 @@ export async function POST(req: Request) {
 
     const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail);
     if (!emailValid) {
-      return NextResponse.json({ error: "Email inválido" }, { status: 400 });
+      return NextResponse.json({ error: "register_error_invalid_email" }, { status: 400 });
     }
     if (rawPassword.length < 8) {
-      return NextResponse.json({ error: "Password mínimo 8 caracteres" }, { status: 400 });
+      return NextResponse.json({ error: "register_error_password_min" }, { status: 400 });
     }
     if (rawPassword !== rawConfirm) {
-      return NextResponse.json({ error: "Las contraseñas no coinciden" }, { status: 400 });
+      return NextResponse.json({ error: "register_error_password_match" }, { status: 400 });
     }
 
     const existingUser = await prisma.user.findUnique({
       where: { email: normalizedEmail },
     });
     if (existingUser) {
-      return NextResponse.json({ error: "User already exists" }, { status: 409 });
+      return NextResponse.json({ error: "register_error_email_exists" }, { status: 409 });
     }
 
     if (normalizedUsername) {
@@ -35,7 +35,7 @@ export async function POST(req: Request) {
         where: { username: normalizedUsername },
       });
       if (existingUsername) {
-        return NextResponse.json({ error: "Username already exists" }, { status: 409 });
+        return NextResponse.json({ error: "register_error_username_exists" }, { status: 409 });
       }
     }
 
@@ -61,6 +61,6 @@ export async function POST(req: Request) {
     return NextResponse.json(user, { status: 201 });
   } catch (err) {
     console.error("Registration error:", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json({ error: "register_error_create" }, { status: 500 });
   }
 }

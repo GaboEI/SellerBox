@@ -40,7 +40,7 @@ function SubmitButton({ isClient, t }: { isClient: boolean; t: any }) {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" disabled={pending}>
-      {isClient ? (pending ? t('recording') : t('record_sale')) : 'Record Sale'}
+      {pending ? t('recording') : t('record_sale')}
     </Button>
   );
 }
@@ -68,7 +68,7 @@ export default function AddSalePage() {
       if (Object.keys(state.errors).length > 0) {
         toast({
           title: t('error'),
-          description: state.message,
+          description: t(state.message),
           variant: 'destructive',
         });
       } else {
@@ -88,17 +88,13 @@ export default function AddSalePage() {
         <AppHeader />
         <main className="p-4 lg:p-6">
           <PageHeader
-            title={isClient ? t('record_new_sale') : 'Record a New Sale'}
-            description={
-              isClient
-                ? t('record_sale_desc')
-                : 'Fill in the details to log a new sale.'
-            }
+            title={t('record_new_sale')}
+            description={t('record_sale_desc')}
           >
             <Button variant="outline" size="sm" asChild>
               <Link href="/sales">
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                {isClient ? t('cancel') : 'Cancel'}
+                {t('cancel')}
               </Link>
             </Button>
           </PageHeader>
@@ -107,10 +103,10 @@ export default function AddSalePage() {
               <Card>
                 <CardContent className="p-6 space-y-6">
                   <div className="space-y-2">
-                    <Label htmlFor="bookId">{isClient ? t('book') : 'Book'}</Label>
+                    <Label htmlFor="bookId">{t('book')}</Label>
                     <Select name="bookId">
                       <SelectTrigger>
-                        <SelectValue placeholder={isClient ? t('please_select_a_book') : 'Please select a book.'} />
+                        <SelectValue placeholder={t('please_select_a_book')} />
                       </SelectTrigger>
                       <SelectContent>
                         {books.map(book => (
@@ -135,25 +131,33 @@ export default function AddSalePage() {
                         ))}
                       </SelectContent>
                     </Select>
-                    {state.errors?.bookId && <p className="text-sm text-destructive">{state.errors.bookId[0]}</p>}
+                    {state.errors?.bookId && (
+                      <p className="text-sm text-destructive">
+                        {t(state.errors.bookId[0])}
+                      </p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="date">{isClient ? t('date') : 'Date'}</Label>
+                    <Label htmlFor="date">{t('date')}</Label>
                     <Input
                       id="date"
                       name="date"
                       placeholder="dd.MM.yy"
                       defaultValue={defaultDate}
                     />
-                    {state.errors?.date && <p className="text-sm text-destructive">{state.errors.date[0]}</p>}
+                    {state.errors?.date && (
+                      <p className="text-sm text-destructive">
+                        {t(state.errors.date[0])}
+                      </p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="platform">{isClient ? t('platform') : 'Platform'}</Label>
+                    <Label htmlFor="platform">{t('platform')}</Label>
                     <Select name="platform" defaultValue='Avito'>
                       <SelectTrigger>
-                        <SelectValue placeholder={isClient ? t('select_platform') : 'Select a platform'} />
+                        <SelectValue placeholder={t('select_platform')} />
                       </SelectTrigger>
                       <SelectContent>
                         {(['Avito', 'Ozon'] as SalePlatform[]).map(platform => (
@@ -163,7 +167,11 @@ export default function AddSalePage() {
                         ))}
                       </SelectContent>
                     </Select>
-                    {state.errors?.platform && <p className="text-sm text-destructive">{state.errors.platform[0]}</p>}
+                    {state.errors?.platform && (
+                      <p className="text-sm text-destructive">
+                        {t(state.errors.platform[0])}
+                      </p>
+                    )}
                   </div>
                 </CardContent>
                 <CardFooter>
