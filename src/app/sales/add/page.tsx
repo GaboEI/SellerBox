@@ -3,9 +3,16 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useFormState, useFormStatus } from 'react-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { format } from 'date-fns';
+import {
+  addMonths,
+  format,
+  startOfMonth,
+  subMonths,
+  subYears,
+} from 'date-fns';
+import { enUS, es, ru } from 'date-fns/locale';
 import Image from 'next/image';
 
 import { PageHeader } from '@/components/shared/page-header';
@@ -20,6 +27,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Select,
   SelectContent,
@@ -30,6 +39,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { addSale, getBooks } from '@/lib/actions';
 import type { Book, SalePlatform } from '@/lib/types';
+import { cn } from '@/lib/utils';
 
 const initialState = {
   message: '',
@@ -46,13 +56,31 @@ function SubmitButton({ isClient, t }: { isClient: boolean; t: any }) {
 }
 
 export default function AddSalePage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { toast } = useToast();
   const [isClient, setIsClient] = useState(false);
   const [books, setBooks] = useState<Book[]>([]);
   const [state, formAction] = React.useActionState(addSale, initialState);
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
   
   const defaultDate = format(new Date(), 'dd.MM.yy');
+  const [selectedDate, setSelectedDate] = useState<Date>(() => new Date());
+  const [draftDate, setDraftDate] = useState<Date>(() => new Date());
+  const today = new Date();
+  const minDate = subYears(today, 1);
+  const minMonth = startOfMonth(minDate);
+  const maxMonth = startOfMonth(today);
+  const minNavMonth = startOfMonth(new Date(today.getFullYear() - 10, 0, 1));
+  const maxNavMonth = startOfMonth(new Date(today.getFullYear() + 10, 11, 1));
+  const localeMap = { en: enUS, es, ru } as const;
+  const locale = localeMap[i18n.language as keyof typeof localeMap] ?? enUS;
+  const weekStartsOn = 1;
+  const displayDate = isPickerOpen ? draftDate : selectedDate;
+  const formattedDate = displayDate ? format(displayDate, 'dd.MM.yy') : defaultDate;
+  const selectedDateValue = selectedDate ? format(selectedDate, 'dd.MM.yy') : defaultDate;
+  const [currentMonth, setCurrentMonth] = useState<Date>(() =>
+    startOfMonth(selectedDate)
+  );
 
   useEffect(() => {
     setIsClient(true);
@@ -140,12 +168,105 @@ export default function AddSalePage() {
 
                   <div className="space-y-2">
                     <Label htmlFor="date">{t('date')}</Label>
-                    <Input
-                      id="date"
-                      name="date"
-                      placeholder="dd.MM.yy"
-                      defaultValue={defaultDate}
-                    />
+                    <Popover
+                      open={isPickerOpen}
+                      onOpenChange={(open) => {
+                        if (open) {
+                          setDraftDate(selectedDate);
+                          setCurrentMonth(startOfMonth(selectedDate));
+                        }
+                        setIsPickerOpen(open);
+                      }}
+                    >
+                      <PopoverTrigger asChild>
+                        <Button
+                          id="date"
+                          variant="outline"
+                          className={cn(
+                            'w-full justify-start text-left font-normal',
+                            !selectedDate && 'text-muted-foreground'
+                          )}
+                        >
+                          {formattedDate || t('select_date')}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto rounded-md p-0" align="start">
+                        <Calendar
+                          className="p-2 text-sm"
+                          mode="single"
+                          selected={draftDate}
+                          onSelect={(date: Date | undefined) => {
+                            if (!date) return;
+                            if (date > today || date < minDate) return;
+                            setDraftDate(date);
+                          }}
+                          locale={locale}
+                          weekStartsOn={weekStartsOn}
+                          firstWeekContainsDate={4}
+                          fixedWeeks
+                          showOutsideDays
+                          disabled={{ before: minDate, after: today }}
+                          fromYear={today.getFullYear() - 10}
+                          toYear={today.getFullYear() + 10}
+                          captionLayout="dropdown"
+                          month={currentMonth}
+                          onMonthChange={setCurrentMonth}
+                          initialFocus
+                        />
+                        <div className="flex items-center justify-end gap-2 border-t p-3">
+                          <div className="mr-auto flex items-center gap-1">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() =>
+                                setCurrentMonth((prev) => subMonths(prev, 1))
+                              }
+                              disabled={subMonths(currentMonth, 1) < minNavMonth}
+                            >
+                              <ChevronLeft className="h-4 w-4" />
+                              <span className="sr-only">
+                                {t('previous_month')}
+                              </span>
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              onClick={() =>
+                                setCurrentMonth((prev) => addMonths(prev, 1))
+                              }
+                              disabled={addMonths(currentMonth, 1) > maxNavMonth}
+                            >
+                              <ChevronRight className="h-4 w-4" />
+                              <span className="sr-only">
+                                {t('next_month')}
+                              </span>
+                            </Button>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            onClick={() => {
+                              setDraftDate(selectedDate);
+                              setIsPickerOpen(false);
+                            }}
+                          >
+                            {t('cancel')}
+                          </Button>
+                          <Button
+                            type="button"
+                            onClick={() => {
+                              setSelectedDate(draftDate);
+                              setIsPickerOpen(false);
+                            }}
+                          >
+                            {t('apply')}
+                          </Button>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                    <Input type="hidden" name="date" value={selectedDateValue} />
                     {state.errors?.date && (
                       <p className="text-sm text-destructive">
                         {t(state.errors.date[0])}
