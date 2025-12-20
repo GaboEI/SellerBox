@@ -1,23 +1,31 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
 import { ColumnDef } from '@tanstack/react-table';
-import { ArrowUpDown, Edit, Trash2 } from 'lucide-react';
+import { ArrowUpDown, Trash2 } from 'lucide-react';
 import type { Sale, SaleStatus } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { TFunction } from 'i18next';
 import { format, isToday, isYesterday } from 'date-fns';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { CellStatusEditable } from './cell-status-editable';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
+import { deleteSale } from '@/lib/actions';
+import { useRouter } from 'next/navigation';
 
 export type SaleWithBookData = Sale & { bookName: string; coverImageUrl?: string };
 
@@ -43,27 +51,80 @@ function CellActions({
   t: TFunction;
 }) {
   const sale = row.original as SaleWithBookData;
+  const { toast } = useToast();
+  const router = useRouter();
+  const [open, setOpen] = React.useState(false);
+  const [masterKey, setMasterKey] = React.useState('');
+  const [keyError, setKeyError] = React.useState('');
+
+  const handleConfirmDelete = async () => {
+    if (masterKey !== 'SellerBox@dmin2025') {
+      setKeyError(t('incorrect_master_key'));
+      return;
+    }
+
+    setKeyError('');
+    const result = await deleteSale(sale.id);
+    if (result && result.message) {
+      toast({
+        title: t('error'),
+        description: t(result.message),
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setOpen(false);
+    setMasterKey('');
+    toast({ title: t('success'), description: t('delete_sale_success') });
+    router.refresh();
+  };
 
   return (
-    <>
-      <div className="flex justify-end">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">{t('open_menu')}</span>
-              <Edit className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem asChild>
-              <Link href={`/sales/edit/${sale.id}`}>
-                {t('edit_sale')}
-              </Link>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-    </>
+    <div className="flex justify-end">
+      <AlertDialog open={open} onOpenChange={setOpen}>
+        <AlertDialogTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-destructive hover:text-destructive/80"
+            title={t('delete_sale')}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('delete_sale')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('master_key_warning')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">{t('master_key')}</label>
+            <Input
+              value={masterKey}
+              onChange={(event) => setMasterKey(event.target.value)}
+              placeholder={t('master_key')}
+            />
+            {keyError && (
+              <p className="text-sm text-destructive">{keyError}</p>
+            )}
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setKeyError('')}>
+              {t('cancel')}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              {t('confirm')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
   );
 }
 
@@ -82,7 +143,9 @@ export const getColumns = (
   {
     accessorKey: 'coverImageUrl',
     header: () => (
-      <div className="text-center">{t('photo')}</div>
+      <div className="text-center font-semibold text-gray-600">
+        {t('photo')}
+      </div>
     ),
     cell: ({ row }) => {
       const { bookName, coverImageUrl } = row.original;
@@ -110,8 +173,9 @@ export const getColumns = (
       <Button
         variant="ghost"
         onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+        className="w-full justify-start text-left p-0 font-semibold text-gray-600 hover:text-gray-600"
       >
-        {t('book_name')}
+        {t('product_name')}
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
@@ -125,10 +189,9 @@ export const getColumns = (
       <Button
         variant="ghost"
         onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-        className="w-full justify-center"
+        className="w-full justify-center text-center font-semibold text-gray-600 hover:text-gray-600"
       >
         {t('date')}
-        <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
     cell: ({ row }) => {
@@ -143,7 +206,9 @@ export const getColumns = (
   {
     accessorKey: 'status',
     header: () => (
-      <div className="text-center">{t('status')}</div>
+      <div className="text-center font-semibold text-gray-600">
+        {t('status')}
+      </div>
     ),
     cell: ({ row }) => {
         const sale = row.original;
@@ -161,34 +226,61 @@ export const getColumns = (
   {
     accessorKey: 'platform',
     header: () => (
-      <div className="text-center">{t('platform')}</div>
+      <div className="text-left font-semibold text-gray-600">
+        {t('platform')}
+      </div>
     ),
-    cell: ({ row }) => (
-      <div className="text-center">{row.getValue('platform') as string}</div>
-    ),
+    cell: ({ row }) => {
+      const platform = row.getValue('platform') as string;
+      const logoSrc =
+        platform === 'Avito'
+          ? '/avito_logo.png'
+          : platform === 'Ozon'
+          ? '/ozon_logo.png'
+          : '/sellerbox_icon.png';
+
+      return (
+        <div className="flex items-center justify-start gap-2">
+          <Image
+            src={logoSrc}
+            alt={platform}
+            width={16}
+            height={16}
+            className="h-4 w-4 rounded-sm object-contain"
+          />
+          <span>{platform}</span>
+        </div>
+      );
+    },
   },
   {
     accessorKey: 'saleAmount',
     header: () => (
-      <div className="w-full text-right">
+      <div className="w-full text-center font-semibold text-gray-600">
         {t('sale_amount_header')}
       </div>
     ),
     cell: ({ row }) => {
       const amount = row.getValue('saleAmount') as number | undefined;
       if (amount === undefined || amount === null) {
-        return <div className="text-right">-</div>;
+        return <div className="text-center">-</div>;
       }
       const formattedAmount = new Intl.NumberFormat('ru-RU', {
         style: 'decimal',
       }).format(amount);
-      return <div className="text-right font-medium">{formattedAmount} ₽</div>;
+      return (
+        <div className="text-center font-bold text-[#0b7426]">
+          {formattedAmount} ₽
+        </div>
+      );
     },
   },
   {
     id: 'actions',
     header: () => (
-      <div className="text-right">{t('actions')}</div>
+      <div className="text-right font-semibold text-gray-600">
+        {t('actions')}
+      </div>
     ),
     cell: ({ row }) => (
       <CellActions

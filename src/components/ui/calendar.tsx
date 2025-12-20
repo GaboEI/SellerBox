@@ -55,7 +55,7 @@ function Calendar({
         day_selected:
           "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
         day_today:
-          "rdp-day_today [&>button]:!bg-[#46d086] [&>button]:!text-foreground [&>button]:rounded-full",
+          "rdp-day_today text-foreground",
         day_outside:
           "day-outside text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground",
         day_disabled: "text-muted-foreground opacity-50",
@@ -79,3 +79,4 @@ function Calendar({
 Calendar.displayName = "Calendar"
 
 export { Calendar }
+export default Calendar

@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import {
   addMonths,
   format,
+  isSameDay,
   startOfMonth,
   subMonths,
   subYears,
@@ -41,7 +42,16 @@ import { addSale, getBooks } from '@/lib/actions';
 import type { Book, SalePlatform } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
-const initialState = {
+type SaleFormState = {
+  message: string;
+  errors: {
+    bookId?: string[];
+    date?: string[];
+    platform?: string[];
+  };
+};
+
+const initialState: SaleFormState = {
   message: '',
   errors: {},
 };
@@ -62,6 +72,9 @@ export default function AddSalePage() {
   const [books, setBooks] = useState<Book[]>([]);
   const [state, formAction] = React.useActionState(addSale, initialState);
   const [isPickerOpen, setIsPickerOpen] = useState(false);
+  const [attemptedFutureDate, setAttemptedFutureDate] = useState<Date | null>(
+    null
+  );
   
   const defaultDate = format(new Date(), 'dd.MM.yy');
   const [selectedDate, setSelectedDate] = useState<Date>(() => new Date());
@@ -78,6 +91,7 @@ export default function AddSalePage() {
   const displayDate = isPickerOpen ? draftDate : selectedDate;
   const formattedDate = displayDate ? format(displayDate, 'dd.MM.yy') : defaultDate;
   const selectedDateValue = selectedDate ? format(selectedDate, 'dd.MM.yy') : defaultDate;
+  const todayLabel = format(today, 'dd.MM.yyyy');
   const [currentMonth, setCurrentMonth] = useState<Date>(() =>
     startOfMonth(selectedDate)
   );
@@ -175,6 +189,7 @@ export default function AddSalePage() {
                           setDraftDate(selectedDate);
                           setCurrentMonth(startOfMonth(selectedDate));
                         }
+                        setAttemptedFutureDate(null);
                         setIsPickerOpen(open);
                       }}
                     >
@@ -199,14 +214,41 @@ export default function AddSalePage() {
                             if (!date) return;
                             if (date > today || date < minDate) return;
                             setDraftDate(date);
+                            setAttemptedFutureDate(null);
+                          }}
+                          onDayClick={(date: Date, modifiers) => {
+                            if (date > today) {
+                              setAttemptedFutureDate(date);
+                              return;
+                            }
+                            setAttemptedFutureDate(null);
+                          }}
+                          modifiers={{
+                            highlightToday:
+                              isSameDay(draftDate, today) &&
+                              ((date: Date) => isSameDay(date, today)),
+                            attemptedFuture:
+                              attemptedFutureDate &&
+                              ((date: Date) =>
+                                isSameDay(date, attemptedFutureDate)),
+                            future: (date: Date) => date > today,
+                          }}
+                          modifiersClassNames={{
+                            highlightToday:
+                              "rounded-full bg-[#46d086] text-foreground",
+                            selected:
+                              "rounded-full !bg-[#46d086] !text-foreground",
+                            attemptedFuture:
+                              "rounded-full !bg-[#f22b56] !text-white",
+                            future: "text-muted-foreground opacity-50 cursor-not-allowed",
                           }}
                           locale={locale}
                           weekStartsOn={weekStartsOn}
                           firstWeekContainsDate={4}
                           fixedWeeks
                           showOutsideDays
-                          disabled={{ before: minDate, after: today }}
-                          fromYear={today.getFullYear() - 10}
+                          disabled={{ before: minDate }}
+                          fromYear={2023}
                           toYear={today.getFullYear() + 10}
                           captionLayout="dropdown"
                           month={currentMonth}
@@ -264,6 +306,13 @@ export default function AddSalePage() {
                             {t('apply')}
                           </Button>
                         </div>
+                        {attemptedFutureDate && (
+                          <p className="px-3 pb-3 text-xs text-red-500">
+                            {t('sale_future_warning', {
+                              date: todayLabel,
+                            })}
+                          </p>
+                        )}
                       </PopoverContent>
                     </Popover>
                     <Input type="hidden" name="date" value={selectedDateValue} />
@@ -276,16 +325,40 @@ export default function AddSalePage() {
 
                   <div className="space-y-2">
                     <Label htmlFor="platform">{t('platform')}</Label>
-                    <Select name="platform" defaultValue='Avito'>
+                    <Select name="platform" defaultValue='SellerBox-web'>
                       <SelectTrigger>
                         <SelectValue placeholder={t('select_platform')} />
                       </SelectTrigger>
                       <SelectContent>
-                        {(['Avito', 'Ozon'] as SalePlatform[]).map(platform => (
-                            <SelectItem key={platform} value={platform} className="capitalize">
-                                {platform}
-                            </SelectItem>
-                        ))}
+                        {(['Avito', 'Ozon', 'SellerBox-web'] as SalePlatform[]).map(
+                          (platform) => {
+                            const logoSrc =
+                              platform === 'Avito'
+                                ? '/avito_logo.png'
+                                : platform === 'Ozon'
+                                ? '/ozon_logo.png'
+                                : '/sellerbox_icon.png';
+
+                            return (
+                              <SelectItem
+                                key={platform}
+                                value={platform}
+                                className="capitalize before:absolute before:left-2 before:top-1/2 before:h-3.5 before:w-3.5 before:-translate-y-1/2 before:rounded-sm before:border before:border-muted-foreground/40 before:bg-muted/30"
+                              >
+                                <div className="flex items-center gap-2">
+                                  <Image
+                                    src={logoSrc}
+                                    alt={platform}
+                                    width={16}
+                                    height={16}
+                                    className="h-4 w-4 rounded-sm object-contain"
+                                  />
+                                  <span>{platform}</span>
+                                </div>
+                              </SelectItem>
+                            );
+                          }
+                        )}
                       </SelectContent>
                     </Select>
                     {state.errors?.platform && (

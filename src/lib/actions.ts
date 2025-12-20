@@ -143,7 +143,7 @@ export async function deleteBook(id: string) {
 const saleSchema = z.object({
   bookId: z.string().min(1, 'please_select_a_book'),
   date: z.string().min(1, 'please_select_date'),
-  platform: z.enum(['Avito', 'Ozon'], {
+  platform: z.enum(['Avito', 'Ozon', 'SellerBox-web'], {
     errorMap: () => ({ message: 'please_select_platform' }),
   }),
 });

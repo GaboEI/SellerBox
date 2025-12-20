@@ -6,7 +6,7 @@ export type Book = {
   userId?: string;
 };
 
-export type SalePlatform = 'Avito' | 'Ozon';
+export type SalePlatform = 'Avito' | 'Ozon' | 'SellerBox-web';
 
 export const SALE_STATUSES = [
   'in_process',
