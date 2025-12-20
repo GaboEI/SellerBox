@@ -61,6 +61,7 @@ export function SalesClient({
         return {
           ...sale,
           bookName: book?.name || t('unknown_book'),
+          bookCode: book?.code,
           coverImageUrl: book?.coverImageUrl,
         };
       })

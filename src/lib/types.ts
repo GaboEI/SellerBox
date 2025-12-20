@@ -27,6 +27,8 @@ export type Sale = {
   status: SaleStatus;
   platform: SalePlatform;
   saleAmount?: number;
+  taxRate?: number;
+  taxAmount?: number;
 };
 
 export type UserProfile = {

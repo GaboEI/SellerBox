@@ -58,7 +58,7 @@ export function CellStatusEditable({
 
     // If the new status requires an amount, redirect to edit page
     if (newStatus === 'completed' || newStatus === 'sold_in_person') {
-        router.push(`/sales/edit/${sale.id}`);
+        router.push(`/sales/edit/${sale.id}?status=${newStatus}`);
         return;
     }
 
@@ -98,16 +98,16 @@ export function CellStatusEditable({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {(
-              [
-                'in_process',
-                'in_preparation',
-                'shipped',
-                'sold_in_person',
-                'completed',
-                'canceled',
-              ] as SaleStatus[]
-            ).map((status) => (
+              {(
+                [
+                  'in_preparation',
+                  'in_process',
+                  'shipped',
+                  'sold_in_person',
+                  'completed',
+                  'canceled',
+                ] as SaleStatus[]
+              ).map((status) => (
               <SelectItem key={status} value={status} className="capitalize">
                 {t(status)}
               </SelectItem>

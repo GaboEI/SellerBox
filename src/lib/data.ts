@@ -108,16 +108,18 @@ export async function getSaleById(
 }
 export async function addSale(
   userId: string,
-  sale: Omit<Sale, 'id' | 'status' | 'date' | 'userId'> & { date: string }
+  sale: Omit<Sale, 'id' | 'date' | 'userId'> & { date: string }
 ): Promise<Sale> {
   return prisma.sale.create({
     data: {
       userId,
       bookId: sale.bookId,
       date: new Date(sale.date),
-      status: 'in_process',
+      status: sale.status ?? 'in_preparation',
       platform: sale.platform,
       saleAmount: sale.saleAmount ?? null,
+      taxRate: sale.taxRate ?? null,
+      taxAmount: sale.taxAmount ?? null,
     },
   });
 }
@@ -137,6 +139,12 @@ export async function updateSale(
         typeof updates.saleAmount === 'number'
           ? updates.saleAmount
           : existing.saleAmount,
+      taxRate:
+        typeof updates.taxRate === 'number' ? updates.taxRate : existing.taxRate,
+      taxAmount:
+        typeof updates.taxAmount === 'number'
+          ? updates.taxAmount
+          : existing.taxAmount,
     },
   });
 }

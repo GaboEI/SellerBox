@@ -27,7 +27,11 @@ import { useToast } from '@/hooks/use-toast';
 import { deleteSale } from '@/lib/actions';
 import { useRouter } from 'next/navigation';
 
-export type SaleWithBookData = Sale & { bookName: string; coverImageUrl?: string };
+export type SaleWithBookData = Sale & {
+  bookName: string;
+  bookCode?: string;
+  coverImageUrl?: string;
+};
 
 const statusVariantMap: Record<
   SaleStatus,
@@ -184,6 +188,18 @@ export const getColumns = (
     ),
   },
   {
+    accessorKey: 'bookCode',
+    header: () => (
+      <div className="text-center font-semibold text-gray-600">
+        {t('product_code')}
+      </div>
+    ),
+    cell: ({ row }) => {
+      const code = row.getValue('bookCode') as string | undefined;
+      return <div className="text-center">{code || '-'}</div>;
+    },
+  },
+  {
     accessorKey: 'date',
     header: ({ column }) => (
       <Button
@@ -270,6 +286,38 @@ export const getColumns = (
       }).format(amount);
       return (
         <div className="text-center font-bold text-[#0b7426]">
+          {formattedAmount} ₽
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: 'taxAmount',
+    header: () => (
+      <div className="w-full text-center font-semibold text-gray-600">
+        {t('taxes')}
+      </div>
+    ),
+    cell: ({ row }) => {
+      const sale = row.original;
+      if (sale.status !== 'completed' && sale.status !== 'sold_in_person') {
+        return <div className="text-center">-</div>;
+      }
+      const rate = typeof sale.taxRate === 'number' ? sale.taxRate : 6;
+      const amount =
+        typeof sale.taxAmount === 'number'
+          ? sale.taxAmount
+          : typeof sale.saleAmount === 'number'
+          ? Math.round(Math.round(sale.saleAmount * 100) * (rate / 100)) / 100
+          : undefined;
+      if (amount === undefined || amount === null) {
+        return <div className="text-center">-</div>;
+      }
+      const formattedAmount = new Intl.NumberFormat('ru-RU', {
+        style: 'decimal',
+      }).format(amount);
+      return (
+        <div className="text-center font-bold text-[#ac0f36]">
           {formattedAmount} ₽
         </div>
       );

@@ -55,11 +55,11 @@ export function AppSidebar() {
             <SidebarMenuButton
               asChild
               isActive={pathname === item.href}
-              tooltip={t(item.label)}
+              tooltip={isClient ? t(item.label) : ''}
             >
               <Link href={item.href}>
                 <item.icon />
-                <span>{t(item.label)}</span>
+                <span>{isClient ? t(item.label) : ''}</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

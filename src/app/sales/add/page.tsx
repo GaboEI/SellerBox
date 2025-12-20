@@ -39,7 +39,7 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { addSale, getBooks } from '@/lib/actions';
-import type { Book, SalePlatform } from '@/lib/types';
+import type { Book, SalePlatform, SaleStatus } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
 type SaleFormState = {
@@ -47,7 +47,9 @@ type SaleFormState = {
   errors: {
     bookId?: string[];
     date?: string[];
+    status?: string[];
     platform?: string[];
+    saleAmount?: string[];
   };
 };
 
@@ -75,6 +77,9 @@ export default function AddSalePage() {
   const [attemptedFutureDate, setAttemptedFutureDate] = useState<Date | null>(
     null
   );
+  const [currentStatus, setCurrentStatus] = useState<SaleStatus>(
+    'in_preparation'
+  );
   
   const defaultDate = format(new Date(), 'dd.MM.yy');
   const [selectedDate, setSelectedDate] = useState<Date>(() => new Date());
@@ -92,6 +97,16 @@ export default function AddSalePage() {
   const formattedDate = displayDate ? format(displayDate, 'dd.MM.yy') : defaultDate;
   const selectedDateValue = selectedDate ? format(selectedDate, 'dd.MM.yy') : defaultDate;
   const todayLabel = format(today, 'dd.MM.yyyy');
+  const showSaleAmount =
+    currentStatus === 'completed' || currentStatus === 'sold_in_person';
+  const statusColorMap: Record<SaleStatus, string> = {
+    in_preparation: 'bg-secondary',
+    in_process: 'bg-yellow-500',
+    shipped: 'bg-foreground',
+    sold_in_person: 'bg-green-500',
+    completed: 'bg-green-500',
+    canceled: 'bg-destructive',
+  };
   const [currentMonth, setCurrentMonth] = useState<Date>(() =>
     startOfMonth(selectedDate)
   );
@@ -322,6 +337,89 @@ export default function AddSalePage() {
                       </p>
                     )}
                   </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="status">{t('status')}</Label>
+                    <Select
+                      defaultValue="in_preparation"
+                      onValueChange={(value) =>
+                        setCurrentStatus(value as SaleStatus)
+                      }
+                    >
+                      <SelectTrigger>
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={cn(
+                              'h-2 w-2 rounded-full',
+                              statusColorMap[currentStatus]
+                            )}
+                          />
+                          <span>{t(currentStatus)}</span>
+                        </div>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {(
+                          [
+                            'in_preparation',
+                            'in_process',
+                            'shipped',
+                            'sold_in_person',
+                            'completed',
+                            'canceled',
+                          ] as SaleStatus[]
+                        ).map((status) => (
+                          <SelectItem
+                            key={status}
+                            value={status}
+                            className="capitalize"
+                          >
+                            <div className="flex items-center gap-2">
+                              <span
+                                className={cn(
+                                  'h-2 w-2 rounded-full',
+                                  statusColorMap[status]
+                                )}
+                              />
+                              <span>{t(status)}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <input type="hidden" name="status" value={currentStatus} />
+                    {state.errors?.status && (
+                      <p className="text-sm text-destructive">
+                        {t(state.errors.status[0])}
+                      </p>
+                    )}
+                  </div>
+
+                  {showSaleAmount && (
+                    <div className="space-y-2">
+                      <Label htmlFor="saleAmount">
+                        {t('sale_amount_header')}
+                      </Label>
+                      <div className="relative">
+                        <Input
+                          id="saleAmount"
+                          name="saleAmount"
+                          type="number"
+                          step="1"
+                          placeholder="2499"
+                          className="pr-8"
+                          required
+                        />
+                        <span className="absolute inset-y-0 right-3 flex items-center text-muted-foreground">
+                          ₽
+                        </span>
+                      </div>
+                      {state.errors?.saleAmount && (
+                        <p className="text-sm text-destructive">
+                          {t(state.errors.saleAmount[0])}
+                        </p>
+                      )}
+                    </div>
+                  )}
 
                   <div className="space-y-2">
                     <Label htmlFor="platform">{t('platform')}</Label>

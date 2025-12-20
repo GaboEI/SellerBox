@@ -146,6 +146,21 @@ const saleSchema = z.object({
   platform: z.enum(['Avito', 'Ozon', 'SellerBox-web'], {
     errorMap: () => ({ message: 'please_select_platform' }),
   }),
+  status: z
+    .enum([
+      'in_process',
+      'in_preparation',
+      'shipped',
+      'sold_in_person',
+      'completed',
+      'canceled',
+    ])
+    .optional(),
+  saleAmount: z
+    .preprocess(
+      (value) => (value === null || value === '' ? undefined : value),
+      z.coerce.number().optional()
+    ),
 });
 
 export async function addSale(prevState: any, formData: FormData) {
@@ -153,6 +168,8 @@ export async function addSale(prevState: any, formData: FormData) {
     bookId: formData.get('bookId'),
     date: formData.get('date'),
     platform: formData.get('platform'),
+    status: formData.get('status'),
+    saleAmount: formData.get('saleAmount'),
   });
 
   if (!validatedFields.success) {
@@ -189,12 +206,40 @@ export async function addSale(prevState: any, formData: FormData) {
     };
   }
 
+  const status =
+    validatedFields.data.status ??
+    ('in_preparation' as SaleStatus);
+  const finalStatuses: SaleStatus[] = ['completed', 'sold_in_person'];
+  const taxRate = finalStatuses.includes(status) ? 6 : undefined;
+  const taxAmount =
+    finalStatuses.includes(status) &&
+    typeof validatedFields.data.saleAmount === 'number'
+      ? Math.round(
+          Math.round(validatedFields.data.saleAmount * 100) * (taxRate / 100)
+        ) / 100
+      : undefined;
+  if (finalStatuses.includes(status)) {
+    if (
+      validatedFields.data.saleAmount === undefined ||
+      Number.isNaN(validatedFields.data.saleAmount)
+    ) {
+      return {
+        errors: { saleAmount: ['sale_amount_required'] },
+        message: 'check_fields_error',
+      };
+    }
+  }
+
   const userId = await requireUserId();
   try {
     await dbAddSale(userId, {
       bookId: validatedFields.data.bookId,
       date: dateObj.toISOString(),
       platform: validatedFields.data.platform as SalePlatform,
+      status,
+      saleAmount: validatedFields.data.saleAmount,
+      taxRate,
+      taxAmount,
     });
   } catch (e) {
     console.error(e);
@@ -209,12 +254,22 @@ export async function addSale(prevState: any, formData: FormData) {
 const updateSaleSchema = z.object({
   status: z.enum(['in_process', 'in_preparation', 'shipped', 'sold_in_person', 'completed', 'canceled']),
   saleAmount: z.coerce.number().optional(),
+  taxRate: z.preprocess(
+    (value) => (value === null || value === '' ? undefined : value),
+    z.coerce.number().min(0).max(100).optional()
+  ),
+  taxAmount: z.preprocess(
+    (value) => (value === null || value === '' ? undefined : value),
+    z.coerce.number().min(0).optional()
+  ),
 });
 
 export async function updateSale(id: string, prevState: any, formData: FormData) {
   const validatedFields = updateSaleSchema.safeParse({
     status: formData.get('status'),
     saleAmount: formData.get('saleAmount'),
+    taxRate: formData.get('taxRate'),
+    taxAmount: formData.get('taxAmount'),
   });
 
   if (!validatedFields.success) {
@@ -225,10 +280,19 @@ export async function updateSale(id: string, prevState: any, formData: FormData)
   }
 
   const userId = await requireUserId();
+  const saleAmount = validatedFields.data.saleAmount;
+  const taxRate = validatedFields.data.taxRate ?? 6;
+  const taxAmount =
+    typeof saleAmount === 'number'
+      ? Math.round(Math.round(saleAmount * 100) * (taxRate / 100)) / 100
+      : validatedFields.data.taxAmount;
+
   try {
     await dbUpdateSale(userId, id, {
       ...validatedFields.data,
       status: validatedFields.data.status as SaleStatus,
+      taxRate,
+      taxAmount,
     });
   } catch (e) {
     return { message: 'failed_to_update_sale', errors: {} };
@@ -237,7 +301,7 @@ export async function updateSale(id: string, prevState: any, formData: FormData)
   revalidatePath('/dashboard');
   revalidatePath('/sales');
   revalidatePath(`/sales/edit/${id}`);
-  redirect('/sales');
+  return { message: 'update_sale_success', errors: {} };
 }
 
 export async function deleteSale(id: string) {
