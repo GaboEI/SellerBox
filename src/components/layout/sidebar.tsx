@@ -7,7 +7,6 @@ import {
   Package,
   ShoppingBag,
   Tag,
-  BarChart3
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import React, { useState, useEffect } from 'react';
@@ -40,14 +39,15 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader>
-        <div className="flex items-center gap-2 p-2">
-           <div className="bg-primary rounded-md p-1.5 flex items-center justify-center">
-             <BarChart3 className="h-6 w-6 text-primary-foreground" />
-           </div>
-          <h1 className="text-lg font-semibold text-foreground">
-            SellerBox
-          </h1>
-        </div>
+        <Link href="/" className="flex items-end p-2">
+          <div className="rounded-xl bg-primary/10 p-1.5 flex items-center justify-center shadow-[0_4px_10px_rgba(0,0,0,0.18)] ring-1 ring-black/10">
+            <img
+              src="/sellerbox_logo.png"
+              alt="SellerBox"
+              className="h-10 w-auto"
+            />
+          </div>
+        </Link>
       </SidebarHeader>
       <SidebarMenu>
         {menuItems.map((item) => (
