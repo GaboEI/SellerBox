@@ -2,7 +2,7 @@ import type { NextAuthOptions } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import AppleProvider from "next-auth/providers/apple";
-import { PrismaAdapter } from "@auth/prisma-adapter";
+import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 
@@ -72,43 +72,49 @@ export const authOptions: NextAuthOptions = {
   
   pages: { signIn: "/login", error: "/login" },
   session: { strategy: "jwt" },
-  
+
   callbacks: {
     async jwt({ token, trigger, user }) {
-      // Al iniciar sesión, `user` contiene los datos de `authorize`
       if (user) {
         token.id = user.id;
-        token.name = user.name;
-        token.image = user.image;
         token.email = user.email;
-        token.updatedAt = (user as any).updatedAt; // `user` ya tiene el timestamp
       }
 
-      // Cuando la sesión se actualiza
+      // Strip large fields from the token to avoid oversized cookies.
+      delete (token as any).name;
+      delete (token as any).picture;
+      delete (token as any).image;
+
       if (trigger === "update" && token.email) {
         const dbUser = await prisma.user.findUnique({
           where: { email: token.email },
+          select: { updatedAt: true },
         });
-
         if (dbUser) {
-          token.name = dbUser.name;
-          token.image = dbUser.image;
-          token.updatedAt = dbUser.updatedAt.getTime(); // Obtenemos el nuevo timestamp
+          token.updatedAt = dbUser.updatedAt.getTime();
         }
       }
-      
+
       return token;
     },
-    
+
     async session({ session, token }) {
-      // Pasamos los datos del token a la sesión del cliente
-      if (token && session.user) {
-        session.user.id = token.id as string;
-        session.user.name = token.name;
-        session.user.image = token.image as string | null;
-        session.user.updatedAt = token.updatedAt as number | undefined;
+      if (!session.user || !token?.id) {
+        return session;
       }
-      
+
+      const dbUser = await prisma.user.findUnique({
+        where: { id: token.id as string },
+        select: { id: true, name: true, image: true, updatedAt: true },
+      });
+
+      if (dbUser) {
+        session.user.id = dbUser.id;
+        session.user.name = dbUser.name;
+        session.user.image = dbUser.image as string | null;
+        session.user.updatedAt = dbUser.updatedAt.getTime();
+      }
+
       return session;
     },
   },

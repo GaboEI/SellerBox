@@ -34,8 +34,11 @@ export function AppHeader() {
   const usernameInitial = username?.[0]?.toUpperCase() || 'S';
 
   // Cache-busting for the profile picture.
-  const userPhoto = session?.user?.image 
-    ? `${session.user.image}?v=${session.user.updatedAt || new Date().getTime()}`
+  const rawUserPhoto = session?.user?.image || '';
+  const userPhoto = rawUserPhoto
+    ? rawUserPhoto.startsWith('data:')
+      ? rawUserPhoto
+      : `${rawUserPhoto}?v=${session?.user?.updatedAt || new Date().getTime()}`
     : '';
 
   return (

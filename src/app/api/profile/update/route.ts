@@ -4,6 +4,7 @@ import { authOptions } from "@/auth";
 import { adminApp } from "@/firebase/admin"; // We need to create this
 import { getFirestore } from "firebase-admin/firestore";
 import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 
 // Helper to initialize Firebase Admin SDK
 async function initAdmin() {
@@ -46,6 +47,13 @@ export async function POST(req: NextRequest) {
     }
 
     await userDocRef.set(updates, { merge: true });
+    await prisma.user.update({
+      where: { email: userEmail },
+      data: {
+        name: username,
+        image: photoUrl || null,
+      },
+    });
 
     return NextResponse.json({ message: "Profile updated successfully" });
   } catch (error: any) {
