@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useFormState, useFormStatus } from 'react-dom';
 import { ArrowLeft } from 'lucide-react';
@@ -11,6 +10,7 @@ import { PageHeader } from '@/components/shared/page-header';
 import { AppSidebar } from '@/components/layout/sidebar';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { AppHeader } from '@/components/layout/header';
+import { useDrawerClose } from '@/components/layout/right-drawer-shell';
 import {
   Card,
   CardContent,
@@ -43,9 +43,10 @@ function SubmitButton({ isClient, t }: { isClient: boolean; t: any }) {
   );
 }
 
-export default function AddBookPage() {
+export default function AddBookPage({ withShell = true }: { withShell?: boolean } = {}) {
   const { t } = useTranslation();
   const router = useRouter();
+  const handleClose = useDrawerClose('/inventory');
   const { toast } = useToast();
   const [isClient, setIsClient] = useState(false);
   const [state, formAction] = React.useActionState(addBook, initialState);
@@ -69,10 +70,14 @@ export default function AddBookPage() {
           title: t('success'),
           description: t('add_book_success'),
         });
-        // Redirect is handled by the server action
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event('sb:inventory-refresh'));
+        }
+        router.refresh();
+        handleClose();
       }
     }
-  }, [state, t, toast]);
+  }, [state, t, toast, router, handleClose]);
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -106,21 +111,15 @@ export default function AddBookPage() {
     }
   };
 
-  return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
-        <AppHeader />
-        <main className="p-4 lg:p-6">
+  const content = (
+    <main className="p-4 lg:p-6">
           <PageHeader
             title={t('add_new_book')}
             description={t('add_book_desc')}
           >
-            <Button variant="outline" size="sm" asChild>
-              <Link href="/inventory">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                {t('cancel')}
-              </Link>
+            <Button variant="outline" size="sm" onClick={handleClose}>
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              {t('cancel')}
             </Button>
           </PageHeader>
           <div className="mt-8">
@@ -202,7 +201,23 @@ export default function AddBookPage() {
             </form>
           </div>
         </main>
+  );
+
+  if (!withShell) {
+    return content;
+  }
+
+  return (
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <AppHeader />
+        {content}
       </SidebarInset>
     </SidebarProvider>
   );
+}
+
+export function AddBookContent() {
+  return <AddBookPage withShell={false} />;
 }

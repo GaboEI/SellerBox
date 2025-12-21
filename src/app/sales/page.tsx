@@ -37,6 +37,14 @@ export default function SalesPage() {
     }
   }, [status, fetchData]);
 
+  useEffect(() => {
+    const handleRefresh = () => {
+      fetchData();
+    };
+    window.addEventListener('sb:sales-refresh', handleRefresh);
+    return () => window.removeEventListener('sb:sales-refresh', handleRefresh);
+  }, [fetchData]);
+
   if (status === 'loading') {
     return <div>{t('loading')}</div>;
   }

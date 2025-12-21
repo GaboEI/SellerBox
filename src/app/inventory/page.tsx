@@ -34,6 +34,15 @@ export default function InventoryPage() {
     }
   }, [status, fetchBooks]);
 
+  useEffect(() => {
+    const handleRefresh = () => {
+      fetchBooks();
+    };
+    window.addEventListener('sb:inventory-refresh', handleRefresh);
+    return () =>
+      window.removeEventListener('sb:inventory-refresh', handleRefresh);
+  }, [fetchBooks]);
+
   if (status === 'loading') {
     return <div>{t('loading')}</div>; // O un componente de carga más elaborado
   }

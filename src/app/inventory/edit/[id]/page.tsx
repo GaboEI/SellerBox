@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import Link from 'next/link';
 import { useFormState, useFormStatus } from 'react-dom';
 import { ArrowLeft, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -11,6 +10,7 @@ import { PageHeader } from '@/components/shared/page-header';
 import { AppSidebar } from '@/components/layout/sidebar';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { AppHeader } from '@/components/layout/header';
+import { useDrawerClose } from '@/components/layout/right-drawer-shell';
 import {
   Card,
   CardContent,
@@ -56,10 +56,11 @@ function SubmitButton({ isClient, t }: { isClient: boolean; t: any }) {
   );
 }
 
-export default function EditBookPage() {
+export default function EditBookPage({ withShell = true }: { withShell?: boolean } = {}) {
   const { t } = useTranslation();
   const { toast } = useToast();
   const router = useRouter();
+  const handleClose = useDrawerClose('/inventory');
   const params = useParams();
   const id = params.id as string;
   const [isClient, setIsClient] = useState(false);
@@ -108,10 +109,14 @@ export default function EditBookPage() {
           title: t('success'),
           description: t('update_book_success'),
         });
-        // Redirect is handled by the server action
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event('sb:inventory-refresh'));
+        }
+        router.refresh();
+        handleClose();
       }
     }
-  }, [state, t, toast]);
+  }, [state, t, toast, router, handleClose]);
 
   const handleDeleteConfirm = async () => {
     const result = await deleteBook(id);
@@ -162,21 +167,15 @@ export default function EditBookPage() {
     }
   };
 
-  return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
-        <AppHeader />
-        <main className="p-4 lg:p-6">
+  const content = (
+    <main className="p-4 lg:p-6">
           <PageHeader
             title={t('edit_book')}
             description={t('edit_book_desc')}
           >
-            <Button variant="outline" size="sm" asChild>
-              <Link href="/inventory">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                {t('cancel')}
-              </Link>
+            <Button variant="outline" size="sm" onClick={handleClose}>
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              {t('cancel')}
             </Button>
           </PageHeader>
           <div className="mt-8">
@@ -306,7 +305,23 @@ export default function EditBookPage() {
             )}
           </div>
         </main>
+  );
+
+  if (!withShell) {
+    return content;
+  }
+
+  return (
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <AppHeader />
+        {content}
       </SidebarInset>
     </SidebarProvider>
   );
+}
+
+export function EditBookContent() {
+  return <EditBookPage withShell={false} />;
 }

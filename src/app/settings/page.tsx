@@ -28,7 +28,7 @@ import { useFirestore, doc, useDoc } from '@/firebase';
 import { useTranslation } from 'react-i18next';
 import type { UserProfile } from '@/lib/types';
 
-export default function SettingsPage() {
+export default function SettingsPage({ withShell = true }: { withShell?: boolean } = {}) {
   const { t } = useTranslation();
   const { toast } = useToast();
   const firestore = useFirestore();
@@ -223,12 +223,8 @@ export default function SettingsPage() {
   const fallbackInitial = currentUsername?.[0]?.toUpperCase() || 'S';
   const canSave = status === 'authenticated' && !isSaving;
 
-  return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
-        <AppHeader />
-        <main className="p-4 lg:p-6">
+  const content = (
+    <main className="p-4 lg:p-6">
           <div className="flex flex-col gap-8">
             <PageHeader
               title={t('settings')}
@@ -419,7 +415,23 @@ export default function SettingsPage() {
             </div>
           </div>
         </main>
+  );
+
+  if (!withShell) {
+    return content;
+  }
+
+  return (
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <AppHeader />
+        {content}
       </SidebarInset>
     </SidebarProvider>
   );
+}
+
+export function SettingsContent() {
+  return <SettingsPage withShell={false} />;
 }

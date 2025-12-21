@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useFormState, useFormStatus } from 'react-dom';
 import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -20,6 +20,7 @@ import { PageHeader } from '@/components/shared/page-header';
 import { AppSidebar } from '@/components/layout/sidebar';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { AppHeader } from '@/components/layout/header';
+import { useDrawerClose } from '@/components/layout/right-drawer-shell';
 import {
   Card,
   CardContent,
@@ -67,8 +68,10 @@ function SubmitButton({ isClient, t }: { isClient: boolean; t: any }) {
   );
 }
 
-export default function AddSalePage() {
+export function AddSaleContent() {
   const { t, i18n } = useTranslation();
+  const router = useRouter();
+  const handleClose = useDrawerClose('/sales');
   const { toast } = useToast();
   const [isClient, setIsClient] = useState(false);
   const [books, setBooks] = useState<Book[]>([]);
@@ -151,32 +154,30 @@ export default function AddSalePage() {
           title: t('success'),
           description: t('add_sale_success'),
         });
-        // Redirect is handled by the server action
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event('sb:sales-refresh'));
+        }
+        router.refresh();
+        handleClose();
       }
     }
-  }, [state, t, toast]);
+  }, [state, t, toast, router, handleClose]);
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
-        <AppHeader />
-        <main className="p-4 lg:p-6">
-          <PageHeader
-            title={t('record_new_sale')}
-            description={t('record_sale_desc')}
-          >
-            <Button variant="outline" size="sm" asChild>
-              <Link href="/sales">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                {t('cancel')}
-              </Link>
-            </Button>
-          </PageHeader>
-          <div className="mt-8">
-            <form action={formAction}>
-              <Card>
-                <CardContent className="p-6 space-y-6">
+    <main className="p-4 lg:p-6">
+      <PageHeader
+        title={t('record_new_sale')}
+        description={t('record_sale_desc')}
+      >
+        <Button variant="outline" size="sm" onClick={handleClose}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          {t('cancel')}
+        </Button>
+      </PageHeader>
+      <div className="mt-8">
+        <form action={formAction}>
+          <Card>
+            <CardContent className="p-6 space-y-6">
                   <div className="space-y-2">
                     <Label htmlFor="bookId">{t('book')}</Label>
                     <Select name="bookId">
@@ -572,14 +573,24 @@ export default function AddSalePage() {
                       </p>
                     )}
                   </div>
-                </CardContent>
-                <CardFooter>
-                  <SubmitButton isClient={isClient} t={t} />
-                </CardFooter>
-              </Card>
-            </form>
-          </div>
-        </main>
+            </CardContent>
+            <CardFooter>
+              <SubmitButton isClient={isClient} t={t} />
+            </CardFooter>
+          </Card>
+        </form>
+      </div>
+    </main>
+  );
+}
+
+export default function AddSalePage() {
+  return (
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <AppHeader />
+        <AddSaleContent />
       </SidebarInset>
     </SidebarProvider>
   );

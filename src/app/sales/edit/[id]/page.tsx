@@ -7,7 +7,6 @@ import {
   useSearchParams,
   redirect,
 } from "next/navigation";
-import Link from "next/link";
 import { useFormState, useFormStatus } from "react-dom";
 import { ArrowLeft, Trash2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -17,6 +16,7 @@ import { PageHeader } from "@/components/shared/page-header";
 import { AppSidebar } from "@/components/layout/sidebar";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppHeader } from "@/components/layout/header";
+import { useDrawerClose } from "@/components/layout/right-drawer-shell";
 import {
   Card,
   CardContent,
@@ -71,10 +71,11 @@ function SubmitButton({ isClient, t }: { isClient: boolean; t: any }) {
   );
 }
 
-export default function EditSalePage() {
+export default function EditSalePage({ withShell = true }: { withShell?: boolean } = {}) {
   const { t } = useTranslation();
   const { toast } = useToast();
   const router = useRouter();
+  const handleClose = useDrawerClose("/sales");
   const searchParams = useSearchParams();
   const params = useParams();
   const id = params.id as string;
@@ -166,10 +167,14 @@ export default function EditSalePage() {
           title: t("success"),
           description: t("update_sale_success"),
         });
-        router.push("/sales");
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event('sb:sales-refresh'));
+        }
+        router.refresh();
+        handleClose();
       }
     }
-  }, [state, t, toast, router]);
+  }, [state, t, toast, router, handleClose]);
 
   const handleDeleteConfirm = async () => {
     const result = await deleteSale(id);
@@ -208,23 +213,17 @@ export default function EditSalePage() {
       ? Math.round(Math.round(baseAmount * 100) * (selectedTaxRate / 100)) / 100
       : 0;
 
-  return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
-        <AppHeader />
-        <main className="p-4 lg:p-6">
+  const content = (
+    <main className="p-4 lg:p-6">
           <PageHeader
             title={t("edit_sale")}
             description={
               isFinalState ? t("update_sale_final_desc") : t("update_sale_desc")
             }
           >
-            <Button variant="outline" size="sm" asChild>
-              <Link href="/sales">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                {t("cancel")}
-              </Link>
+            <Button variant="outline" size="sm" onClick={handleClose}>
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              {t("cancel")}
             </Button>
           </PageHeader>
           <div className="mt-8">
@@ -472,7 +471,23 @@ export default function EditSalePage() {
             )}
           </div>
         </main>
+  );
+
+  if (!withShell) {
+    return content;
+  }
+
+  return (
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <AppHeader />
+        {content}
       </SidebarInset>
     </SidebarProvider>
   );
+}
+
+export function EditSaleContent() {
+  return <EditSalePage withShell={false} />;
 }

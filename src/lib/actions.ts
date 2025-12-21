@@ -90,7 +90,7 @@ export async function addBook(prevState: any, formData: FormData) {
   }
 
   revalidatePath('/inventory');
-  redirect('/inventory');
+  return { message: 'add_book_success', errors: {} };
 }
 
 export async function updateBook(id: string, prevState: any, formData: FormData) {
@@ -126,7 +126,7 @@ export async function updateBook(id: string, prevState: any, formData: FormData)
 
   revalidatePath('/inventory');
   revalidatePath(`/inventory/edit/${id}`);
-  redirect('/inventory');
+  return { message: 'update_book_success', errors: {} };
 }
 
 export async function deleteBook(id: string) {
@@ -260,7 +260,7 @@ export async function addSale(prevState: any, formData: FormData) {
 
   revalidatePath('/dashboard');
   revalidatePath('/sales');
-  redirect('/sales');
+  return { message: 'add_sale_success', errors: {} };
 }
 
 const updateSaleSchema = z.object({

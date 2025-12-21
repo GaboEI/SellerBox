@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from '@/components/settings/theme-provider';
@@ -8,8 +9,10 @@ import { Providers } from '@/components/providers'; // Import the new Providers 
 
 export default function RootLayout({
   children,
+  drawer,
 }: Readonly<{
   children: React.ReactNode;
+  drawer?: React.ReactNode;
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
@@ -27,8 +30,13 @@ export default function RootLayout({
         <Providers> { /* This now wraps everything */ }
           <I18nProvider>
             <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-              {children}
-              <Toaster />
+              {[
+                <React.Fragment key="page">{children}</React.Fragment>,
+                drawer ? (
+                  <React.Fragment key="drawer">{drawer}</React.Fragment>
+                ) : null,
+                <Toaster key="toaster" />,
+              ]}
             </ThemeProvider>
           </I18nProvider>
         </Providers>
