@@ -94,7 +94,7 @@ export async function deleteBook(userId: string, id: string): Promise<void> {
 export async function getSales(userId: string): Promise<Sale[]> {
   return prisma.sale.findMany({
     where: { userId },
-    orderBy: { date: 'desc' },
+    orderBy: [{ createdAt: 'desc' }, { date: 'desc' }],
   });
 }
 

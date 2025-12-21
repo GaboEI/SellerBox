@@ -24,8 +24,16 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { deleteSale } from '@/lib/actions';
+import { deleteSale, updateSaleTax } from '@/lib/actions';
 import { useRouter } from 'next/navigation';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 export type SaleWithBookData = Sale & {
   bookName: string;
@@ -49,10 +57,12 @@ function CellActions({
   row,
   isClient,
   t,
+  onSaleDelete,
 }: {
   row: any;
   isClient: boolean;
   t: TFunction;
+  onSaleDelete: (saleId: string) => void;
 }) {
   const sale = row.original as SaleWithBookData;
   const { toast } = useToast();
@@ -81,6 +91,7 @@ function CellActions({
     setOpen(false);
     setMasterKey('');
     toast({ title: t('success'), description: t('delete_sale_success') });
+    onSaleDelete(sale.id);
     router.refresh();
   };
 
@@ -132,6 +143,168 @@ function CellActions({
   );
 }
 
+function CellTaxEditable({
+  sale,
+  t,
+  onSaleUpdate,
+}: {
+  sale: SaleWithBookData;
+  t: TFunction;
+  onSaleUpdate: (saleId: string, updatedData: Partial<Sale>) => void;
+}) {
+  const { toast } = useToast();
+  const [open, setOpen] = React.useState(false);
+  const presets = [6, 10, 15, 20];
+  const initialRate =
+    typeof sale.taxRate === 'number' ? sale.taxRate : 6;
+  const isPreset = presets.includes(initialRate);
+  const [taxRateValue, setTaxRateValue] = React.useState<number>(
+    isPreset ? initialRate : -1
+  );
+  const [customTaxRate, setCustomTaxRate] = React.useState<string>(
+    isPreset ? '' : String(initialRate)
+  );
+  const [taxRateError, setTaxRateError] = React.useState<string>('');
+
+  if (sale.status !== 'completed' && sale.status !== 'sold_in_person') {
+    return <div className="text-center">-</div>;
+  }
+
+  if (typeof sale.saleAmount !== 'number') {
+    return <div className="text-center">-</div>;
+  }
+
+  const selectedRate =
+    taxRateValue === -1 ? Number(customTaxRate) : taxRateValue;
+  const isCustomRate = taxRateValue === -1;
+  const isRateValid =
+    !isCustomRate ||
+    (customTaxRate !== '' &&
+      !Number.isNaN(selectedRate) &&
+      selectedRate >= 0 &&
+      selectedRate <= 100);
+  const taxAmount = isRateValid
+    ? Math.round(Math.round(sale.saleAmount * 100) * (selectedRate / 100)) / 100
+    : 0;
+
+  const handleApply = async () => {
+    if (!isRateValid) {
+      setTaxRateError(t('tax_rate_invalid'));
+      return;
+    }
+    const result = await updateSaleTax(sale.id, selectedRate, taxAmount);
+    if (result?.error) {
+      toast({
+        title: t('error'),
+        description: t(result.error),
+        variant: 'destructive',
+      });
+      return;
+    }
+    onSaleUpdate(sale.id, {
+      taxRate: selectedRate,
+      taxAmount,
+    });
+    setOpen(false);
+  };
+
+  const formattedAmount = new Intl.NumberFormat('ru-RU', {
+    style: 'decimal',
+  }).format(
+    typeof sale.taxAmount === 'number' ? sale.taxAmount : taxAmount
+  );
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <div
+          className={cn(
+            'text-center font-bold text-[#ac0f36]',
+            'cursor-pointer select-none'
+          )}
+          title={t('double_click_to_edit')}
+          onDoubleClick={() => setOpen(true)}
+        >
+          {formattedAmount} ₽
+        </div>
+      </PopoverTrigger>
+      <PopoverContent className="w-56 space-y-2" align="center">
+        <div className="text-xs text-muted-foreground">
+          {t('taxes')}
+        </div>
+        <Select
+          value={String(taxRateValue)}
+          onValueChange={(value) => {
+            const parsed = Number(value);
+            setTaxRateValue(parsed);
+            if (parsed !== -1) {
+              setCustomTaxRate('');
+              setTaxRateError('');
+            }
+          }}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder={t('select_tax_rate')} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="6">6%</SelectItem>
+            <SelectItem value="10">10%</SelectItem>
+            <SelectItem value="15">15%</SelectItem>
+            <SelectItem value="20">20%</SelectItem>
+            <SelectItem value="-1">{t('custom')}</SelectItem>
+          </SelectContent>
+        </Select>
+        {isCustomRate && (
+          <div className="space-y-1">
+            <Input
+              type="number"
+              step="0.1"
+              min={0}
+              max={100}
+              placeholder="7.5"
+              value={customTaxRate}
+              onChange={(event) => {
+                const value = event.target.value;
+                setCustomTaxRate(value);
+                if (value === '') {
+                  setTaxRateError(t('tax_rate_invalid'));
+                  return;
+                }
+                const numeric = Number(value);
+                if (
+                  Number.isNaN(numeric) ||
+                  numeric < 0 ||
+                  numeric > 100
+                ) {
+                  setTaxRateError(t('tax_rate_invalid'));
+                } else {
+                  setTaxRateError('');
+                }
+              }}
+            />
+            {taxRateError && (
+              <p className="text-xs text-destructive">{taxRateError}</p>
+            )}
+          </div>
+        )}
+        <div className="flex items-center justify-end gap-2 pt-1">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => setOpen(false)}
+          >
+            {t('cancel')}
+          </Button>
+          <Button type="button" size="sm" onClick={handleApply}>
+            {t('apply')}
+          </Button>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 const formatDate = (date: Date, t: TFunction, isClient: boolean) => {
   if (!isClient) return '';
   if (isToday(date)) return t('today');
@@ -142,7 +315,8 @@ const formatDate = (date: Date, t: TFunction, isClient: boolean) => {
 export const getColumns = (
   isClient: boolean,
   t: TFunction,
-  onSaleUpdate: (saleId: string, updatedData: Partial<Sale>) => void
+  onSaleUpdate: (saleId: string, updatedData: Partial<Sale>) => void,
+  onSaleDelete: (saleId: string) => void
 ): ColumnDef<SaleWithBookData>[] => [
   {
     accessorKey: 'coverImageUrl',
@@ -299,27 +473,12 @@ export const getColumns = (
       </div>
     ),
     cell: ({ row }) => {
-      const sale = row.original;
-      if (sale.status !== 'completed' && sale.status !== 'sold_in_person') {
-        return <div className="text-center">-</div>;
-      }
-      const rate = typeof sale.taxRate === 'number' ? sale.taxRate : 6;
-      const amount =
-        typeof sale.taxAmount === 'number'
-          ? sale.taxAmount
-          : typeof sale.saleAmount === 'number'
-          ? Math.round(Math.round(sale.saleAmount * 100) * (rate / 100)) / 100
-          : undefined;
-      if (amount === undefined || amount === null) {
-        return <div className="text-center">-</div>;
-      }
-      const formattedAmount = new Intl.NumberFormat('ru-RU', {
-        style: 'decimal',
-      }).format(amount);
       return (
-        <div className="text-center font-bold text-[#ac0f36]">
-          {formattedAmount} ₽
-        </div>
+        <CellTaxEditable
+          sale={row.original}
+          t={t}
+          onSaleUpdate={onSaleUpdate}
+        />
       );
     },
   },
@@ -335,6 +494,7 @@ export const getColumns = (
         row={row}
         isClient={isClient}
         t={t}
+        onSaleDelete={onSaleDelete}
       />
     ),
   },

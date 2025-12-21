@@ -80,6 +80,10 @@ export default function AddSalePage() {
   const [currentStatus, setCurrentStatus] = useState<SaleStatus>(
     'in_preparation'
   );
+  const [saleAmountValue, setSaleAmountValue] = useState<string>('');
+  const [taxRateValue, setTaxRateValue] = useState<number>(6);
+  const [customTaxRate, setCustomTaxRate] = useState<string>('');
+  const [taxRateError, setTaxRateError] = useState<string>('');
   
   const defaultDate = format(new Date(), 'dd.MM.yy');
   const [selectedDate, setSelectedDate] = useState<Date>(() => new Date());
@@ -99,6 +103,20 @@ export default function AddSalePage() {
   const todayLabel = format(today, 'dd.MM.yyyy');
   const showSaleAmount =
     currentStatus === 'completed' || currentStatus === 'sold_in_person';
+  const selectedTaxRate =
+    taxRateValue === -1 ? Number(customTaxRate) : taxRateValue;
+  const isCustomRate = taxRateValue === -1;
+  const isRateValid =
+    !isCustomRate ||
+    (customTaxRate !== '' &&
+      !Number.isNaN(selectedTaxRate) &&
+      selectedTaxRate >= 0 &&
+      selectedTaxRate <= 100);
+  const baseAmount = Number(saleAmountValue);
+  const taxAmount =
+    !Number.isNaN(baseAmount) && isRateValid
+      ? Math.round(Math.round(baseAmount * 100) * (selectedTaxRate / 100)) / 100
+      : 0;
   const statusColorMap: Record<SaleStatus, string> = {
     in_preparation: 'bg-secondary',
     in_process: 'bg-yellow-500',
@@ -231,7 +249,7 @@ export default function AddSalePage() {
                             setDraftDate(date);
                             setAttemptedFutureDate(null);
                           }}
-                          onDayClick={(date: Date, modifiers) => {
+                          onDayClick={(date: Date) => {
                             if (date > today) {
                               setAttemptedFutureDate(date);
                               return;
@@ -341,7 +359,7 @@ export default function AddSalePage() {
                   <div className="space-y-2">
                     <Label htmlFor="status">{t('status')}</Label>
                     <Select
-                      defaultValue="in_preparation"
+                      value={currentStatus}
                       onValueChange={(value) =>
                         setCurrentStatus(value as SaleStatus)
                       }
@@ -408,6 +426,10 @@ export default function AddSalePage() {
                           placeholder="2499"
                           className="pr-8"
                           required
+                          value={saleAmountValue}
+                          onChange={(event) =>
+                            setSaleAmountValue(event.target.value)
+                          }
                         />
                         <span className="absolute inset-y-0 right-3 flex items-center text-muted-foreground">
                           ₽
@@ -418,6 +440,91 @@ export default function AddSalePage() {
                           {t(state.errors.saleAmount[0])}
                         </p>
                       )}
+                    </div>
+                  )}
+                  {showSaleAmount && (
+                    <div className="space-y-2">
+                      <Label htmlFor="taxRate">{t('taxes')}</Label>
+                      <Select
+                        value={String(taxRateValue)}
+                        onValueChange={(value) => {
+                          const parsed = Number(value);
+                          setTaxRateValue(parsed);
+                          if (parsed !== -1) {
+                            setCustomTaxRate('');
+                            setTaxRateError('');
+                          }
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder={t('select_tax_rate')} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="6">6%</SelectItem>
+                          <SelectItem value="10">10%</SelectItem>
+                          <SelectItem value="15">15%</SelectItem>
+                          <SelectItem value="20">20%</SelectItem>
+                          <SelectItem value="-1">{t('custom')}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {isCustomRate && (
+                        <div className="space-y-1">
+                          <Input
+                            id="taxRate"
+                            type="number"
+                            step="0.1"
+                            min={0}
+                            max={100}
+                            placeholder="7.5"
+                            value={customTaxRate}
+                            onChange={(event) => {
+                              const value = event.target.value;
+                              setCustomTaxRate(value);
+                              if (value === '') {
+                                setTaxRateError(t('tax_rate_invalid'));
+                                return;
+                              }
+                              const numeric = Number(value);
+                              if (
+                                Number.isNaN(numeric) ||
+                                numeric < 0 ||
+                                numeric > 100
+                              ) {
+                                setTaxRateError(t('tax_rate_invalid'));
+                              } else {
+                                setTaxRateError('');
+                              }
+                            }}
+                          />
+                          {taxRateError && (
+                            <p className="text-xs text-destructive">
+                              {taxRateError}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                      <div className="text-sm text-muted-foreground">
+                        {t('tax_amount_label')}{' '}
+                        <span className="font-semibold text-foreground">
+                          {taxAmount.toFixed(2)} ₽
+                        </span>
+                      </div>
+                      <input
+                        type="hidden"
+                        name="taxRate"
+                        value={
+                          isRateValid
+                            ? String(
+                                isCustomRate ? selectedTaxRate : taxRateValue
+                              )
+                            : ''
+                        }
+                      />
+                      <input
+                        type="hidden"
+                        name="taxAmount"
+                        value={isRateValid ? String(taxAmount) : ''}
+                      />
                     </div>
                   )}
 

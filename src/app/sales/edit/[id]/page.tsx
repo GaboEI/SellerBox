@@ -1,16 +1,22 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { useRouter, useParams, useSearchParams, redirect } from 'next/navigation';
-import Link from 'next/link';
-import { useFormState, useFormStatus } from 'react-dom';
-import { ArrowLeft, Trash2 } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
+import React, { useState, useEffect } from "react";
+import {
+  useRouter,
+  useParams,
+  useSearchParams,
+  redirect,
+} from "next/navigation";
+import Link from "next/link";
+import { useFormState, useFormStatus } from "react-dom";
+import { ArrowLeft, Trash2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import Image from "next/image";
 
-import { PageHeader } from '@/components/shared/page-header';
-import { AppSidebar } from '@/components/layout/sidebar';
-import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
-import { AppHeader } from '@/components/layout/header';
+import { PageHeader } from "@/components/shared/page-header";
+import { AppSidebar } from "@/components/layout/sidebar";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { AppHeader } from "@/components/layout/header";
 import {
   Card,
   CardContent,
@@ -18,19 +24,19 @@ import {
   CardHeader,
   CardTitle,
   CardFooter,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
+} from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -41,13 +47,18 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
-import { getSaleById, updateSale, deleteSale, getBookById } from '@/lib/actions';
-import type { Book, Sale, SaleStatus } from '@/lib/types';
-import { Skeleton } from '@/components/ui/skeleton';
+} from "@/components/ui/alert-dialog";
+import {
+  getSaleById,
+  updateSale,
+  deleteSale,
+  getBookById,
+} from "@/lib/actions";
+import type { Book, Sale, SaleStatus } from "@/lib/types";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const initialState = {
-  message: '',
+  message: "",
   errors: {},
 };
 
@@ -55,7 +66,7 @@ function SubmitButton({ isClient, t }: { isClient: boolean; t: any }) {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" disabled={pending}>
-      {pending ? t('saving') : t('save_changes')}
+      {pending ? t("saving") : t("save_changes")}
     </Button>
   );
 }
@@ -75,27 +86,30 @@ export default function EditSalePage() {
   const [currentStatus, setCurrentStatus] = useState<SaleStatus | undefined>(
     undefined
   );
-  const [saleAmountValue, setSaleAmountValue] = useState<string>('');
+  const [saleAmountValue, setSaleAmountValue] = useState<string>("");
   const [taxRateValue, setTaxRateValue] = useState<number>(6);
-  const [customTaxRate, setCustomTaxRate] = useState<string>('');
-  const [taxRateError, setTaxRateError] = useState<string>('');
-  const forcedStatus = searchParams.get('status') as SaleStatus | null;
+  const [customTaxRate, setCustomTaxRate] = useState<string>("");
+  const [taxRateError, setTaxRateError] = useState<string>("");
+  const forcedStatus = searchParams.get("status") as SaleStatus | null;
   const isForcedStatus =
-    forcedStatus === 'completed' || forcedStatus === 'sold_in_person';
+    forcedStatus === "completed" || forcedStatus === "sold_in_person";
   const statusVariantMap: Record<
     SaleStatus,
-    'default' | 'secondary' | 'destructive' | 'outline' | 'success' | 'warning'
+    "default" | "secondary" | "destructive" | "outline" | "success" | "warning"
   > = {
-    in_process: 'warning',
-    in_preparation: 'secondary',
-    shipped: 'outline',
-    sold_in_person: 'success',
-    completed: 'default',
-    canceled: 'destructive',
+    in_process: "warning",
+    in_preparation: "secondary",
+    shipped: "outline",
+    sold_in_person: "success",
+    completed: "default",
+    canceled: "destructive",
   };
 
   const updateSaleWithId = updateSale.bind(null, id);
-  const [state, formAction] = React.useActionState(updateSaleWithId, initialState);
+  const [state, formAction] = React.useActionState(
+    updateSaleWithId,
+    initialState
+  );
 
   useEffect(() => {
     setIsClient(true);
@@ -107,31 +121,31 @@ export default function EditSalePage() {
           setSale(fetchedSale);
           setCurrentStatus(isForcedStatus ? forcedStatus : fetchedSale.status);
           setSaleAmountValue(
-            typeof fetchedSale.saleAmount === 'number'
+            typeof fetchedSale.saleAmount === "number"
               ? String(fetchedSale.saleAmount)
-              : ''
+              : ""
           );
-          if (typeof fetchedSale.taxRate === 'number') {
+          if (typeof fetchedSale.taxRate === "number") {
             const presetRates = [6, 10, 15, 20];
             if (presetRates.includes(fetchedSale.taxRate)) {
               setTaxRateValue(fetchedSale.taxRate);
-              setCustomTaxRate('');
-              setTaxRateError('');
+              setCustomTaxRate("");
+              setTaxRateError("");
             } else {
               setTaxRateValue(-1);
               setCustomTaxRate(String(fetchedSale.taxRate));
-              setTaxRateError('');
+              setTaxRateError("");
             }
           } else {
             setTaxRateValue(6);
-            setCustomTaxRate('');
-            setTaxRateError('');
+            setCustomTaxRate("");
+            setTaxRateError("");
           }
           const fetchedBook = await getBookById(fetchedSale.bookId);
           setBook(fetchedBook ?? null);
         }
       } catch (error) {
-        console.error('Failed to fetch sale', error);
+        console.error("Failed to fetch sale", error);
       } finally {
         setLoading(false);
       }
@@ -143,44 +157,48 @@ export default function EditSalePage() {
     if (state.message) {
       if (Object.keys(state.errors).length > 0) {
         toast({
-          title: t('error'),
+          title: t("error"),
           description: t(state.message),
-          variant: 'destructive',
+          variant: "destructive",
         });
       } else {
         toast({
-          title: t('success'),
-          description: t('update_sale_success'),
+          title: t("success"),
+          description: t("update_sale_success"),
         });
-        router.push('/sales');
+        router.push("/sales");
       }
     }
   }, [state, t, toast, router]);
-  
+
   const handleDeleteConfirm = async () => {
     const result = await deleteSale(id);
     if (result && result.message) {
-        toast({ title: t('error'), description: t(result.message), variant: 'destructive'});
+      toast({
+        title: t("error"),
+        description: t(result.message),
+        variant: "destructive",
+      });
     } else {
-        toast({ title: t('success'), description: t('delete_sale_success')});
-        router.push('/sales');
+      toast({ title: t("success"), description: t("delete_sale_success") });
+      router.push("/sales");
     }
   };
 
   const isFinalState =
-    sale?.status === 'completed' ||
-    sale?.status === 'sold_in_person' ||
-    sale?.status === 'canceled';
+    sale?.status === "completed" ||
+    sale?.status === "sold_in_person" ||
+    sale?.status === "canceled";
 
   const showSaleAmount =
-    currentStatus === 'completed' || currentStatus === 'sold_in_person';
+    currentStatus === "completed" || currentStatus === "sold_in_person";
 
   const selectedTaxRate =
     taxRateValue === -1 ? Number(customTaxRate) : taxRateValue;
   const isCustomRate = taxRateValue === -1;
   const isRateValid =
     !isCustomRate ||
-    (customTaxRate !== '' &&
+    (customTaxRate !== "" &&
       !Number.isNaN(selectedTaxRate) &&
       selectedTaxRate >= 0 &&
       selectedTaxRate <= 100);
@@ -197,15 +215,15 @@ export default function EditSalePage() {
         <AppHeader />
         <main className="p-4 lg:p-6">
           <PageHeader
-            title={t('edit_sale')}
+            title={t("edit_sale")}
             description={
-              isFinalState ? t('update_sale_final_desc') : t('update_sale_desc')
+              isFinalState ? t("update_sale_final_desc") : t("update_sale_desc")
             }
           >
             <Button variant="outline" size="sm" asChild>
               <Link href="/sales">
                 <ArrowLeft className="mr-2 h-4 w-4" />
-                {t('cancel')}
+                {t("cancel")}
               </Link>
             </Button>
           </PageHeader>
@@ -217,90 +235,92 @@ export default function EditSalePage() {
                 <Card>
                   <CardContent className="p-6 space-y-6">
                     {book && (
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-12 w-9 flex-shrink-0 items-center justify-center rounded-sm border bg-muted text-xs font-bold text-muted-foreground">
+                      <div className="flex items-start gap-4">
+                        <div className="flex h-32 w-24 flex-shrink-0 items-center justify-center rounded-xl border bg-muted text-xs font-bold text-muted-foreground shadow-[0_10px_20px_rgba(0,0,0,0.22),inset_0_1px_0_rgba(255,255,255,0.35)]">
                           {book.coverImageUrl ? (
                             <Image
                               src={book.coverImageUrl}
                               alt={book.name}
-                              width={36}
-                              height={48}
-                              className="h-full w-full rounded-sm object-cover"
+                              width={96}
+                              height={128}
+                              className="h-full w-full rounded-xl object-cover"
                             />
                           ) : (
                             <span>?</span>
                           )}
                         </div>
-                        <div className="leading-tight">
-                          <div className="text-base font-semibold">
+                        <div className="space-y-1">
+                          <div className="text-base font-semibold leading-tight">
                             {book.name}
                           </div>
                           <div className="text-xs text-muted-foreground">
-                            {t('product_code')}: {book.code || '-'}
+                            {t("product_code")}: {book.code || "-"}
                           </div>
+                          {currentStatus && (
+                            <div className="pt-1">
+                              <div className="text-xs text-muted-foreground">
+                                {t("status")}
+                              </div>
+                              <Badge
+                                variant={statusVariantMap[currentStatus]}
+                                className="mt-1 w-fit capitalize"
+                              >
+                                {t(currentStatus)}
+                              </Badge>
+                            </div>
+                          )}
+                          {isForcedStatus && forcedStatus && (
+                            <input
+                              type="hidden"
+                              name="status"
+                              value={forcedStatus}
+                            />
+                          )}
                         </div>
                       </div>
                     )}
-                    <div className="space-y-2">
-                      <Label htmlFor="status">
-                        {t('status')}
-                    </Label>
-                    {isForcedStatus && forcedStatus ? (
-                      <div className="flex items-center">
-                        <Badge
-                          variant={statusVariantMap[forcedStatus]}
-                          className="capitalize"
-                        >
-                          {t(forcedStatus)}
-                        </Badge>
-                        <input
-                          type="hidden"
+                    {!isForcedStatus && (
+                      <div className="space-y-2">
+                        <Label htmlFor="status">{t("status")}</Label>
+                        <Select
                           name="status"
-                          value={forcedStatus}
-                        />
+                          defaultValue={sale.status}
+                          onValueChange={(value) =>
+                            setCurrentStatus(value as SaleStatus)
+                          }
+                          disabled={isFinalState}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder={t("select_status")} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {(
+                              [
+                                "in_preparation",
+                                "in_process",
+                                "shipped",
+                                "sold_in_person",
+                                "completed",
+                                "canceled",
+                              ] as SaleStatus[]
+                            ).map((status) => (
+                              <SelectItem
+                                key={status}
+                                value={status}
+                                className="capitalize"
+                              >
+                                {t(status)}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
-                    ) : (
-                      <Select
-                        name="status"
-                        defaultValue={sale.status}
-                        onValueChange={(value) =>
-                          setCurrentStatus(value as SaleStatus)
-                        }
-                        disabled={isFinalState}
-                      >
-                        <SelectTrigger>
-                          <SelectValue
-                            placeholder={t('select_status')}
-                          />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {(
-                            [
-                              'in_preparation',
-                              'in_process',
-                              'shipped',
-                              'sold_in_person',
-                              'completed',
-                              'canceled',
-                            ] as SaleStatus[]
-                          ).map((status) => (
-                            <SelectItem
-                              key={status}
-                              value={status}
-                              className="capitalize"
-                            >
-                              {t(status)}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
                     )}
-                  </div>
 
                     {showSaleAmount && (
                       <div className="space-y-2">
                         <Label htmlFor="saleAmount">
-                          {t('sale_amount_header')}
+                          {t("sale_amount_header")}
                         </Label>
                         <div className="relative">
                           <Input
@@ -326,7 +346,7 @@ export default function EditSalePage() {
 
                     {showSaleAmount && (
                       <div className="space-y-2">
-                        <Label htmlFor="taxRate">{t('taxes')}</Label>
+                        <Label htmlFor="taxRate">{t("taxes")}</Label>
                         <Select
                           name="taxRatePreset"
                           value={String(taxRateValue)}
@@ -334,21 +354,21 @@ export default function EditSalePage() {
                             const parsed = Number(value);
                             setTaxRateValue(parsed);
                             if (parsed !== -1) {
-                              setCustomTaxRate('');
-                              setTaxRateError('');
+                              setCustomTaxRate("");
+                              setTaxRateError("");
                             }
                           }}
                           disabled={isFinalState}
                         >
                           <SelectTrigger>
-                            <SelectValue placeholder={t('select_tax_rate')} />
+                            <SelectValue placeholder={t("select_tax_rate")} />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="6">6%</SelectItem>
                             <SelectItem value="10">10%</SelectItem>
                             <SelectItem value="15">15%</SelectItem>
                             <SelectItem value="20">20%</SelectItem>
-                            <SelectItem value="-1">{t('custom')}</SelectItem>
+                            <SelectItem value="-1">{t("custom")}</SelectItem>
                           </SelectContent>
                         </Select>
                         {isCustomRate && (
@@ -364,8 +384,8 @@ export default function EditSalePage() {
                               onChange={(event) => {
                                 const value = event.target.value;
                                 setCustomTaxRate(value);
-                                if (value === '') {
-                                  setTaxRateError(t('tax_rate_invalid'));
+                                if (value === "") {
+                                  setTaxRateError(t("tax_rate_invalid"));
                                   return;
                                 }
                                 const numeric = Number(value);
@@ -374,9 +394,9 @@ export default function EditSalePage() {
                                   numeric < 0 ||
                                   numeric > 100
                                 ) {
-                                  setTaxRateError(t('tax_rate_invalid'));
+                                  setTaxRateError(t("tax_rate_invalid"));
                                 } else {
-                                  setTaxRateError('');
+                                  setTaxRateError("");
                                 }
                               }}
                               disabled={isFinalState}
@@ -389,7 +409,7 @@ export default function EditSalePage() {
                           </div>
                         )}
                         <div className="text-sm text-muted-foreground">
-                          {t('tax_amount_label')}{' '}
+                          {t("tax_amount_label")}{" "}
                           <span className="font-semibold text-foreground">
                             {taxAmount.toFixed(2)} ₽
                           </span>
@@ -402,13 +422,13 @@ export default function EditSalePage() {
                               ? String(
                                   isCustomRate ? selectedTaxRate : taxRateValue
                                 )
-                              : ''
+                              : ""
                           }
                         />
                         <input
                           type="hidden"
                           name="taxAmount"
-                          value={isRateValid ? String(taxAmount) : ''}
+                          value={isRateValid ? String(taxAmount) : ""}
                         />
                       </div>
                     )}
@@ -416,32 +436,39 @@ export default function EditSalePage() {
                   {!isFinalState && (
                     <CardFooter className="justify-between">
                       <SubmitButton isClient={isClient} t={t} />
-                       <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="destructive" type="button">
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              {t('delete_sale')}
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>{t('are_you_sure_delete')}</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                {t('delete_sale_warning_simple')}
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
-                              <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive hover:bg-destructive/90">{t('delete')}</AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="destructive" type="button">
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            {t("delete_sale")}
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>
+                              {t("are_you_sure_delete")}
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                              {t("delete_sale_warning_simple")}
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={handleDeleteConfirm}
+                              className="bg-destructive hover:bg-destructive/90"
+                            >
+                              {t("delete")}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </CardFooter>
                   )}
                 </Card>
               </form>
             ) : (
-              <p>{t('sale_not_found')}</p>
+              <p>{t("sale_not_found")}</p>
             )}
           </div>
         </main>

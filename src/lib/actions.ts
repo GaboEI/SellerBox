@@ -161,6 +161,14 @@ const saleSchema = z.object({
       (value) => (value === null || value === '' ? undefined : value),
       z.coerce.number().optional()
     ),
+  taxRate: z.preprocess(
+    (value) => (value === null || value === '' ? undefined : value),
+    z.coerce.number().min(0).max(100).optional()
+  ),
+  taxAmount: z.preprocess(
+    (value) => (value === null || value === '' ? undefined : value),
+    z.coerce.number().min(0).optional()
+  ),
 });
 
 export async function addSale(prevState: any, formData: FormData) {
@@ -170,6 +178,8 @@ export async function addSale(prevState: any, formData: FormData) {
     platform: formData.get('platform'),
     status: formData.get('status'),
     saleAmount: formData.get('saleAmount'),
+    taxRate: formData.get('taxRate'),
+    taxAmount: formData.get('taxAmount'),
   });
 
   if (!validatedFields.success) {
@@ -210,7 +220,9 @@ export async function addSale(prevState: any, formData: FormData) {
     validatedFields.data.status ??
     ('in_preparation' as SaleStatus);
   const finalStatuses: SaleStatus[] = ['completed', 'sold_in_person'];
-  const taxRate = finalStatuses.includes(status) ? 6 : undefined;
+  const taxRate = finalStatuses.includes(status)
+    ? validatedFields.data.taxRate ?? 6
+    : undefined;
   const taxAmount =
     finalStatuses.includes(status) &&
     typeof validatedFields.data.saleAmount === 'number'
@@ -314,6 +326,35 @@ export async function deleteSale(id: string) {
     }
     revalidatePath('/dashboard');
     revalidatePath('/sales');
+}
+
+const updateSaleTaxSchema = z.object({
+  taxRate: z.number().min(0).max(100),
+  taxAmount: z.number().min(0),
+});
+
+export async function updateSaleTax(
+  id: string,
+  taxRate: number,
+  taxAmount: number
+) {
+  const validatedFields = updateSaleTaxSchema.safeParse({ taxRate, taxAmount });
+  if (!validatedFields.success) {
+    return { error: 'check_fields_error' };
+  }
+
+  const userId = await requireUserId();
+  try {
+    await dbUpdateSale(userId, id, {
+      taxRate: validatedFields.data.taxRate,
+      taxAmount: validatedFields.data.taxAmount,
+    });
+  } catch (e) {
+    return { error: 'failed_to_update_sale' };
+  }
+
+  revalidatePath('/dashboard');
+  revalidatePath('/sales');
 }
 
 const updateSaleStatusSchema = z.object({

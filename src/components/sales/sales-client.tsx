@@ -47,6 +47,9 @@ export function SalesClient({
         )
     );
   };
+  const handleSaleDelete = (saleId: string) => {
+    setSales(currentSales => currentSales.filter(sale => sale.id !== saleId));
+  };
 
 
   const bookMap = React.useMemo(
@@ -75,7 +78,7 @@ export function SalesClient({
   }, [sales, bookMap, filter, t]);
 
   const tableColumns = React.useMemo(
-    () => getColumns(isClient, t, handleSaleUpdate),
+    () => getColumns(isClient, t, handleSaleUpdate, handleSaleDelete),
     [isClient, t]
   );
 
